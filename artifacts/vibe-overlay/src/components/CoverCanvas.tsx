@@ -273,33 +273,34 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
           />
           <div
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: warmAccent,
-              opacity: 0.7,
-            }}
-          />
-          <div
-            style={{
-              fontSize: 13,
-              color: `${mutedText}60`,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              fontWeight: 500,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#E62117",
+              borderRadius: 999,
+              padding: "0 14px",
+              height: 32,
             }}
           >
-            LIVE
+            <div
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.9)",
+              }}
+            />
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#fff",
+                letterSpacing: "0.08em",
+              }}
+            >
+              LIVE
+            </span>
           </div>
-          <div
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: warmAccent,
-              opacity: 0.7,
-            }}
-          />
           <div
             style={{
               width: 120,
