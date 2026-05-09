@@ -1,41 +1,56 @@
 import { forwardRef } from "react";
 import { OverlayState } from "../types";
+import { fontFamilies, typography } from "../lib/typography";
 
 interface PosterCanvasProps {
   state: OverlayState;
 }
 
+/* ── Editorial palette (shared with CoverCanvas) ─────────────── */
+const E = {
+  bg1: "#0B1020",
+  bg2: "#111827",
+  text: "#F5F5F2",
+  muted: "#C7C9D1",
+  subtle: "#5A6178",
+  accent: "#DA7756",
+  glassBorder: "rgba(255, 255, 255, 0.06)",
+} as const;
+
 const AVATAR_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
   <defs>
     <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B4FD8"/>
-      <stop offset="100%" stop-color="#7C3AED"/>
+      <stop offset="0%" stop-color="#1E2438"/>
+      <stop offset="100%" stop-color="#2A3350"/>
     </linearGradient>
   </defs>
   <circle cx="100" cy="100" r="100" fill="url(#g)"/>
   <text x="100" y="118" text-anchor="middle" font-family="system-ui,sans-serif"
-    font-size="68" font-weight="700" fill="rgba(255,255,255,0.9)">VC</text>
+    font-size="56" font-weight="500" fill="rgba(245,245,242,0.5)">VC</text>
 </svg>
 `)}`;
 
 const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
   ({ state }, ref) => {
-    const { cover, colors } = state;
-    const {
-      bgDark,
-      bgPanel,
-      borderColor,
-      textColor,
-      mutedText,
-      cyanAccent,
-      pinkAccent,
-      warmAccent,
-    } = colors;
+    const { cover } = state;
 
     const avatarSrc = cover.avatarUrl || AVATAR_PLACEHOLDER;
     const hasOptionalContent =
-      cover.manifestoVisible || cover.hookVisible || cover.closingVisible;
+      cover.manifestoVisible || cover.closingVisible;
+
+    // Large-card label baseline for the Poster social footer.
+    const labelBase = {
+      fontSize: 14,
+      fontWeight: 600,
+      borderRadius: 5,
+      padding: "4px 12px",
+      flexShrink: 0,
+      minWidth: 64,
+      textAlign: "left" as const,
+      boxSizing: "border-box" as const,
+      letterSpacing: "0.04em",
+    };
 
     return (
       <div
@@ -45,9 +60,8 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
           width: 1920,
           height: 1080,
           position: "relative",
-          background: bgDark,
-          fontFamily:
-            '-apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif',
+          background: `linear-gradient(170deg, ${E.bg2} 0%, ${E.bg1} 55%, #0A0E1A 100%)`,
+          fontFamily: fontFamilies.sans,
           overflow: "hidden",
           flexShrink: 0,
         }}
@@ -58,35 +72,154 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             position: "absolute",
             inset: 0,
             backgroundImage: `
-              linear-gradient(${borderColor}06 1px, transparent 1px),
-              linear-gradient(90deg, ${borderColor}06 1px, transparent 1px)
+              linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)
             `,
-            backgroundSize: "80px 80px",
+            backgroundSize: "128px 128px",
             pointerEvents: "none",
           }}
         />
 
-        {/* Left-biased radial glow */}
+        {/* Left-biased radial glow behind title */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: `radial-gradient(ellipse 80% 90% at 35% 50%, ${bgPanel}F0 0%, transparent 65%)`,
+            background: `radial-gradient(ellipse 80% 90% at 35% 50%, ${E.bg2}F0 0%, transparent 65%)`,
             pointerEvents: "none",
           }}
         />
 
-        {/* Right glow behind avatar */}
+        {/* Warm accent glow behind avatar */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: `radial-gradient(ellipse 55% 65% at 80% 45%, ${borderColor}0A 0%, transparent 60%)`,
+            background: `radial-gradient(ellipse 50% 60% at 78% 48%, ${E.accent}12 0%, transparent 65%)`,
             pointerEvents: "none",
           }}
         />
 
-        {/* Top accent bar */}
+        {/* ── Ghost UI corners ── */}
+
+        {/* Top-left: terminal window */}
+        <div
+          style={{
+            position: "absolute",
+            top: 96,
+            left: 96,
+            width: 320,
+            height: 180,
+            borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.022)",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            style={{
+              height: 26,
+              borderBottom: "1px solid rgba(255,255,255,0.05)",
+              display: "flex",
+              alignItems: "center",
+              padding: "0 12px",
+              gap: 6,
+            }}
+          >
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.10)",
+                }}
+              />
+            ))}
+          </div>
+          {[80, 55, 70, 40, 65].map((w, i) => (
+            <div
+              key={i}
+              style={{
+                margin: "10px 16px 0",
+                height: 3,
+                width: `${w}%`,
+                background: "rgba(255,255,255,0.06)",
+                borderRadius: 2,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Bottom-left: commit graph */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 110,
+            left: 120,
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+            pointerEvents: "none",
+          }}
+        >
+          {[180, 140, 200, 120, 160].map((w, i) => (
+            <div
+              key={i}
+              style={{ display: "flex", alignItems: "center", gap: 12 }}
+            >
+              <div
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background:
+                    i === 0 ? `${E.accent}55` : "rgba(255,255,255,0.10)",
+                  flexShrink: 0,
+                }}
+              />
+              <div
+                style={{
+                  height: 2,
+                  width: w,
+                  background: "rgba(255,255,255,0.06)",
+                  borderRadius: 1,
+                }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Top-right: chat panel */}
+        <div
+          style={{
+            position: "absolute",
+            top: 96,
+            right: 96,
+            width: 280,
+            height: 180,
+            borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.02)",
+            pointerEvents: "none",
+          }}
+        >
+          {[60, 45, 75, 50].map((w, i) => (
+            <div
+              key={i}
+              style={{
+                margin: `${i === 0 ? 18 : 14}px ${i % 2 === 0 ? "auto" : "16px"} 0 ${i % 2 === 0 ? "16px" : "auto"}`,
+                height: 14,
+                width: `${w}%`,
+                background: "rgba(255,255,255,0.05)",
+                borderRadius: 7,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Top accent bar (paired with bottom) */}
         <div
           style={{
             position: "absolute",
@@ -94,44 +227,31 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             left: 0,
             right: 0,
             height: 3,
-            background: `linear-gradient(90deg, ${cyanAccent}50 0%, ${borderColor}90 45%, ${pinkAccent}50 80%, transparent 100%)`,
+            background: `linear-gradient(90deg, transparent 15%, ${E.accent}55 50%, transparent 85%)`,
           }}
         />
 
-        {/* Corner marks */}
-        {[
-          { top: 48, left: 48, borderTop: true, borderLeft: true } as Record<string, number | boolean>,
-          { top: 48, right: 48, borderTop: true, borderRight: true },
-          { bottom: 48, left: 48, borderBottom: true, borderLeft: true },
-          { bottom: 48, right: 48, borderBottom: true, borderRight: true },
-        ].map((c, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              top: c.top as number | undefined,
-              left: c.left as number | undefined,
-              bottom: c.bottom as number | undefined,
-              right: c.right as number | undefined,
-              width: 56,
-              height: 56,
-              borderTop: c.borderTop ? `1.5px solid ${borderColor}28` : undefined,
-              borderBottom: c.borderBottom ? `1.5px solid ${borderColor}28` : undefined,
-              borderLeft: c.borderLeft ? `1.5px solid ${borderColor}28` : undefined,
-              borderRight: c.borderRight ? `1.5px solid ${borderColor}28` : undefined,
-            }}
-          />
-        ))}
+        {/* Bottom accent bar (mirrored) */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            background: `linear-gradient(90deg, transparent 15%, ${E.accent}55 50%, transparent 85%)`,
+          }}
+        />
 
         {/* Vertical column divider */}
         <div
           style={{
             position: "absolute",
-            top: 140,
-            bottom: 140,
+            top: 200,
+            bottom: 200,
             left: 1120,
             width: 1,
-            background: `linear-gradient(180deg, transparent, ${borderColor}20 30%, ${borderColor}30 50%, ${borderColor}20 70%, transparent)`,
+            background: `linear-gradient(180deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 70%, transparent)`,
           }}
         />
 
@@ -162,35 +282,35 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
               { src: "/icons/claude.svg", alt: "Claude", label: cover.badge1 },
               { src: "/icons/codex.svg", alt: "Codex", label: cover.badge2 },
             ].map((badge, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 9 }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 {i > 0 && (
-                  <span style={{ color: `${borderColor}28`, fontSize: 15, marginRight: 2 }}>
+                  <span style={{ color: "rgba(255,255,255,0.22)", fontSize: 15, marginRight: 2 }}>
                     ×
                   </span>
                 )}
                 <div
                   style={{
-                    width: 38,
-                    height: 38,
-                    background: `${bgPanel}BB`,
-                    border: `1px solid ${borderColor}22`,
+                    width: 40,
+                    height: 40,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
                     borderRadius: 8,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: 5,
+                    padding: 6,
                   }}
                 >
                   <img
                     src={badge.src}
                     alt={badge.alt}
-                    style={{ width: 28, height: 28, objectFit: "contain" }}
+                    style={{ width: 28, height: 28, objectFit: "contain", opacity: 0.85 }}
                   />
                 </div>
                 <span
                   style={{
-                    fontSize: 12,
-                    color: `${mutedText}50`,
+                    fontSize: 14,
+                    color: E.muted,
                     fontWeight: 500,
                     letterSpacing: "0.04em",
                   }}
@@ -203,8 +323,8 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             <div
               style={{
                 width: 1,
-                height: 20,
-                background: `${borderColor}18`,
+                height: 22,
+                background: "rgba(255,255,255,0.12)",
                 margin: "0 2px",
               }}
             />
@@ -226,7 +346,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                   width: 5,
                   height: 5,
                   borderRadius: "50%",
-                  background: "rgba(255,255,255,0.9)",
+                  background: "rgba(255,255,255,0.95)",
                 }}
               />
               <span
@@ -234,7 +354,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                   fontSize: 11,
                   fontWeight: 700,
                   color: "#fff",
-                  letterSpacing: "0.1em",
+                  letterSpacing: "0.12em",
                 }}
               >
                 LIVE
@@ -242,13 +362,28 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             </div>
           </div>
 
-          {/* Main title */}
+          {/* Eyebrow — hookText */}
+          {cover.hookVisible && cover.hookText && (
+            <div
+              style={{
+                ...typography.eyebrow,
+                color: E.subtle,
+                letterSpacing: "0.18em",
+                marginBottom: 18,
+              }}
+            >
+              {cover.hookText}
+            </div>
+          )}
+
+          {/* Main title — serif, editorial */}
           <h1
             style={{
-              fontSize: hasOptionalContent ? 86 : 96,
-              fontWeight: 700,
-              color: textColor,
-              letterSpacing: "-0.03em",
+              fontFamily: fontFamilies.serif,
+              fontSize: hasOptionalContent ? 88 : 96,
+              fontWeight: 600,
+              color: E.text,
+              letterSpacing: "-0.015em",
               lineHeight: 1.05,
               margin: 0,
               marginBottom: 40,
@@ -257,37 +392,38 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             {cover.title}
           </h1>
 
-          {/* Today's topic card — always visible */}
+          {/* Today's topic card */}
           <div
             style={{
-              background: `${bgPanel}D0`,
-              border: `1px solid ${borderColor}20`,
+              background: "rgba(17, 24, 39, 0.85)",
+              border: `1px solid ${E.glassBorder}`,
+              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
               borderRadius: 14,
-              padding: "22px 28px",
+              padding: "20px 32px 22px",
               position: "relative",
-              overflow: "hidden",
               marginBottom: hasOptionalContent ? 36 : 0,
+              maxWidth: 720,
             }}
           >
             <div
               style={{
                 position: "absolute",
                 top: 0,
-                left: 0,
-                right: 0,
-                height: 2,
-                background: `linear-gradient(90deg, ${warmAccent}70, ${cyanAccent}40, transparent)`,
+                left: 32,
+                width: 60,
+                height: 1.5,
+                background: `${E.accent}80`,
+                borderRadius: 1,
               }}
             />
             <div
               style={{
                 fontSize: 11,
-                fontWeight: 600,
-                color: warmAccent,
-                letterSpacing: "0.12em",
+                fontWeight: 500,
+                color: E.subtle,
+                letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 marginBottom: 10,
-                opacity: 0.9,
               }}
             >
               {cover.todayLabel}
@@ -295,37 +431,37 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             <div
               style={{
                 fontSize: 30,
-                fontWeight: 700,
-                color: textColor,
+                fontWeight: 500,
+                color: E.text,
                 lineHeight: 1.3,
-                letterSpacing: "-0.01em",
+                letterSpacing: "0.01em",
               }}
             >
               {cover.todayTopic}
             </div>
           </div>
 
-          {/* ── Optional section divider ── */}
+          {/* Optional section divider */}
           {hasOptionalContent && (
             <div
               style={{
                 width: 36,
                 height: 1.5,
-                background: `linear-gradient(90deg, ${borderColor}45, transparent)`,
+                background: `linear-gradient(90deg, ${E.accent}55, transparent)`,
                 marginBottom: 28,
                 borderRadius: 1,
               }}
             />
           )}
 
-          {/* Manifesto — optional */}
+          {/* Manifesto — optional, serif (matches main title family) */}
           {cover.manifestoVisible && (
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: 3,
-                marginBottom: cover.hookVisible || cover.closingVisible ? 28 : 0,
+                marginBottom: cover.closingVisible ? 28 : 0,
               }}
             >
               {[cover.manifestoLine1, cover.manifestoLine2, cover.manifestoLine3].map(
@@ -333,12 +469,12 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                   <div
                     key={i}
                     style={{
-                      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+                      fontFamily: fontFamilies.serif,
                       fontSize: 48,
-                      lineHeight: 1,
-                      fontWeight: 800,
-                      letterSpacing: "-0.02em",
-                      color: textColor,
+                      lineHeight: 1.05,
+                      fontWeight: 600,
+                      letterSpacing: "-0.015em",
+                      color: E.text,
                     }}
                   >
                     {line}
@@ -348,51 +484,35 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             </div>
           )}
 
-          {/* Hook text — optional */}
-          {cover.hookVisible && cover.hookText && (
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 600,
-                color: cyanAccent,
-                letterSpacing: "0.01em",
-                marginBottom: cover.closingVisible ? 16 : 0,
-                opacity: 0.9,
-              }}
-            >
-              {cover.hookText}
-            </div>
-          )}
-
           {/* Closing sentence — optional */}
           {cover.closingVisible && (
             <div
               style={{
                 fontSize: 20,
-                color: mutedText,
+                color: E.muted,
                 display: "flex",
                 alignItems: "baseline",
                 flexWrap: "wrap",
                 gap: "0 6px",
                 lineHeight: 1.6,
-                opacity: 0.85,
+                opacity: 0.9,
               }}
             >
               <span>{cover.closingPrefix}</span>
               <span
                 style={{
                   textDecoration: "line-through",
-                  textDecorationColor: pinkAccent,
+                  textDecorationColor: `${E.accent}80`,
                   textDecorationThickness: 2,
-                  color: "#9CA3AF",
+                  color: E.subtle,
                 }}
               >
                 {cover.closingStruck}
               </span>
-              <span style={{ color: warmAccent, fontWeight: 600 }}>
+              <span style={{ color: E.accent, fontWeight: 600 }}>
                 {cover.closingHighlight}
               </span>
-              <span style={{ color: `${mutedText}55` }}>{cover.closingSuffix}</span>
+              <span style={{ color: `${E.muted}80` }}>{cover.closingSuffix}</span>
             </div>
           )}
         </div>
@@ -412,25 +532,16 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             gap: 40,
           }}
         >
-          {/* Avatar */}
+          {/* Avatar — editorial, simple inner hairline ring (no conic gradient) */}
           {cover.avatarVisible && (
             <div style={{ position: "relative", flexShrink: 0 }}>
               <div
                 style={{
                   position: "absolute",
-                  inset: -8,
+                  inset: -4,
                   borderRadius: "50%",
-                  background: `conic-gradient(from 180deg, ${borderColor}45, ${cyanAccent}35, ${pinkAccent}25, ${borderColor}45)`,
+                  border: "1px solid rgba(255,255,255,0.08)",
                   zIndex: 0,
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  inset: -3,
-                  borderRadius: "50%",
-                  background: bgDark,
-                  zIndex: 1,
                 }}
               />
               <img
@@ -438,12 +549,28 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                 alt="Avatar"
                 style={{
                   position: "relative",
-                  zIndex: 2,
+                  zIndex: 1,
                   width: 260,
                   height: 260,
                   borderRadius: "50%",
                   objectFit: "cover",
                   display: "block",
+                }}
+              />
+              {/* Faint screen-light reflection */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 180,
+                  height: 52,
+                  background:
+                    "radial-gradient(ellipse at center bottom, rgba(255,255,255,0.05), transparent 80%)",
+                  borderRadius: "50%",
+                  zIndex: 2,
+                  pointerEvents: "none",
                 }}
               />
             </div>
@@ -458,71 +585,59 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                 gap: 16,
                 alignItems: "stretch",
                 padding: "28px 36px",
-                background: `${bgPanel}A0`,
-                border: `1px solid ${borderColor}22`,
+                background: "rgba(17, 24, 39, 0.78)",
+                border: `1px solid ${E.glassBorder}`,
+                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
                 borderRadius: 14,
                 minWidth: 340,
               }}
             >
-              {/* Title */}
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: 600,
-                  letterSpacing: "0.1em",
+                  letterSpacing: "0.18em",
                   textTransform: "uppercase",
-                  color: pinkAccent,
+                  color: E.subtle,
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
                   marginBottom: 4,
                 }}
               >
-                <div style={{ width: 4, height: 14, borderRadius: 2, background: pinkAccent, flexShrink: 0 }} />
-                关注我
+                <div style={{ width: 3, height: 12, borderRadius: 2, background: E.accent, flexShrink: 0 }} />
+                Follow me
               </div>
               {cover.socialBilibili && (
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", background: "#E62117", borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>B站</span>
-                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBilibili}</span>
+                  <span style={{ ...labelBase, color: "#fff", background: "#E62117" }}>B站</span>
+                  <span style={{ fontSize: 20, color: E.text, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBilibili}</span>
                 </div>
               )}
               {cover.socialBlog && (
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: cyanAccent, background: `${cyanAccent}18`, border: `1px solid ${cyanAccent}40`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>博客</span>
-                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBlog}</span>
+                  <span style={{ ...labelBase, color: E.text, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>博客</span>
+                  <span style={{ fontSize: 20, color: E.text, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBlog}</span>
                 </div>
               )}
               {cover.socialGithub && (
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: mutedText, background: `${borderColor}15`, border: `1px solid ${borderColor}30`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>GitHub</span>
-                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialGithub}</span>
+                  <span style={{ ...labelBase, color: E.muted, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)" }}>GitHub</span>
+                  <span style={{ fontSize: 20, color: E.text, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialGithub}</span>
                 </div>
               )}
               {cover.socialQQ && (
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: warmAccent, background: `${warmAccent}15`, border: `1px solid ${warmAccent}35`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>QQ群</span>
-                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialQQ}</span>
+                  <span style={{ ...labelBase, color: E.accent, background: `${E.accent}18`, border: `1px solid ${E.accent}40` }}>QQ群</span>
+                  <span style={{ fontSize: 20, color: E.text, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialQQ}</span>
                 </div>
               )}
             </div>
           )}
         </div>
-
-        {/* Bottom accent line */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 2,
-            background: `linear-gradient(90deg, transparent 0%, ${cyanAccent}30 25%, ${borderColor}55 50%, ${pinkAccent}20 75%, transparent 100%)`,
-          }}
-        />
       </div>
     );
-  }
+  },
 );
 
 PosterCanvas.displayName = "PosterCanvas";
