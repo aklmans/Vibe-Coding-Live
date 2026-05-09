@@ -1,3 +1,5 @@
+import { NEON_PRESET, type ColorTokens, type ThemeMode } from "./lib/theme";
+
 export interface OverlayState {
   sidebar: {
     visible: boolean;
@@ -44,16 +46,8 @@ export interface OverlayState {
     socialGithub: string;
     socialQQ: string;
   };
-  colors: {
-    bgDark: string;
-    bgPanel: string;
-    borderColor: string;
-    textColor: string;
-    mutedText: string;
-    cyanAccent: string;
-    pinkAccent: string;
-    warmAccent: string;
-  };
+  colors: ColorTokens;
+  theme: ThemeMode;
   activeTab: "overlay" | "cover" | "poster";
 }
 
@@ -119,14 +113,8 @@ export const DEFAULT_STATE: OverlayState = {
     socialQQ: "",
   },
   colors: {
-    bgDark: "#10111D",
-    bgPanel: "#191A2A",
-    borderColor: "#8DA8FF",
-    textColor: "#F4F7FF",
-    mutedText: "#C7D2FE",
-    cyanAccent: "#7DD3FC",
-    pinkAccent: "#FF6FAE",
-    warmAccent: "#FFB86B",
+    ...NEON_PRESET,
   },
+  theme: "neon",
   activeTab: "overlay",
 };

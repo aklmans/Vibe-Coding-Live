@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { OverlayState } from "../types";
+import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
 
 interface EditorPanelProps {
   state: OverlayState;
@@ -265,6 +266,14 @@ export default function EditorPanel({
     onChange({ ...state, colors: { ...state.colors, [key]: value } });
   };
 
+  const applyTheme = (mode: ThemeMode) => {
+    onChange({
+      ...state,
+      theme: mode,
+      colors: { ...THEME_PRESETS[mode] },
+    });
+  };
+
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -313,12 +322,50 @@ export default function EditorPanel({
       </div>
 
       <div style={{ padding: "0 16px", flex: 1 }}>
-        {/* Tabs */}
+        {/* Theme Switcher */}
         <div
           style={{
             display: "flex",
             gap: 4,
             marginTop: 16,
+            background: "#0F1122",
+            padding: 3,
+            borderRadius: 8,
+            border: "1px solid #1F2235",
+          }}
+        >
+          {(["neon", "editorial"] as const).map((mode) => (
+            <button
+              key={mode}
+              data-testid={`theme-${mode}`}
+              onClick={() => applyTheme(mode)}
+              style={{
+                flex: 1,
+                padding: "6px 0",
+                background: state.theme === mode ? "#1F2235" : "transparent",
+                border: "none",
+                borderRadius: 6,
+                fontSize: 11,
+                fontWeight: 500,
+                color: state.theme === mode ? "#F4F7FF" : "#6B7CA8",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                transition: "all 0.15s",
+              }}
+            >
+              {mode === "neon" ? "Neon" : "Editorial"}
+            </button>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div
+          style={{
+            display: "flex",
+            gap: 4,
+            marginTop: 8,
             background: "#0F1122",
             padding: 3,
             borderRadius: 8,

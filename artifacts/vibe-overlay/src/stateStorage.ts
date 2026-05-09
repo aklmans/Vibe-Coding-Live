@@ -1,4 +1,5 @@
 import { DEFAULT_STATE, type OverlayState } from "./types";
+import { type ThemeMode } from "./lib/theme";
 
 const STORAGE_KEY = "vibe-overlay-state";
 
@@ -107,6 +108,10 @@ function normalizeColors(value: unknown): OverlayColors {
       source?.mutedText,
       DEFAULT_STATE.colors.mutedText,
     ),
+    subtleText: colorOrDefault(
+      source?.subtleText,
+      DEFAULT_STATE.colors.subtleText,
+    ),
     cyanAccent: colorOrDefault(
       source?.cyanAccent,
       DEFAULT_STATE.colors.cyanAccent,
@@ -120,6 +125,10 @@ function normalizeColors(value: unknown): OverlayColors {
       DEFAULT_STATE.colors.warmAccent,
     ),
   };
+}
+
+function normalizeTheme(value: unknown): ThemeMode {
+  return value === "editorial" ? "editorial" : "neon";
 }
 
 function browserStorage(): StorageLike | null {
@@ -249,6 +258,7 @@ export function normalizeOverlayState(value: unknown): OverlayState {
       ),
     },
     colors: normalizeColors(source?.colors),
+    theme: normalizeTheme(source?.theme),
     activeTab:
       source?.activeTab === "cover"
         ? "cover"
