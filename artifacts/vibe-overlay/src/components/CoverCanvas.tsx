@@ -5,37 +5,36 @@ interface CoverCanvasProps {
   state: OverlayState;
 }
 
+/* ── Cover-specific editorial palette ──────────────────────────── */
+const C = {
+  bg1: "#0B1020",
+  bg2: "#111827",
+  text: "#F5F5F2",
+  muted: "#C7C9D1",
+  subtle: "#5A6178",
+  accent: "#DA7756",
+  glass: "rgba(17, 24, 39, 0.65)",
+  glassBorder: "rgba(255, 255, 255, 0.06)",
+} as const;
+
 const AVATAR_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
   <defs>
     <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B4FD8"/>
-      <stop offset="100%" stop-color="#7C3AED"/>
+      <stop offset="0%" stop-color="#1E2438"/>
+      <stop offset="100%" stop-color="#2A3350"/>
     </linearGradient>
   </defs>
   <circle cx="100" cy="100" r="100" fill="url(#g)"/>
   <text x="100" y="118" text-anchor="middle" font-family="system-ui,sans-serif"
-    font-size="68" font-weight="700" fill="rgba(255,255,255,0.9)">VC</text>
+    font-size="56" font-weight="500" fill="rgba(245,245,242,0.5)">VC</text>
 </svg>
 `)}`;
 
 const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
   ({ state }, ref) => {
-    const { cover, colors } = state;
-    const {
-      bgDark,
-      bgPanel,
-      borderColor,
-      textColor,
-      mutedText,
-      cyanAccent,
-      pinkAccent,
-      warmAccent,
-    } = colors;
-
+    const { cover } = state;
     const avatarSrc = cover.avatarUrl || AVATAR_PLACEHOLDER;
-    const hasOptionalContent =
-      cover.manifestoVisible || cover.hookVisible || cover.closingVisible;
 
     return (
       <div
@@ -45,9 +44,9 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
           width: 1920,
           height: 1080,
           position: "relative",
-          background: bgDark,
+          background: `linear-gradient(170deg, ${C.bg2} 0%, ${C.bg1} 55%, #0A0E1A 100%)`,
           fontFamily:
-            '-apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif',
+            '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", "PingFang SC", "Microsoft YaHei", sans-serif',
           overflow: "hidden",
           flexShrink: 0,
         }}
@@ -58,33 +57,120 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
             position: "absolute",
             inset: 0,
             backgroundImage: `
-              linear-gradient(${borderColor}06 1px, transparent 1px),
-              linear-gradient(90deg, ${borderColor}06 1px, transparent 1px)
+              linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)
             `,
-            backgroundSize: "80px 80px",
+            backgroundSize: "120px 120px",
             pointerEvents: "none",
           }}
         />
 
-        {/* Left-biased radial glow */}
+        {/* Center radial glow */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: `radial-gradient(ellipse 80% 90% at 35% 50%, ${bgPanel}F0 0%, transparent 65%)`,
+            background: `radial-gradient(ellipse 70% 80% at 50% 50%, ${C.bg2}F0 0%, transparent 65%)`,
             pointerEvents: "none",
           }}
         />
 
-        {/* Right glow behind avatar */}
+        {/* Ghost terminal window (top-left) */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            background: `radial-gradient(ellipse 55% 65% at 80% 45%, ${borderColor}0A 0%, transparent 60%)`,
+            top: 120,
+            left: 80,
+            width: 340,
+            height: 220,
+            borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.02)",
+            background: "rgba(255,255,255,0.008)",
             pointerEvents: "none",
           }}
-        />
+        >
+          <div style={{ height: 28, borderBottom: "1px solid rgba(255,255,255,0.015)", display: "flex", alignItems: "center", padding: "0 12px", gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+          </div>
+          {[80, 55, 70, 40, 65].map((w, i) => (
+            <div key={i} style={{ margin: "10px 16px 0", height: 3, width: `${w}%`, background: "rgba(255,255,255,0.015)", borderRadius: 2 }} />
+          ))}
+        </div>
+
+        {/* Ghost chat panel (top-right) */}
+        <div
+          style={{
+            position: "absolute",
+            top: 160,
+            right: 100,
+            width: 300,
+            height: 200,
+            borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.02)",
+            background: "rgba(255,255,255,0.006)",
+            pointerEvents: "none",
+          }}
+        >
+          {[60, 45, 75, 50].map((w, i) => (
+            <div
+              key={i}
+              style={{
+                margin: `${i === 0 ? 16 : 12}px ${i % 2 === 0 ? "auto" : "16px"} 0 ${i % 2 === 0 ? "16px" : "auto"}`,
+                height: 14,
+                width: `${w}%`,
+                background: "rgba(255,255,255,0.012)",
+                borderRadius: 7,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Ghost commit graph (bottom-left) */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 100,
+            left: 140,
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+            pointerEvents: "none",
+          }}
+        >
+          {[180, 140, 200, 120, 160].map((w, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 5, height: 5, borderRadius: "50%", background: i === 0 ? `${C.accent}12` : "rgba(255,255,255,0.025)", flexShrink: 0 }} />
+              <div style={{ height: 2, width: w, background: "rgba(255,255,255,0.015)", borderRadius: 1 }} />
+            </div>
+          ))}
+        </div>
+
+        {/* Ghost workflow cards (bottom-right) */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 120,
+            right: 120,
+            display: "flex",
+            gap: 12,
+            pointerEvents: "none",
+          }}
+        >
+          {[{ w: 120, h: 80 }, { w: 100, h: 80 }, { w: 110, h: 80 }].map((card, i) => (
+            <div
+              key={i}
+              style={{
+                width: card.w,
+                height: card.h,
+                borderRadius: 8,
+                border: "1px solid rgba(255,255,255,0.018)",
+                background: "rgba(255,255,255,0.006)",
+              }}
+            />
+          ))}
+        </div>
 
         {/* Top accent bar */}
         <div
@@ -94,343 +180,72 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
             left: 0,
             right: 0,
             height: 3,
-            background: `linear-gradient(90deg, ${cyanAccent}50 0%, ${borderColor}90 45%, ${pinkAccent}50 80%, transparent 100%)`,
+            background: `linear-gradient(90deg, transparent 20%, ${C.accent}20 50%, transparent 80%)`,
           }}
         />
 
-        {/* Corner marks */}
-        {[
-          { top: 48, left: 48, borderTop: true, borderLeft: true } as Record<string, number | boolean>,
-          { top: 48, right: 48, borderTop: true, borderRight: true },
-          { bottom: 48, left: 48, borderBottom: true, borderLeft: true },
-          { bottom: 48, right: 48, borderBottom: true, borderRight: true },
-        ].map((c, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              top: c.top as number | undefined,
-              left: c.left as number | undefined,
-              bottom: c.bottom as number | undefined,
-              right: c.right as number | undefined,
-              width: 56,
-              height: 56,
-              borderTop: c.borderTop ? `1.5px solid ${borderColor}28` : undefined,
-              borderBottom: c.borderBottom ? `1.5px solid ${borderColor}28` : undefined,
-              borderLeft: c.borderLeft ? `1.5px solid ${borderColor}28` : undefined,
-              borderRight: c.borderRight ? `1.5px solid ${borderColor}28` : undefined,
-            }}
-          />
-        ))}
-
-        {/* Vertical column divider */}
+        {/* Subtle warm accent glow (very faint) */}
         <div
           style={{
             position: "absolute",
-            top: 140,
-            bottom: 140,
-            left: 1120,
-            width: 1,
-            background: `linear-gradient(180deg, transparent, ${borderColor}20 30%, ${borderColor}30 50%, ${borderColor}20 70%, transparent)`,
-          }}
-        />
-
-        {/* ── LEFT COLUMN ── */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: 1120,
-            bottom: 0,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            padding: "0 96px 0 160px",
-          }}
-        >
-          {/* Badge row + LIVE pill */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 18,
-              marginBottom: hasOptionalContent ? 44 : 52,
-            }}
-          >
-            {[
-              { src: "/icons/claude.svg", alt: "Claude", label: cover.badge1 },
-              { src: "/icons/codex.svg", alt: "Codex", label: cover.badge2 },
-            ].map((badge, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                {i > 0 && (
-                  <span style={{ color: `${borderColor}28`, fontSize: 15, marginRight: 2 }}>
-                    ×
-                  </span>
-                )}
-                <div
-                  style={{
-                    width: 38,
-                    height: 38,
-                    background: `${bgPanel}BB`,
-                    border: `1px solid ${borderColor}22`,
-                    borderRadius: 8,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: 5,
-                  }}
-                >
-                  <img
-                    src={badge.src}
-                    alt={badge.alt}
-                    style={{ width: 28, height: 28, objectFit: "contain" }}
-                  />
-                </div>
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: `${mutedText}50`,
-                    fontWeight: 500,
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  {badge.label}
-                </span>
-              </div>
-            ))}
-
-            <div
-              style={{
-                width: 1,
-                height: 20,
-                background: `${borderColor}18`,
-                margin: "0 2px",
-              }}
-            />
-
-            {/* LIVE pill */}
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                background: "#E62117",
-                borderRadius: 999,
-                padding: "0 13px",
-                height: 28,
-              }}
-            >
-              <div
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.9)",
-                }}
-              />
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#fff",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                LIVE
-              </span>
-            </div>
-          </div>
-
-          {/* Main title */}
-          <h1
-            style={{
-              fontSize: hasOptionalContent ? 86 : 96,
-              fontWeight: 700,
-              color: textColor,
-              letterSpacing: "-0.03em",
-              lineHeight: 1.05,
-              margin: 0,
-              marginBottom: 40,
-            }}
-          >
-            {cover.title}
-          </h1>
-
-          {/* Today's topic card — always visible */}
-          <div
-            style={{
-              background: `${bgPanel}D0`,
-              border: `1px solid ${borderColor}20`,
-              borderRadius: 14,
-              padding: "22px 28px",
-              position: "relative",
-              overflow: "hidden",
-              marginBottom: hasOptionalContent ? 36 : 0,
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 2,
-                background: `linear-gradient(90deg, ${warmAccent}70, ${cyanAccent}40, transparent)`,
-              }}
-            />
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: warmAccent,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                marginBottom: 10,
-                opacity: 0.9,
-              }}
-            >
-              {cover.todayLabel}
-            </div>
-            <div
-              style={{
-                fontSize: 30,
-                fontWeight: 700,
-                color: textColor,
-                lineHeight: 1.3,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {cover.todayTopic}
-            </div>
-          </div>
-
-          {/* ── Optional section divider ── */}
-          {hasOptionalContent && (
-            <div
-              style={{
-                width: 36,
-                height: 1.5,
-                background: `linear-gradient(90deg, ${borderColor}45, transparent)`,
-                marginBottom: 28,
-                borderRadius: 1,
-              }}
-            />
-          )}
-
-          {/* Manifesto — optional */}
-          {cover.manifestoVisible && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 3,
-                marginBottom: cover.hookVisible || cover.closingVisible ? 28 : 0,
-              }}
-            >
-              {[cover.manifestoLine1, cover.manifestoLine2, cover.manifestoLine3].map(
-                (line, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
-                      fontSize: 48,
-                      lineHeight: 1,
-                      fontWeight: 800,
-                      letterSpacing: "-0.02em",
-                      color: textColor,
-                    }}
-                  >
-                    {line}
-                  </div>
-                )
-              )}
-            </div>
-          )}
-
-          {/* Hook text — optional */}
-          {cover.hookVisible && cover.hookText && (
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 600,
-                color: cyanAccent,
-                letterSpacing: "0.01em",
-                marginBottom: cover.closingVisible ? 16 : 0,
-                opacity: 0.9,
-              }}
-            >
-              {cover.hookText}
-            </div>
-          )}
-
-          {/* Closing sentence — optional */}
-          {cover.closingVisible && (
-            <div
-              style={{
-                fontSize: 20,
-                color: mutedText,
-                display: "flex",
-                alignItems: "baseline",
-                flexWrap: "wrap",
-                gap: "0 6px",
-                lineHeight: 1.6,
-                opacity: 0.85,
-              }}
-            >
-              <span>{cover.closingPrefix}</span>
-              <span
-                style={{
-                  textDecoration: "line-through",
-                  textDecorationColor: pinkAccent,
-                  textDecorationThickness: 2,
-                  color: "#9CA3AF",
-                }}
-              >
-                {cover.closingStruck}
-              </span>
-              <span style={{ color: warmAccent, fontWeight: 600 }}>
-                {cover.closingHighlight}
-              </span>
-              <span style={{ color: `${mutedText}55` }}>{cover.closingSuffix}</span>
-            </div>
-          )}
-        </div>
-
-        {/* ── RIGHT COLUMN — avatar + optional social info ── */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
+            bottom: -80,
+            left: "50%",
+            transform: "translateX(-50%)",
             width: 800,
-            bottom: 0,
+            height: 300,
+            background: `radial-gradient(ellipse at center, ${C.accent}06 0%, transparent 70%)`,
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* ── Content ───────────────────────────────────────────────── */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: 40,
           }}
         >
+          {/* macOS-style toolbar — Claude × Codex */}
+          <div
+            style={{
+              position: "absolute",
+              top: 48,
+              left: "50%",
+              transform: "translateX(-50%)",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.05)",
+              borderRadius: 8,
+              padding: "6px 20px",
+            }}
+          >
+            <img src="/icons/claude.svg" alt="Claude" style={{ width: 16, height: 16, objectFit: "contain", opacity: 0.5 }} />
+            <span style={{ fontSize: 12, color: C.subtle, fontWeight: 400, letterSpacing: "0.04em" }}>
+              {cover.badge1}
+            </span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.12)" }}>×</span>
+            <img src="/icons/codex.svg" alt="Codex" style={{ width: 16, height: 16, objectFit: "contain", opacity: 0.5 }} />
+            <span style={{ fontSize: 12, color: C.subtle, fontWeight: 400, letterSpacing: "0.04em" }}>
+              {cover.badge2}
+            </span>
+          </div>
+
           {/* Avatar */}
           {cover.avatarVisible && (
-            <div style={{ position: "relative", flexShrink: 0 }}>
-              <div
-                style={{
-                  position: "absolute",
-                  inset: -8,
-                  borderRadius: "50%",
-                  background: `conic-gradient(from 180deg, ${borderColor}45, ${cyanAccent}35, ${pinkAccent}25, ${borderColor}45)`,
-                  zIndex: 0,
-                }}
-              />
+            <div style={{ position: "relative", flexShrink: 0, marginBottom: 44 }}>
               <div
                 style={{
                   position: "absolute",
                   inset: -3,
                   borderRadius: "50%",
-                  background: bgDark,
-                  zIndex: 1,
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  zIndex: 0,
                 }}
               />
               <img
@@ -438,91 +253,132 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
                 alt="Avatar"
                 style={{
                   position: "relative",
-                  zIndex: 2,
-                  width: 260,
-                  height: 260,
+                  zIndex: 1,
+                  width: 320,
+                  height: 320,
                   borderRadius: "50%",
                   objectFit: "cover",
                   display: "block",
                 }}
               />
-            </div>
-          )}
-
-          {/* Social info block */}
-          {cover.socialVisible && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                alignItems: "stretch",
-                padding: "28px 36px",
-                background: `${bgPanel}A0`,
-                border: `1px solid ${borderColor}22`,
-                borderRadius: 14,
-                minWidth: 340,
-              }}
-            >
-              {/* Title */}
+              {/* Faint screen-light reflection */}
               <div
                 style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: pinkAccent,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  marginBottom: 4,
+                  position: "absolute",
+                  bottom: 0,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 200,
+                  height: 60,
+                  background: "radial-gradient(ellipse at center bottom, rgba(255,255,255,0.04), transparent 80%)",
+                  borderRadius: "50%",
+                  zIndex: 2,
+                  pointerEvents: "none",
                 }}
-              >
-                <div style={{ width: 4, height: 14, borderRadius: 2, background: pinkAccent, flexShrink: 0 }} />
-                关注我
-              </div>
-              {cover.socialBilibili && (
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", background: "#E62117", borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>B站</span>
-                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBilibili}</span>
-                </div>
-              )}
-              {cover.socialBlog && (
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: cyanAccent, background: `${cyanAccent}18`, border: `1px solid ${cyanAccent}40`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>博客</span>
-                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBlog}</span>
-                </div>
-              )}
-              {cover.socialGithub && (
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: mutedText, background: `${borderColor}15`, border: `1px solid ${borderColor}30`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>GitHub</span>
-                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialGithub}</span>
-                </div>
-              )}
-              {cover.socialQQ && (
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: warmAccent, background: `${warmAccent}15`, border: `1px solid ${warmAccent}35`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>QQ群</span>
-                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialQQ}</span>
-                </div>
-              )}
+              />
             </div>
           )}
+
+          {/* Main title — editorial, light weight */}
+          <h1
+            style={{
+              fontSize: 88,
+              fontWeight: 500,
+              color: C.text,
+              letterSpacing: "0.02em",
+              lineHeight: 1.1,
+              margin: 0,
+              textAlign: "center",
+            }}
+          >
+            {cover.title}
+          </h1>
+
+          {/* Subtitle */}
+          {cover.hookText && (
+            <div
+              style={{
+                fontSize: 28,
+                fontWeight: 400,
+                color: C.muted,
+                letterSpacing: "0.06em",
+                marginTop: 14,
+                textAlign: "center",
+              }}
+            >
+              {cover.hookText}
+            </div>
+          )}
+
+          {/* TODAY'S BUILD card — glassmorphism */}
+          <div
+            style={{
+              marginTop: 52,
+              background: C.glass,
+              border: `1px solid ${C.glassBorder}`,
+              borderRadius: 14,
+              padding: "24px 48px 28px",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              textAlign: "center",
+              position: "relative",
+              minWidth: 420,
+            }}
+          >
+            {/* Tiny accent line */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 60,
+                height: 1.5,
+                background: `${C.accent}50`,
+                borderRadius: 1,
+              }}
+            />
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                color: C.subtle,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                marginBottom: 12,
+              }}
+            >
+              {cover.todayLabel}
+            </div>
+            <div
+              style={{
+                fontSize: 36,
+                fontWeight: 500,
+                color: C.text,
+                lineHeight: 1.3,
+                letterSpacing: "0.01em",
+              }}
+            >
+              {cover.todayTopic}
+            </div>
+          </div>
         </div>
 
-        {/* Bottom accent line */}
+        {/* Bottom subtle accent line */}
         <div
           style={{
             position: "absolute",
             bottom: 0,
-            left: 0,
-            right: 0,
-            height: 2,
-            background: `linear-gradient(90deg, transparent 0%, ${cyanAccent}30 25%, ${borderColor}55 50%, ${pinkAccent}20 75%, transparent 100%)`,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 200,
+            height: 1,
+            background: `linear-gradient(90deg, transparent, ${C.accent}25, transparent)`,
           }}
         />
       </div>
     );
-  }
+  },
 );
 
 CoverCanvas.displayName = "CoverCanvas";

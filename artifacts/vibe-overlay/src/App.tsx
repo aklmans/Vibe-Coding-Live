@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { DEFAULT_STATE, type OverlayState } from "./types";
 import OverlayCanvas from "./components/OverlayCanvas";
 import CoverCanvas from "./components/CoverCanvas";
+import PosterCanvas from "./components/PosterCanvas";
 import SidebarPanel from "./components/SidebarPanel";
 import BottomBarPanel from "./components/BottomBarPanel";
 import EditorPanel from "./components/EditorPanel";
@@ -10,6 +11,7 @@ import {
   exportSidebar,
   exportBottomBar,
   exportCover,
+  exportPoster,
 } from "./utils/exportImage";
 import { loadOverlayState, saveOverlayState } from "./stateStorage";
 
@@ -31,12 +33,14 @@ export default function App() {
   // Preview ref (for the visible scaled canvas — not used for export)
   const previewOverlayRef = useRef<HTMLDivElement | null>(null);
   const previewCoverRef = useRef<HTMLDivElement | null>(null);
+  const previewPosterRef = useRef<HTMLDivElement | null>(null);
 
   // Offscreen export-only refs — always mounted, no transforms
   const exportOverlayRef = useRef<HTMLDivElement | null>(null);
   const exportSidebarRef = useRef<HTMLDivElement | null>(null);
   const exportBottomBarRef = useRef<HTMLDivElement | null>(null);
   const exportCoverRef = useRef<HTMLDivElement | null>(null);
+  const exportPosterRef = useRef<HTMLDivElement | null>(null);
 
   const setState = useCallback((next: OverlayState) => {
     setStateRaw(next);
@@ -48,7 +52,7 @@ export default function App() {
 
   const handleExport = useCallback(
     async (
-      type: "overlay" | "sidebar" | "bottom-bar" | "cover",
+      type: "overlay" | "sidebar" | "bottom-bar" | "cover" | "poster",
       fn: () => Promise<void>,
     ) => {
       setExporting(type);
@@ -100,6 +104,15 @@ export default function App() {
     handleExport("cover", () => exportCover(el));
   }, [handleExport]);
 
+  const handleExportPoster = useCallback(() => {
+    const el = exportPosterRef.current;
+    if (!el) {
+      setExportError("Export node not ready");
+      return;
+    }
+    handleExport("poster", () => exportPoster(el));
+  }, [handleExport]);
+
   const handleReset = useCallback(() => {
     setState({ ...DEFAULT_STATE });
   }, [setState]);
@@ -135,6 +148,11 @@ export default function App() {
         <CoverCanvas ref={exportCoverRef} state={state} />
       </div>
 
+      {/* Poster export */}
+      <div style={exportStageStyle}>
+        <PosterCanvas ref={exportPosterRef} state={state} />
+      </div>
+
       {/* ─── Main UI ──────────────────────────────────────────────────────── */}
       <div
         style={{
@@ -154,6 +172,7 @@ export default function App() {
           onExportSidebar={handleExportSidebar}
           onExportBottomBar={handleExportBottomBar}
           onExportCover={handleExportCover}
+          onExportPoster={handleExportPoster}
           onReset={handleReset}
           exporting={exporting}
         />
@@ -193,7 +212,9 @@ export default function App() {
               >
                 {state.activeTab === "overlay"
                   ? "OVERLAY · 1920×1080"
-                  : "COVER · 1920×1080"}
+                  : state.activeTab === "cover"
+                    ? "COVER · 1920×1080"
+                    : "POSTER · 1920×1080"}
               </div>
               <div style={{ fontSize: 11, color: "#6B7CA8" }}>
                 Scaled preview — export at full resolution
@@ -220,8 +241,10 @@ export default function App() {
           <PreviewFrame nativeW={CANVAS_NATIVE_W} nativeH={CANVAS_NATIVE_H}>
             {state.activeTab === "overlay" ? (
               <OverlayCanvas ref={previewOverlayRef} state={state} />
-            ) : (
+            ) : state.activeTab === "cover" ? (
               <CoverCanvas ref={previewCoverRef} state={state} />
+            ) : (
+              <PosterCanvas ref={previewPosterRef} state={state} />
             )}
           </PreviewFrame>
         </div>

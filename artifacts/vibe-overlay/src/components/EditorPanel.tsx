@@ -8,6 +8,7 @@ interface EditorPanelProps {
   onExportSidebar: () => void;
   onExportBottomBar: () => void;
   onExportCover: () => void;
+  onExportPoster: () => void;
   onReset: () => void;
   exporting: string | null;
 }
@@ -224,6 +225,7 @@ export default function EditorPanel({
   onExportSidebar,
   onExportBottomBar,
   onExportCover,
+  onExportPoster,
   onReset,
   exporting,
 }: EditorPanelProps) {
@@ -323,7 +325,7 @@ export default function EditorPanel({
             border: "1px solid #1F2235",
           }}
         >
-          {(["overlay", "cover"] as const).map((tab) => (
+          {(["overlay", "cover", "poster"] as const).map((tab) => (
             <button
               key={tab}
               data-testid={`tab-${tab}`}
@@ -343,7 +345,7 @@ export default function EditorPanel({
                 transition: "all 0.15s",
               }}
             >
-              {tab === "overlay" ? "Overlay" : "Cover"}
+              {tab === "overlay" ? "Overlay" : tab === "cover" ? "Cover" : "Poster"}
             </button>
           ))}
         </div>
@@ -646,6 +648,17 @@ export default function EditorPanel({
               />
             </div>
 
+            {/* Subtitle */}
+            <SectionHeading>Cover — Subtitle</SectionHeading>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <SectionInput
+                label="Subtitle"
+                value={state.cover.hookText}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, hookText: v } })}
+                testId="cover-subtitle"
+              />
+            </div>
+
             {/* Today's topic */}
             <SectionHeading>Cover — Today's Topic</SectionHeading>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -663,14 +676,131 @@ export default function EditorPanel({
               />
             </div>
 
+          </>
+        )}
+
+        {state.activeTab === "poster" && (
+          <>
+            {/* Avatar */}
+            <SectionHeading>Poster — Avatar</SectionHeading>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <ToggleButton
+                label="Show Avatar"
+                checked={state.cover.avatarVisible}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, avatarVisible: v } })}
+                testId="poster-avatar-visible"
+              />
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={handleAvatarUpload}
+              />
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  style={{
+                    flex: 1,
+                    padding: "7px 10px",
+                    background: "#3B4FD818",
+                    border: "1px solid #3B4FD840",
+                    borderRadius: 7,
+                    color: "#7C9FFF",
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    textAlign: "center",
+                  }}
+                >
+                  {state.cover.avatarUrl ? "Replace Photo" : "Upload Photo"}
+                </button>
+                {state.cover.avatarUrl && (
+                  <button
+                    onClick={() => onChange({ ...state, cover: { ...state.cover, avatarUrl: "" } })}
+                    style={{
+                      padding: "7px 10px",
+                      background: "#FF6FAE12",
+                      border: "1px solid #FF6FAE30",
+                      borderRadius: 7,
+                      color: "#FF6FAE",
+                      fontSize: 12,
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {state.cover.avatarUrl && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <img
+                    src={state.cover.avatarUrl}
+                    alt="Avatar preview"
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: "1px solid #2a3060",
+                    }}
+                  />
+                  <span style={{ fontSize: 11, color: "#6B7CA8" }}>Photo uploaded</span>
+                </div>
+              )}
+            </div>
+
+            {/* Title & Badges */}
+            <SectionHeading>Poster — Title</SectionHeading>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <SectionInput
+                label="Title"
+                value={state.cover.title}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, title: v } })}
+                testId="poster-title"
+              />
+              <SectionInput
+                label="Badge 1 Label"
+                value={state.cover.badge1}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, badge1: v } })}
+                testId="poster-badge1"
+              />
+              <SectionInput
+                label="Badge 2 Label"
+                value={state.cover.badge2}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, badge2: v } })}
+                testId="poster-badge2"
+              />
+            </div>
+
+            {/* Today's topic */}
+            <SectionHeading>Poster — Today's Topic</SectionHeading>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <SectionInput
+                label="Card Label"
+                value={state.cover.todayLabel}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, todayLabel: v } })}
+                testId="poster-today-label"
+              />
+              <SectionInput
+                label="Topic"
+                value={state.cover.todayTopic}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, todayTopic: v } })}
+                testId="poster-today-topic"
+              />
+            </div>
+
             {/* Manifesto — optional */}
-            <SectionHeading>Cover — Manifesto</SectionHeading>
+            <SectionHeading>Poster — Manifesto</SectionHeading>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <ToggleButton
                 label="Show Manifesto"
                 checked={state.cover.manifestoVisible}
                 onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoVisible: v } })}
-                testId="cover-manifesto-visible"
+                testId="poster-manifesto-visible"
               />
               {state.cover.manifestoVisible && (
                 <>
@@ -678,51 +808,51 @@ export default function EditorPanel({
                     label="Line 1"
                     value={state.cover.manifestoLine1}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine1: v } })}
-                    testId="cover-manifesto-1"
+                    testId="poster-manifesto-1"
                   />
                   <SectionInput
                     label="Line 2"
                     value={state.cover.manifestoLine2}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine2: v } })}
-                    testId="cover-manifesto-2"
+                    testId="poster-manifesto-2"
                   />
                   <SectionInput
                     label="Line 3"
                     value={state.cover.manifestoLine3}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine3: v } })}
-                    testId="cover-manifesto-3"
+                    testId="poster-manifesto-3"
                   />
                 </>
               )}
             </div>
 
             {/* Hook text — optional */}
-            <SectionHeading>Cover — Hook Text</SectionHeading>
+            <SectionHeading>Poster — Hook Text</SectionHeading>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <ToggleButton
                 label="Show Hook Text"
                 checked={state.cover.hookVisible}
                 onChange={(v) => onChange({ ...state, cover: { ...state.cover, hookVisible: v } })}
-                testId="cover-hook-visible"
+                testId="poster-hook-visible"
               />
               {state.cover.hookVisible && (
                 <SectionInput
                   label="Chinese Hook"
                   value={state.cover.hookText}
                   onChange={(v) => onChange({ ...state, cover: { ...state.cover, hookText: v } })}
-                  testId="cover-hook-text"
+                  testId="poster-hook-text"
                 />
               )}
             </div>
 
             {/* Closing Line — optional */}
-            <SectionHeading>Cover — Closing Line</SectionHeading>
+            <SectionHeading>Poster — Closing Line</SectionHeading>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <ToggleButton
                 label="Show Closing Line"
                 checked={state.cover.closingVisible}
                 onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingVisible: v } })}
-                testId="cover-closing-visible"
+                testId="poster-closing-visible"
               />
               {state.cover.closingVisible && (
                 <>
@@ -730,38 +860,38 @@ export default function EditorPanel({
                     label="Prefix"
                     value={state.cover.closingPrefix}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingPrefix: v } })}
-                    testId="cover-closing-prefix"
+                    testId="poster-closing-prefix"
                   />
                   <SectionInput
                     label="Strikethrough word"
                     value={state.cover.closingStruck}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingStruck: v } })}
-                    testId="cover-closing-struck"
+                    testId="poster-closing-struck"
                   />
                   <SectionInput
                     label="Highlighted phrase"
                     value={state.cover.closingHighlight}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingHighlight: v } })}
-                    testId="cover-closing-highlight"
+                    testId="poster-closing-highlight"
                   />
                   <SectionInput
                     label="Suffix"
                     value={state.cover.closingSuffix}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingSuffix: v } })}
-                    testId="cover-closing-suffix"
+                    testId="poster-closing-suffix"
                   />
                 </>
               )}
             </div>
 
             {/* Social Info */}
-            <SectionHeading>Cover — Social Info</SectionHeading>
+            <SectionHeading>Poster — Social Info</SectionHeading>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <ToggleButton
                 label="Show Social Info"
                 checked={state.cover.socialVisible}
                 onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialVisible: v } })}
-                testId="cover-social-visible"
+                testId="poster-social-visible"
               />
               {state.cover.socialVisible && (
                 <>
@@ -769,25 +899,25 @@ export default function EditorPanel({
                     label="B站 用户名 / 直播间"
                     value={state.cover.socialBilibili}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialBilibili: v } })}
-                    testId="cover-social-bilibili"
+                    testId="poster-social-bilibili"
                   />
                   <SectionInput
                     label="Blog / 网站"
                     value={state.cover.socialBlog}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialBlog: v } })}
-                    testId="cover-social-blog"
+                    testId="poster-social-blog"
                   />
                   <SectionInput
                     label="GitHub 用户名"
                     value={state.cover.socialGithub}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialGithub: v } })}
-                    testId="cover-social-github"
+                    testId="poster-social-github"
                   />
                   <SectionInput
                     label="QQ 群号"
                     value={state.cover.socialQQ}
                     onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialQQ: v } })}
-                    testId="cover-social-qq"
+                    testId="poster-social-qq"
                   />
                 </>
               )}
@@ -838,6 +968,13 @@ export default function EditorPanel({
             loading={exporting === "cover"}
             testId="btn-export-cover"
             accent="#FF6FAE"
+          />
+          <ExportButton
+            label="Export Poster PNG"
+            onClick={onExportPoster}
+            loading={exporting === "poster"}
+            testId="btn-export-poster"
+            accent="#C084FC"
           />
         </div>
 

@@ -70,3 +70,12 @@ export async function exportCover(coverEl: HTMLElement): Promise<void> {
     backgroundColor: null,
   });
 }
+
+export async function exportPoster(posterEl: HTMLElement): Promise<void> {
+  await exportElementAsPng(posterEl, {
+    filename: "vibe-coding-poster.png",
+    width: 1920,
+    height: 1080,
+    backgroundColor: null,
+  });
+}

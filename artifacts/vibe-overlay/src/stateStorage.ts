@@ -249,7 +249,12 @@ export function normalizeOverlayState(value: unknown): OverlayState {
       ),
     },
     colors: normalizeColors(source?.colors),
-    activeTab: source?.activeTab === "cover" ? "cover" : "overlay",
+    activeTab:
+      source?.activeTab === "cover"
+        ? "cover"
+        : source?.activeTab === "poster"
+          ? "poster"
+          : "overlay",
   };
 }
 

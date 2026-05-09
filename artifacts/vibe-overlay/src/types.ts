@@ -54,7 +54,7 @@ export interface OverlayState {
     pinkAccent: string;
     warmAccent: string;
   };
-  activeTab: "overlay" | "cover";
+  activeTab: "overlay" | "cover" | "poster";
 }
 
 export const DEFAULT_STATE: OverlayState = {
@@ -94,19 +94,19 @@ export const DEFAULT_STATE: OverlayState = {
     cameraVisible: false,
   },
   cover: {
-    title: "和 Aklman 一起 Vibe Coding",
+    title: "Building With Agents",
     badge1: "Claude",
     badge2: "Codex",
     avatarUrl: "",
     avatarVisible: true,
-    todayLabel: "今天做什么",
-    todayTopic: "用 Claude + Codex 搭一个 AI Agent",
+    todayLabel: "TODAY'S BUILD",
+    todayTopic: "多 Agent Coding 实战",
     manifestoVisible: false,
     manifestoLine1: "Think clearly.",
     manifestoLine2: "Build with agents.",
     manifestoLine3: "Keep growing.",
-    hookVisible: false,
-    hookText: "用 AI 写代码，全程真实演示",
+    hookVisible: true,
+    hookText: "with Aklman",
     closingVisible: false,
     closingPrefix: "Enjoy",
     closingStruck: "programming",
