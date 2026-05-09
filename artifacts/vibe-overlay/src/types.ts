@@ -20,18 +20,21 @@ export interface OverlayState {
     title: string;
     badge1: string;
     badge2: string;
+    avatarUrl: string;
+    avatarVisible: boolean;
+    todayLabel: string;
+    todayTopic: string;
+    manifestoVisible: boolean;
     manifestoLine1: string;
     manifestoLine2: string;
     manifestoLine3: string;
+    hookVisible: boolean;
+    hookText: string;
+    closingVisible: boolean;
     closingPrefix: string;
     closingStruck: string;
     closingHighlight: string;
     closingSuffix: string;
-    avatarUrl: string;
-    avatarVisible: boolean;
-    hookText: string;
-    todayLabel: string;
-    todayTopic: string;
   };
   colors: {
     bgDark: string;
@@ -76,21 +79,24 @@ export const DEFAULT_STATE: OverlayState = {
     visible: true,
   },
   cover: {
-    title: "Vibe Coding With Me",
+    title: "和 Aklman 一起 Vibe Coding",
     badge1: "Claude",
     badge2: "Codex",
+    avatarUrl: "",
+    avatarVisible: true,
+    todayLabel: "今天做什么",
+    todayTopic: "用 Claude + Codex 搭一个 AI Agent",
+    manifestoVisible: false,
     manifestoLine1: "Think clearly.",
     manifestoLine2: "Build with agents.",
     manifestoLine3: "Keep growing.",
+    hookVisible: false,
+    hookText: "用 AI 写代码，全程真实演示",
+    closingVisible: false,
     closingPrefix: "Enjoy",
     closingStruck: "programming",
     closingHighlight: "building with agents.",
     closingSuffix: "Have a great life.",
-    avatarUrl: "",
-    avatarVisible: true,
-    hookText: "用 AI 写代码，全程真实演示",
-    todayLabel: "今天做什么",
-    todayTopic: "用 Claude + Codex 搭一个 AI Agent",
   },
   colors: {
     bgDark: "#10111D",

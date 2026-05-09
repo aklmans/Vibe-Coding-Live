@@ -545,34 +545,6 @@ export default function EditorPanel({
               )}
             </div>
 
-            {/* Hook text */}
-            <SectionHeading>Cover — Hook Text</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Chinese Hook"
-                value={state.cover.hookText}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, hookText: v } })}
-                testId="cover-hook-text"
-              />
-            </div>
-
-            {/* Today's topic */}
-            <SectionHeading>Cover — Today's Topic</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Card Label"
-                value={state.cover.todayLabel}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, todayLabel: v } })}
-                testId="cover-today-label"
-              />
-              <SectionInput
-                label="Topic"
-                value={state.cover.todayTopic}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, todayTopic: v } })}
-                testId="cover-today-topic"
-              />
-            </div>
-
             {/* Title & Badges */}
             <SectionHeading>Cover — Title</SectionHeading>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -596,56 +568,112 @@ export default function EditorPanel({
               />
             </div>
 
-            {/* Manifesto */}
-            <SectionHeading>Cover — Manifesto</SectionHeading>
+            {/* Today's topic */}
+            <SectionHeading>Cover — Today's Topic</SectionHeading>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <SectionInput
-                label="Line 1"
-                value={state.cover.manifestoLine1}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine1: v } })}
-                testId="cover-manifesto-1"
+                label="Card Label"
+                value={state.cover.todayLabel}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, todayLabel: v } })}
+                testId="cover-today-label"
               />
               <SectionInput
-                label="Line 2"
-                value={state.cover.manifestoLine2}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine2: v } })}
-                testId="cover-manifesto-2"
-              />
-              <SectionInput
-                label="Line 3"
-                value={state.cover.manifestoLine3}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine3: v } })}
-                testId="cover-manifesto-3"
+                label="Topic"
+                value={state.cover.todayTopic}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, todayTopic: v } })}
+                testId="cover-today-topic"
               />
             </div>
 
-            {/* Closing Line */}
+            {/* Manifesto — optional */}
+            <SectionHeading>Cover — Manifesto</SectionHeading>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <ToggleButton
+                label="Show Manifesto"
+                checked={state.cover.manifestoVisible}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoVisible: v } })}
+                testId="cover-manifesto-visible"
+              />
+              {state.cover.manifestoVisible && (
+                <>
+                  <SectionInput
+                    label="Line 1"
+                    value={state.cover.manifestoLine1}
+                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine1: v } })}
+                    testId="cover-manifesto-1"
+                  />
+                  <SectionInput
+                    label="Line 2"
+                    value={state.cover.manifestoLine2}
+                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine2: v } })}
+                    testId="cover-manifesto-2"
+                  />
+                  <SectionInput
+                    label="Line 3"
+                    value={state.cover.manifestoLine3}
+                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, manifestoLine3: v } })}
+                    testId="cover-manifesto-3"
+                  />
+                </>
+              )}
+            </div>
+
+            {/* Hook text — optional */}
+            <SectionHeading>Cover — Hook Text</SectionHeading>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <ToggleButton
+                label="Show Hook Text"
+                checked={state.cover.hookVisible}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, hookVisible: v } })}
+                testId="cover-hook-visible"
+              />
+              {state.cover.hookVisible && (
+                <SectionInput
+                  label="Chinese Hook"
+                  value={state.cover.hookText}
+                  onChange={(v) => onChange({ ...state, cover: { ...state.cover, hookText: v } })}
+                  testId="cover-hook-text"
+                />
+              )}
+            </div>
+
+            {/* Closing Line — optional */}
             <SectionHeading>Cover — Closing Line</SectionHeading>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Prefix"
-                value={state.cover.closingPrefix}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingPrefix: v } })}
-                testId="cover-closing-prefix"
+              <ToggleButton
+                label="Show Closing Line"
+                checked={state.cover.closingVisible}
+                onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingVisible: v } })}
+                testId="cover-closing-visible"
               />
-              <SectionInput
-                label="Strikethrough word"
-                value={state.cover.closingStruck}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingStruck: v } })}
-                testId="cover-closing-struck"
-              />
-              <SectionInput
-                label="Highlighted phrase"
-                value={state.cover.closingHighlight}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingHighlight: v } })}
-                testId="cover-closing-highlight"
-              />
-              <SectionInput
-                label="Suffix"
-                value={state.cover.closingSuffix}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingSuffix: v } })}
-                testId="cover-closing-suffix"
-              />
+              {state.cover.closingVisible && (
+                <>
+                  <SectionInput
+                    label="Prefix"
+                    value={state.cover.closingPrefix}
+                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingPrefix: v } })}
+                    testId="cover-closing-prefix"
+                  />
+                  <SectionInput
+                    label="Strikethrough word"
+                    value={state.cover.closingStruck}
+                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingStruck: v } })}
+                    testId="cover-closing-struck"
+                  />
+                  <SectionInput
+                    label="Highlighted phrase"
+                    value={state.cover.closingHighlight}
+                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingHighlight: v } })}
+                    testId="cover-closing-highlight"
+                  />
+                  <SectionInput
+                    label="Suffix"
+                    value={state.cover.closingSuffix}
+                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingSuffix: v } })}
+                    testId="cover-closing-suffix"
+                  />
+                </>
+              )}
             </div>
           </>
         )}
