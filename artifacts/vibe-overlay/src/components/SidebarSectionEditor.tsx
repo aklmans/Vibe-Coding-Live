@@ -1,0 +1,146 @@
+import type { OverlayState } from "../types";
+
+interface SectionInputProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  testId?: string;
+}
+
+function SectionInput({ label, value, onChange, testId }: SectionInputProps) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <label
+        style={{
+          fontSize: 11,
+          fontWeight: 500,
+          color: "#C7D2FE",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </label>
+      <input
+        data-testid={testId}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          background: "#0F1122",
+          border: "1px solid #2a3060",
+          borderRadius: 6,
+          padding: "6px 10px",
+          fontSize: 13,
+          color: "#F4F7FF",
+          outline: "none",
+          fontFamily: "inherit",
+          width: "100%",
+          boxSizing: "border-box",
+        }}
+        onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
+        onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+      />
+    </div>
+  );
+}
+
+interface SidebarSectionEditorProps {
+  state: OverlayState;
+  onChange: (state: OverlayState) => void;
+  index: number;
+  accentColor: string;
+}
+
+/**
+ * Editor for a single sidebar section (title + bullet list + done toggles).
+ * Three of these render inside EditorPanel for Section 1/2/3 and all share
+ * the same event handlers; only the accent color changes per section.
+ */
+export default function SidebarSectionEditor({
+  state,
+  onChange,
+  index,
+  accentColor,
+}: SidebarSectionEditorProps) {
+  const section = state.sidebar.sections[index];
+  if (!section) return null;
+
+  const updateTitle = (value: string) => {
+    const sections = state.sidebar.sections.map((s, i) =>
+      i === index ? { ...s, title: value } : s,
+    );
+    onChange({ ...state, sidebar: { ...state.sidebar, sections } });
+  };
+
+  const updateBullet = (bulletIdx: number, value: string) => {
+    const sections = state.sidebar.sections.map((s, i) => {
+      if (i !== index) return s;
+      const bullets = s.bullets.map((b, j) => (j === bulletIdx ? value : b));
+      return { ...s, bullets };
+    });
+    onChange({ ...state, sidebar: { ...state.sidebar, sections } });
+  };
+
+  const toggleBulletDone = (bulletIdx: number) => {
+    const sectionsDone = (state.sidebar.sectionsDone ?? []).map((row, i) =>
+      i === index ? row.map((v, j) => (j === bulletIdx ? !v : v)) : row,
+    );
+    onChange({ ...state, sidebar: { ...state.sidebar, sectionsDone } });
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <SectionInput
+        label="Title"
+        value={section.title}
+        onChange={updateTitle}
+        testId={`sidebar-s${index + 1}-title`}
+      />
+      {section.bullets.map((b, i) => {
+        const done = state.sidebar.sectionsDone?.[index]?.[i] ?? false;
+        return (
+          <div
+            key={i}
+            style={{ display: "flex", alignItems: "flex-end", gap: 6 }}
+          >
+            <div style={{ flex: 1 }}>
+              <SectionInput
+                label={`Bullet ${i + 1}`}
+                value={b}
+                onChange={(v) => updateBullet(i, v)}
+                testId={`sidebar-s${index + 1}-bullet-${i}`}
+              />
+            </div>
+            <button
+              onClick={() => toggleBulletDone(i)}
+              title={done ? "Mark undone" : "Mark done"}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 6,
+                border: `1px solid ${done ? `${accentColor}60` : "#2a3060"}`,
+                background: done ? `${accentColor}20` : "#0F1122",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                marginBottom: 1,
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                <path
+                  d="M2 5.5L4.5 8L9 3"
+                  stroke={done ? accentColor : "#3a4060"}
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

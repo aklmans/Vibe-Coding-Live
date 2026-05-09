@@ -1,6 +1,18 @@
 import { useRef } from "react";
 import { OverlayState } from "../types";
 import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
+import SidebarSectionEditor from "./SidebarSectionEditor";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
 
 interface EditorPanelProps {
   state: OverlayState;
@@ -65,16 +77,47 @@ function ColorInput({
   label,
   value,
   onChange,
+  hint,
   testId,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  hint?: string;
   testId?: string;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "space-between" }}>
-      <label style={{ fontSize: 12, color: "#C7D2FE", flex: 1 }}>{label}</label>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        justifyContent: "space-between",
+      }}
+    >
+      {/* Mini preview swatch — hover to see what this token controls */}
+      <div
+        title={hint}
+        style={{
+          width: 18,
+          height: 18,
+          borderRadius: 4,
+          background: value,
+          border: "1px solid rgba(255,255,255,0.12)",
+          flexShrink: 0,
+          boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.25)",
+        }}
+      />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+        <label style={{ fontSize: 12, color: "#C7D2FE" }} title={hint}>
+          {label}
+        </label>
+        {hint && (
+          <span style={{ fontSize: 10, color: "#6B7CA8", lineHeight: 1.3 }}>
+            {hint}
+          </span>
+        )}
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
           data-testid={testId}
@@ -230,31 +273,6 @@ export default function EditorPanel({
   onReset,
   exporting,
 }: EditorPanelProps) {
-  const updateSidebarSection = (idx: number, field: "title" | "bullets", value: string | string[]) => {
-    const sections = state.sidebar.sections.map((s, i) =>
-      i === idx ? { ...s, [field]: value } : s
-    );
-    onChange({ ...state, sidebar: { ...state.sidebar, sections } });
-  };
-
-  const toggleBulletDone = (sectionIdx: number, bulletIdx: number) => {
-    const sectionsDone = (state.sidebar.sectionsDone ?? []).map((row, i) =>
-      i === sectionIdx
-        ? row.map((v, j) => (j === bulletIdx ? !v : v))
-        : row
-    );
-    onChange({ ...state, sidebar: { ...state.sidebar, sectionsDone } });
-  };
-
-  const updateSidebarBullet = (sectionIdx: number, bulletIdx: number, value: string) => {
-    const sections = state.sidebar.sections.map((s, i) => {
-      if (i !== sectionIdx) return s;
-      const bullets = s.bullets.map((b, j) => (j === bulletIdx ? value : b));
-      return { ...s, bullets };
-    });
-    onChange({ ...state, sidebar: { ...state.sidebar, sections } });
-  };
-
   const updateSegment = (idx: number, field: "title" | "text", value: string) => {
     const segments = state.bottomBar.segments.map((s, i) =>
       i === idx ? { ...s, [field]: value } : s
@@ -481,118 +499,28 @@ export default function EditorPanel({
             </div>
 
             <SectionHeading>Sidebar — Section 1</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Title"
-                value={state.sidebar.sections[0].title}
-                onChange={(v) => updateSidebarSection(0, "title", v)}
-                testId="sidebar-s1-title"
-              />
-              {state.sidebar.sections[0].bullets.map((b, i) => {
-                const done = state.sidebar.sectionsDone?.[0]?.[i] ?? false;
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-end", gap: 6 }}>
-                    <div style={{ flex: 1 }}>
-                      <SectionInput
-                        label={`Bullet ${i + 1}`}
-                        value={b}
-                        onChange={(v) => updateSidebarBullet(0, i, v)}
-                        testId={`sidebar-s1-bullet-${i}`}
-                      />
-                    </div>
-                    <button
-                      onClick={() => toggleBulletDone(0, i)}
-                      title={done ? "Mark undone" : "Mark done"}
-                      style={{
-                        width: 28, height: 28, borderRadius: 6, border: `1px solid ${done ? "#7DD3FC60" : "#2a3060"}`,
-                        background: done ? "#7DD3FC20" : "#0F1122",
-                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 1,
-                      }}
-                    >
-                      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                        <path d="M2 5.5L4.5 8L9 3" stroke={done ? "#7DD3FC" : "#3a4060"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+            <SidebarSectionEditor
+              state={state}
+              onChange={onChange}
+              index={0}
+              accentColor="#7DD3FC"
+            />
 
             <SectionHeading>Sidebar — Section 2</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Title"
-                value={state.sidebar.sections[1].title}
-                onChange={(v) => updateSidebarSection(1, "title", v)}
-                testId="sidebar-s2-title"
-              />
-              {state.sidebar.sections[1].bullets.map((b, i) => {
-                const done = state.sidebar.sectionsDone?.[1]?.[i] ?? false;
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-end", gap: 6 }}>
-                    <div style={{ flex: 1 }}>
-                      <SectionInput
-                        label={`Bullet ${i + 1}`}
-                        value={b}
-                        onChange={(v) => updateSidebarBullet(1, i, v)}
-                        testId={`sidebar-s2-bullet-${i}`}
-                      />
-                    </div>
-                    <button
-                      onClick={() => toggleBulletDone(1, i)}
-                      title={done ? "Mark undone" : "Mark done"}
-                      style={{
-                        width: 28, height: 28, borderRadius: 6, border: `1px solid ${done ? "#FF6FAE60" : "#2a3060"}`,
-                        background: done ? "#FF6FAE20" : "#0F1122",
-                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 1,
-                      }}
-                    >
-                      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                        <path d="M2 5.5L4.5 8L9 3" stroke={done ? "#FF6FAE" : "#3a4060"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+            <SidebarSectionEditor
+              state={state}
+              onChange={onChange}
+              index={1}
+              accentColor="#FF6FAE"
+            />
 
             <SectionHeading>Sidebar — Section 3</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Title"
-                value={state.sidebar.sections[2].title}
-                onChange={(v) => updateSidebarSection(2, "title", v)}
-                testId="sidebar-s3-title"
-              />
-              {state.sidebar.sections[2].bullets.map((b, i) => {
-                const done = state.sidebar.sectionsDone?.[2]?.[i] ?? false;
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-end", gap: 6 }}>
-                    <div style={{ flex: 1 }}>
-                      <SectionInput
-                        label={`Bullet ${i + 1}`}
-                        value={b}
-                        onChange={(v) => updateSidebarBullet(2, i, v)}
-                        testId={`sidebar-s3-bullet-${i}`}
-                      />
-                    </div>
-                    <button
-                      onClick={() => toggleBulletDone(2, i)}
-                      title={done ? "Mark undone" : "Mark done"}
-                      style={{
-                        width: 28, height: 28, borderRadius: 6, border: `1px solid ${done ? "#FFB86B60" : "#2a3060"}`,
-                        background: done ? "#FFB86B20" : "#0F1122",
-                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 1,
-                      }}
-                    >
-                      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                        <path d="M2 5.5L4.5 8L9 3" stroke={done ? "#FFB86B" : "#3a4060"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+            <SidebarSectionEditor
+              state={state}
+              onChange={onChange}
+              index={2}
+              accentColor="#FFB86B"
+            />
 
             {/* Bottom Bar */}
             <SectionHeading>Bottom Bar — Segment 1</SectionHeading>
@@ -939,44 +867,77 @@ export default function EditorPanel({
               )}
             </div>
 
-            {/* Closing Line — optional */}
-            <SectionHeading>Poster — Closing Line</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <ToggleButton
-                label="Show Closing Line"
-                checked={state.cover.closingVisible}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingVisible: v } })}
-                testId="poster-closing-visible"
-              />
-              {state.cover.closingVisible && (
-                <>
-                  <SectionInput
-                    label="Prefix"
-                    value={state.cover.closingPrefix}
-                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingPrefix: v } })}
-                    testId="poster-closing-prefix"
-                  />
-                  <SectionInput
-                    label="Strikethrough word"
-                    value={state.cover.closingStruck}
-                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingStruck: v } })}
-                    testId="poster-closing-struck"
-                  />
-                  <SectionInput
-                    label="Highlighted phrase"
-                    value={state.cover.closingHighlight}
-                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingHighlight: v } })}
-                    testId="poster-closing-highlight"
-                  />
-                  <SectionInput
-                    label="Suffix"
-                    value={state.cover.closingSuffix}
-                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingSuffix: v } })}
-                    testId="poster-closing-suffix"
-                  />
-                </>
-              )}
-            </div>
+            {/* Closing Line — advanced template, collapsible */}
+            <SectionHeading>Poster — Advanced</SectionHeading>
+            <details
+              style={{
+                background: "#0F1122",
+                border: "1px solid #1F2235",
+                borderRadius: 8,
+                padding: "8px 12px",
+              }}
+            >
+              <summary
+                style={{
+                  fontSize: 12,
+                  color: "#C7D2FE",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "4px 0",
+                }}
+              >
+                <span>Closing Line · prefix · struck · highlight · suffix</span>
+                <span style={{ fontSize: 10, color: "#6B7CA8" }}>optional</span>
+              </summary>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  marginTop: 12,
+                  paddingTop: 10,
+                  borderTop: "1px solid #1F2235",
+                }}
+              >
+                <ToggleButton
+                  label="Show Closing Line"
+                  checked={state.cover.closingVisible}
+                  onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingVisible: v } })}
+                  testId="poster-closing-visible"
+                />
+                {state.cover.closingVisible && (
+                  <>
+                    <SectionInput
+                      label="Prefix"
+                      value={state.cover.closingPrefix}
+                      onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingPrefix: v } })}
+                      testId="poster-closing-prefix"
+                    />
+                    <SectionInput
+                      label="Strikethrough word"
+                      value={state.cover.closingStruck}
+                      onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingStruck: v } })}
+                      testId="poster-closing-struck"
+                    />
+                    <SectionInput
+                      label="Highlighted phrase"
+                      value={state.cover.closingHighlight}
+                      onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingHighlight: v } })}
+                      testId="poster-closing-highlight"
+                    />
+                    <SectionInput
+                      label="Suffix"
+                      value={state.cover.closingSuffix}
+                      onChange={(v) => onChange({ ...state, cover: { ...state.cover, closingSuffix: v } })}
+                      testId="poster-closing-suffix"
+                    />
+                  </>
+                )}
+              </div>
+            </details>
 
             {/* Social Info */}
             <SectionHeading>Poster — Social Info</SectionHeading>
@@ -1020,16 +981,79 @@ export default function EditorPanel({
         )}
 
         {/* Colors */}
-        <SectionHeading>Colors</SectionHeading>
+        <SectionHeading>Colors — Surface</SectionHeading>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <ColorInput label="Background Dark" value={state.colors.bgDark} onChange={(v) => updateColor("bgDark", v)} testId="color-bg-dark" />
-          <ColorInput label="Panel Background" value={state.colors.bgPanel} onChange={(v) => updateColor("bgPanel", v)} testId="color-bg-panel" />
-          <ColorInput label="Border Color" value={state.colors.borderColor} onChange={(v) => updateColor("borderColor", v)} testId="color-border" />
-          <ColorInput label="Text Color" value={state.colors.textColor} onChange={(v) => updateColor("textColor", v)} testId="color-text" />
-          <ColorInput label="Muted Text" value={state.colors.mutedText} onChange={(v) => updateColor("mutedText", v)} testId="color-muted" />
-          <ColorInput label="Cyan Accent" value={state.colors.cyanAccent} onChange={(v) => updateColor("cyanAccent", v)} testId="color-cyan" />
-          <ColorInput label="Pink Accent" value={state.colors.pinkAccent} onChange={(v) => updateColor("pinkAccent", v)} testId="color-pink" />
-          <ColorInput label="Warm Accent" value={state.colors.warmAccent} onChange={(v) => updateColor("warmAccent", v)} testId="color-warm" />
+          <ColorInput
+            label="Background Dark"
+            hint="Outer canvas background"
+            value={state.colors.bgDark}
+            onChange={(v) => updateColor("bgDark", v)}
+            testId="color-bg-dark"
+          />
+          <ColorInput
+            label="Panel Background"
+            hint="Sidebar / bottom-bar / camera tile fill"
+            value={state.colors.bgPanel}
+            onChange={(v) => updateColor("bgPanel", v)}
+            testId="color-bg-panel"
+          />
+          <ColorInput
+            label="Border"
+            hint="Panel hairline borders + accent dividers"
+            value={state.colors.borderColor}
+            onChange={(v) => updateColor("borderColor", v)}
+            testId="color-border"
+          />
+        </div>
+
+        <SectionHeading>Colors — Text</SectionHeading>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <ColorInput
+            label="Text"
+            hint="Main bullet copy and titles"
+            value={state.colors.textColor}
+            onChange={(v) => updateColor("textColor", v)}
+            testId="color-text"
+          />
+          <ColorInput
+            label="Muted Text"
+            hint="Secondary captions and inactive sections"
+            value={state.colors.mutedText}
+            onChange={(v) => updateColor("mutedText", v)}
+            testId="color-muted"
+          />
+          <ColorInput
+            label="Subtle Text"
+            hint="Eyebrow labels and footnote-level text"
+            value={state.colors.subtleText}
+            onChange={(v) => updateColor("subtleText", v)}
+            testId="color-subtle"
+          />
+        </div>
+
+        <SectionHeading>Colors — Accent</SectionHeading>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <ColorInput
+            label="Cyan"
+            hint="Section 1 accent (sidebar + bottom bar)"
+            value={state.colors.cyanAccent}
+            onChange={(v) => updateColor("cyanAccent", v)}
+            testId="color-cyan"
+          />
+          <ColorInput
+            label="Pink"
+            hint="Section 2 accent + social highlight"
+            value={state.colors.pinkAccent}
+            onChange={(v) => updateColor("pinkAccent", v)}
+            testId="color-pink"
+          />
+          <ColorInput
+            label="Warm"
+            hint="Section 3 accent + QQ label"
+            value={state.colors.warmAccent}
+            onChange={(v) => updateColor("warmAccent", v)}
+            testId="color-warm"
+          />
         </div>
 
         {/* Export Buttons */}
@@ -1074,32 +1098,56 @@ export default function EditorPanel({
 
         {/* Reset */}
         <div style={{ marginTop: 12 }}>
-          <button
-            data-testid="btn-reset"
-            onClick={onReset}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              background: "transparent",
-              border: "1px solid #2a2d4a",
-              borderRadius: 7,
-              color: "#6B7CA8",
-              fontSize: 12,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.color = "#F4F7FF";
-              (e.target as HTMLElement).style.borderColor = "#3a3d5a";
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.color = "#6B7CA8";
-              (e.target as HTMLElement).style.borderColor = "#2a2d4a";
-            }}
-          >
-            Reset Defaults
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                data-testid="btn-reset"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  background: "transparent",
+                  border: "1px solid #2a2d4a",
+                  borderRadius: 7,
+                  color: "#6B7CA8",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.color = "#F4F7FF";
+                  (e.target as HTMLElement).style.borderColor = "#3a3d5a";
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.color = "#6B7CA8";
+                  (e.target as HTMLElement).style.borderColor = "#2a2d4a";
+                }}
+              >
+                Reset Defaults
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset to defaults?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will discard all of your edits — sections, bullets,
+                  bottom-bar text, cover/poster copy, and color overrides — and
+                  load the factory state. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel data-testid="btn-reset-cancel">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  data-testid="btn-reset-confirm"
+                  onClick={onReset}
+                >
+                  Reset everything
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </div>
