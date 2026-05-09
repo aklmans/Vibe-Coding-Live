@@ -434,37 +434,54 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
             {hasSocial && (
               <div
                 style={{
-                  borderTop: `1px solid ${borderColor}20`,
-                  padding: "12px 20px",
+                  borderTop: `1px solid ${borderColor}25`,
+                  padding: "14px 24px 16px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 7,
+                  gap: 10,
                   flexShrink: 0,
                   background: `${bgDark}60`,
                 }}
               >
+                {/* Social section title — same style as section headings */}
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: pinkAccent,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 2,
+                  }}
+                >
+                  <div style={{ width: 3, height: 10, borderRadius: 2, background: pinkAccent, flexShrink: 0 }} />
+                  关注我
+                </div>
                 {cover.socialBilibili && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: "#E62117", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>B站</span>
-                    <span style={{ fontSize: 12, color: `${mutedText}BB`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialBilibili}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: "#E62117", borderRadius: 4, padding: "3px 8px", flexShrink: 0, minWidth: 52, textAlign: "center" as const, boxSizing: "border-box" as const }}>B站</span>
+                    <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialBilibili}</span>
                   </div>
                 )}
                 {cover.socialBlog && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: cyanAccent, background: `${cyanAccent}18`, border: `1px solid ${cyanAccent}30`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>博客</span>
-                    <span style={{ fontSize: 12, color: `${mutedText}BB`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialBlog}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: cyanAccent, background: `${cyanAccent}18`, border: `1px solid ${cyanAccent}40`, borderRadius: 4, padding: "3px 8px", flexShrink: 0, minWidth: 52, textAlign: "center" as const, boxSizing: "border-box" as const }}>博客</span>
+                    <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialBlog}</span>
                   </div>
                 )}
                 {cover.socialGithub && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: mutedText, background: `${borderColor}15`, border: `1px solid ${borderColor}25`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>GH</span>
-                    <span style={{ fontSize: 12, color: `${mutedText}BB`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialGithub}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: mutedText, background: `${borderColor}15`, border: `1px solid ${borderColor}30`, borderRadius: 4, padding: "3px 8px", flexShrink: 0, minWidth: 52, textAlign: "center" as const, boxSizing: "border-box" as const }}>GitHub</span>
+                    <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialGithub}</span>
                   </div>
                 )}
                 {cover.socialQQ && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: warmAccent, background: `${warmAccent}15`, border: `1px solid ${warmAccent}28`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>QQ</span>
-                    <span style={{ fontSize: 12, color: `${mutedText}BB`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialQQ}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: warmAccent, background: `${warmAccent}15`, border: `1px solid ${warmAccent}35`, borderRadius: 4, padding: "3px 8px", flexShrink: 0, minWidth: 52, textAlign: "center" as const, boxSizing: "border-box" as const }}>QQ群</span>
+                    <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialQQ}</span>
                   </div>
                 )}
               </div>

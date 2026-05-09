@@ -457,103 +457,54 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 14,
-                alignItems: "flex-start",
-                padding: "24px 32px",
+                gap: 16,
+                alignItems: "stretch",
+                padding: "28px 36px",
                 background: `${bgPanel}A0`,
-                border: `1px solid ${borderColor}18`,
+                border: `1px solid ${borderColor}22`,
                 borderRadius: 14,
-                minWidth: 320,
+                minWidth: 340,
               }}
             >
+              {/* Title */}
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: pinkAccent,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  marginBottom: 4,
+                }}
+              >
+                <div style={{ width: 4, height: 14, borderRadius: 2, background: pinkAccent, flexShrink: 0 }} />
+                关注我
+              </div>
               {cover.socialBilibili && (
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div
-                    style={{
-                      width: 28,
-                      height: 20,
-                      background: "#E62117",
-                      borderRadius: 4,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", letterSpacing: "0.01em" }}>
-                      B站
-                    </span>
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 20,
-                      color: mutedText,
-                      fontWeight: 500,
-                      letterSpacing: "0.01em",
-                    }}
-                  >
-                    {cover.socialBilibili}
-                  </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", background: "#E62117", borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>B站</span>
+                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBilibili}</span>
                 </div>
               )}
               {cover.socialBlog && (
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div
-                    style={{
-                      width: 28,
-                      height: 20,
-                      background: `${cyanAccent}25`,
-                      border: `1px solid ${cyanAccent}40`,
-                      borderRadius: 4,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ fontSize: 13, color: cyanAccent }}>⊕</span>
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 20,
-                      color: mutedText,
-                      fontWeight: 500,
-                      letterSpacing: "0.01em",
-                    }}
-                  >
-                    {cover.socialBlog}
-                  </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: cyanAccent, background: `${cyanAccent}18`, border: `1px solid ${cyanAccent}40`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>博客</span>
+                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBlog}</span>
                 </div>
               )}
               {cover.socialGithub && (
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div
-                    style={{
-                      width: 28,
-                      height: 20,
-                      background: `${borderColor}18`,
-                      border: `1px solid ${borderColor}30`,
-                      borderRadius: 4,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ fontSize: 10, fontWeight: 700, color: mutedText, letterSpacing: "0.01em" }}>
-                      GH
-                    </span>
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 20,
-                      color: mutedText,
-                      fontWeight: 500,
-                      letterSpacing: "0.01em",
-                    }}
-                  >
-                    {cover.socialGithub}
-                  </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: mutedText, background: `${borderColor}15`, border: `1px solid ${borderColor}30`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>GitHub</span>
+                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialGithub}</span>
+                </div>
+              )}
+              {cover.socialQQ && (
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: warmAccent, background: `${warmAccent}15`, border: `1px solid ${warmAccent}35`, borderRadius: 5, padding: "4px 12px", flexShrink: 0, minWidth: 68, textAlign: "center" as const, boxSizing: "border-box" as const }}>QQ群</span>
+                  <span style={{ fontSize: 20, color: textColor, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialQQ}</span>
                 </div>
               )}
             </div>
