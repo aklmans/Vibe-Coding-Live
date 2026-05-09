@@ -3,6 +3,7 @@ import { OverlayState } from "../types";
 import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
 import SidebarSectionEditor from "./SidebarSectionEditor";
 import BadgesEditor from "./BadgesEditor";
+import SocialsEditor from "./SocialsEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -932,32 +933,11 @@ export default function EditorPanel({
                 testId="poster-social-visible"
               />
               {state.cover.socialVisible && (
-                <>
-                  <SectionInput
-                    label="B站 用户名 / 直播间"
-                    value={state.cover.socialBilibili}
-                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialBilibili: v } })}
-                    testId="poster-social-bilibili"
-                  />
-                  <SectionInput
-                    label="Blog / 网站"
-                    value={state.cover.socialBlog}
-                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialBlog: v } })}
-                    testId="poster-social-blog"
-                  />
-                  <SectionInput
-                    label="GitHub 用户名"
-                    value={state.cover.socialGithub}
-                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialGithub: v } })}
-                    testId="poster-social-github"
-                  />
-                  <SectionInput
-                    label="QQ 群号"
-                    value={state.cover.socialQQ}
-                    onChange={(v) => onChange({ ...state, cover: { ...state.cover, socialQQ: v } })}
-                    testId="poster-social-qq"
-                  />
-                </>
+                <SocialsEditor
+                  state={state}
+                  onChange={onChange}
+                  testIdPrefix="poster-social"
+                />
               )}
             </div>
           </>
@@ -1025,14 +1005,14 @@ export default function EditorPanel({
           />
           <ColorInput
             label="Pink"
-            hint="Section 2 accent + social highlight"
+            hint="Section 2 accent + 'Follow me' header"
             value={state.colors.pinkAccent}
             onChange={(v) => updateColor("pinkAccent", v)}
             testId="color-pink"
           />
           <ColorInput
             label="Warm"
-            hint="Section 3 accent + QQ label"
+            hint="Section 3 accent + warm preset chips"
             value={state.colors.warmAccent}
             onChange={(v) => updateColor("warmAccent", v)}
             testId="color-warm"

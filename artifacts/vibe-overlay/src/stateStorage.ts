@@ -1,6 +1,11 @@
 import { DEFAULT_STATE, type OverlayState } from "./types";
 import { type ThemeMode } from "./lib/theme";
 import { BADGE_PRESETS, type BadgeConfig, type BadgeKind } from "./lib/badges";
+import {
+  isSocialKind,
+  type SocialConfig,
+  type SocialKind,
+} from "./lib/socials";
 
 const STORAGE_KEY = "vibe-overlay-state";
 
@@ -190,6 +195,60 @@ function normalizeBadges(
   });
 }
 
+function normalizeSocialKind(value: unknown): SocialKind {
+  return isSocialKind(value) ? value : "custom";
+}
+
+function normalizeSocial(
+  value: unknown,
+  fallback: SocialConfig,
+): SocialConfig {
+  const source = record(value);
+  if (!source) return { ...fallback };
+  const kind = normalizeSocialKind(source.kind);
+  return {
+    visible: boolOrDefault(source.visible, fallback.visible),
+    kind,
+    label: stringOrDefault(source.label, fallback.label),
+    value: stringOrDefault(source.value, fallback.value),
+    customColor: stringOrDefault(source.customColor, fallback.customColor),
+  };
+}
+
+function normalizeSocials(
+  value: unknown,
+  legacy: {
+    socialBilibili?: unknown;
+    socialBlog?: unknown;
+    socialGithub?: unknown;
+    socialQQ?: unknown;
+  },
+): SocialConfig[] {
+  const defaults = DEFAULT_STATE.cover.socials;
+
+  if (Array.isArray(value)) {
+    return defaults.map((fallback, i) => normalizeSocial(value[i], fallback));
+  }
+
+  // Legacy v0 -> v1 migration: four flat strings become the first four
+  // SocialConfig entries (bilibili / blog / github / qq).
+  const legacyValues: Record<SocialKind, string> = {
+    bilibili: stringOrDefault(legacy.socialBilibili, ""),
+    blog: stringOrDefault(legacy.socialBlog, ""),
+    github: stringOrDefault(legacy.socialGithub, ""),
+    qq: stringOrDefault(legacy.socialQQ, ""),
+    x: "",
+    youtube: "",
+    wechat: "",
+    custom: "",
+  };
+
+  return defaults.map((fallback) => ({
+    ...fallback,
+    value: legacyValues[fallback.kind] || fallback.value,
+  }));
+}
+
 function browserStorage(): StorageLike | null {
   return typeof localStorage === "undefined" ? null : localStorage;
 }
@@ -305,22 +364,12 @@ export function normalizeOverlayState(value: unknown): OverlayState {
         cover?.socialVisible,
         DEFAULT_STATE.cover.socialVisible,
       ),
-      socialBilibili: stringOrDefault(
-        cover?.socialBilibili,
-        DEFAULT_STATE.cover.socialBilibili,
-      ),
-      socialBlog: stringOrDefault(
-        cover?.socialBlog,
-        DEFAULT_STATE.cover.socialBlog,
-      ),
-      socialGithub: stringOrDefault(
-        cover?.socialGithub,
-        DEFAULT_STATE.cover.socialGithub,
-      ),
-      socialQQ: stringOrDefault(
-        cover?.socialQQ,
-        DEFAULT_STATE.cover.socialQQ,
-      ),
+      socials: normalizeSocials(cover?.socials, {
+        socialBilibili: cover?.socialBilibili,
+        socialBlog: cover?.socialBlog,
+        socialGithub: cover?.socialGithub,
+        socialQQ: cover?.socialQQ,
+      }),
     },
     colors: normalizeColors(source?.colors),
     theme: normalizeTheme(source?.theme),

@@ -1,5 +1,6 @@
 import { NEON_PRESET, type ColorTokens, type ThemeMode } from "./lib/theme";
 import type { BadgeConfig } from "./lib/badges";
+import type { SocialConfig } from "./lib/socials";
 
 export interface OverlayState {
   sidebar: {
@@ -42,10 +43,7 @@ export interface OverlayState {
     closingHighlight: string;
     closingSuffix: string;
     socialVisible: boolean;
-    socialBilibili: string;
-    socialBlog: string;
-    socialGithub: string;
-    socialQQ: string;
+    socials: SocialConfig[];
   };
   colors: ColorTokens;
   theme: ThemeMode;
@@ -113,10 +111,14 @@ export const DEFAULT_STATE: OverlayState = {
     closingHighlight: "building with agents.",
     closingSuffix: "Have a great life.",
     socialVisible: false,
-    socialBilibili: "",
-    socialBlog: "",
-    socialGithub: "",
-    socialQQ: "",
+    socials: [
+      { visible: true, kind: "bilibili", label: "B站", value: "", customColor: "" },
+      { visible: true, kind: "blog", label: "博客", value: "", customColor: "" },
+      { visible: true, kind: "github", label: "GitHub", value: "", customColor: "" },
+      { visible: true, kind: "qq", label: "QQ群", value: "", customColor: "" },
+      { visible: false, kind: "x", label: "X", value: "", customColor: "" },
+      { visible: false, kind: "youtube", label: "YouTube", value: "", customColor: "" },
+    ],
   },
   colors: {
     ...NEON_PRESET,

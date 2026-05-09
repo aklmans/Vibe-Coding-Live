@@ -1,0 +1,233 @@
+import type { OverlayState } from "../types";
+import {
+  SOCIAL_KIND_OPTIONS,
+  defaultSocialLabel,
+  type SocialConfig,
+  type SocialKind,
+} from "../lib/socials";
+
+interface SocialsEditorProps {
+  state: OverlayState;
+  onChange: (state: OverlayState) => void;
+  testIdPrefix?: string;
+}
+
+/**
+ * Editor for the social-link list shown in Sidebar / Overlay sidebar / Poster
+ * footer. Each row: visibility toggle + kind picker + label + value (URL or
+ * handle), plus a custom color field when kind === "custom".
+ */
+export default function SocialsEditor({
+  state,
+  onChange,
+  testIdPrefix = "social",
+}: SocialsEditorProps) {
+  const updateSocial = (idx: number, patch: Partial<SocialConfig>) => {
+    const socials = state.cover.socials.map((s, i) =>
+      i === idx ? { ...s, ...patch } : s,
+    );
+    onChange({ ...state, cover: { ...state.cover, socials } });
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {state.cover.socials.map((social, idx) => (
+        <div
+          key={idx}
+          style={{
+            background: "#0F1122",
+            border: "1px solid #1F2235",
+            borderRadius: 8,
+            padding: 10,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            opacity: social.visible ? 1 : 0.55,
+          }}
+        >
+          {/* Row 1: kind summary + visibility toggle */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <span
+              style={{
+                flex: 1,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#C7D2FE",
+                letterSpacing: "0.04em",
+              }}
+            >
+              {social.label || `Social ${idx + 1}`}
+            </span>
+            <button
+              data-testid={`${testIdPrefix}-${idx}-visible`}
+              onClick={() => updateSocial(idx, { visible: !social.visible })}
+              style={{
+                width: 38,
+                height: 20,
+                borderRadius: 10,
+                border: "none",
+                cursor: "pointer",
+                background: social.visible ? "#8DA8FF" : "#1F2235",
+                position: "relative",
+                transition: "background 0.2s",
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: "50%",
+                  background: "#F4F7FF",
+                  position: "absolute",
+                  top: 3,
+                  left: social.visible ? 21 : 3,
+                  transition: "left 0.2s",
+                }}
+              />
+            </button>
+          </div>
+
+          {/* Row 2: kind picker (wraps onto two rows when narrow) */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 4,
+              background: "#080A14",
+              padding: 3,
+              borderRadius: 6,
+              border: "1px solid #1F2235",
+            }}
+          >
+            {SOCIAL_KIND_OPTIONS.map((opt) => {
+              const active = social.kind === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  data-testid={`${testIdPrefix}-${idx}-kind-${opt.value}`}
+                  onClick={() => {
+                    const patch: Partial<SocialConfig> = { kind: opt.value };
+                    // Only refresh the label when the user is rotating between
+                    // presets. Keep custom labels intact when they switch *to*
+                    // custom from a preset.
+                    if (opt.value !== "custom") {
+                      patch.label = defaultSocialLabel(opt.value as SocialKind);
+                    } else if (!social.label.trim()) {
+                      patch.label = "Custom";
+                    }
+                    updateSocial(idx, patch);
+                  }}
+                  style={{
+                    padding: "5px 0",
+                    background: active ? "#1F2235" : "transparent",
+                    border: "none",
+                    borderRadius: 4,
+                    fontSize: 10,
+                    fontWeight: 500,
+                    color: active ? "#F4F7FF" : "#6B7CA8",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    letterSpacing: "0.04em",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Row 3: label */}
+          <input
+            data-testid={`${testIdPrefix}-${idx}-label`}
+            value={social.label}
+            onChange={(e) => updateSocial(idx, { label: e.target.value })}
+            placeholder="Label (e.g. B站)"
+            style={{
+              background: "#080A14",
+              border: "1px solid #2a3060",
+              borderRadius: 6,
+              padding: "6px 10px",
+              fontSize: 13,
+              color: "#F4F7FF",
+              outline: "none",
+              fontFamily: "inherit",
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
+            onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+          />
+
+          {/* Row 4: value (URL / handle / id) */}
+          <input
+            data-testid={`${testIdPrefix}-${idx}-value`}
+            value={social.value}
+            onChange={(e) => updateSocial(idx, { value: e.target.value })}
+            placeholder="Value (e.g. bili.com/aklman)"
+            style={{
+              background: "#080A14",
+              border: "1px solid #2a3060",
+              borderRadius: 6,
+              padding: "6px 10px",
+              fontSize: 12,
+              color: "#F4F7FF",
+              outline: "none",
+              fontFamily: "monospace",
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
+            onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+          />
+
+          {/* Row 5: custom color (only when kind === custom) */}
+          {social.kind === "custom" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                paddingTop: 4,
+              }}
+            >
+              <span
+                style={{ flex: 1, fontSize: 11, color: "#8DA8FF" }}
+                title="Drives chip text/border/fill colors"
+              >
+                Custom color
+              </span>
+              <input
+                data-testid={`${testIdPrefix}-${idx}-color`}
+                type="color"
+                value={social.customColor || "#8DA8FF"}
+                onChange={(e) =>
+                  updateSocial(idx, { customColor: e.target.value })
+                }
+                style={{
+                  width: 28,
+                  height: 24,
+                  border: "1px solid #2a3060",
+                  borderRadius: 4,
+                  padding: 1,
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
+              />
+              <span style={{ fontSize: 11, color: "#8DA8FF", fontFamily: "monospace" }}>
+                {social.customColor || "—"}
+              </span>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}

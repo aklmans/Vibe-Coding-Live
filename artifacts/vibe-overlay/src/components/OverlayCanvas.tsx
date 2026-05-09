@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { OverlayState } from "../types";
 import SidebarSections from "./SidebarSections";
+import SocialList from "./SocialList";
 
 interface OverlayCanvasProps {
   state: OverlayState;
@@ -37,24 +38,10 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
     } = colors;
 
     const avatarSrc = cover.avatarUrl || AVATAR_PLACEHOLDER;
-    const hasSocial =
-      sidebar.socialVisible &&
-      (cover.socialBilibili || cover.socialBlog || cover.socialGithub || cover.socialQQ);
-
-    // Shared social-label baseline so all four pills (B站 / 博客 / GitHub /
-    // QQ群) match in width, height, and border weight.
-    const socialLabelBase = {
-      fontSize: 11,
-      fontWeight: 700,
-      borderRadius: 4,
-      padding: "3px 8px",
-      flexShrink: 0,
-      minWidth: 76,
-      textAlign: "center" as const,
-      boxSizing: "border-box" as const,
-      letterSpacing: "0.04em",
-      border: "1px solid transparent",
-    };
+    const hasVisibleSocial = cover.socials.some(
+      (s) => s.visible && s.value.trim().length > 0,
+    );
+    const hasSocial = sidebar.socialVisible && hasVisibleSocial;
 
     return (
       <div
@@ -373,30 +360,7 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
                   <div style={{ width: 3, height: 10, borderRadius: 2, background: pinkAccent, flexShrink: 0 }} />
                   关注我
                 </div>
-                {cover.socialBilibili && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ ...socialLabelBase, color: "#fff", background: "#E62117", border: "1px solid #E62117" }}>B站</span>
-                    <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialBilibili}</span>
-                  </div>
-                )}
-                {cover.socialBlog && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ ...socialLabelBase, color: cyanAccent, background: `${cyanAccent}18`, border: `1px solid ${cyanAccent}40` }}>博客</span>
-                    <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialBlog}</span>
-                  </div>
-                )}
-                {cover.socialGithub && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ ...socialLabelBase, color: mutedText, background: `${borderColor}15`, border: `1px solid ${borderColor}30` }}>GitHub</span>
-                    <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialGithub}</span>
-                  </div>
-                )}
-                {cover.socialQQ && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ ...socialLabelBase, color: warmAccent, background: `${warmAccent}15`, border: `1px solid ${warmAccent}35` }}>QQ群</span>
-                    <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialQQ}</span>
-                  </div>
-                )}
+                <SocialList state={state} size="small" />
               </div>
             )}
           </div>

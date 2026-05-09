@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { OverlayState } from "../types";
 import SidebarSections from "./SidebarSections";
+import SocialList from "./SocialList";
 
 interface SidebarPanelProps {
   state: OverlayState;
@@ -9,26 +10,12 @@ interface SidebarPanelProps {
 const SidebarPanel = forwardRef<HTMLDivElement, SidebarPanelProps>(
   ({ state }, ref) => {
     const { sidebar, cover, colors } = state;
-    const { bgDark, bgPanel, borderColor, textColor, mutedText, cyanAccent, pinkAccent, warmAccent } = colors;
+    const { bgDark, bgPanel, borderColor, cyanAccent, pinkAccent } = colors;
 
-    const hasSocial =
-      sidebar.socialVisible &&
-      (cover.socialBilibili || cover.socialBlog || cover.socialGithub || cover.socialQQ);
-
-    // Small-card label baseline (Sidebar export slice).
-    // All labels carry a 1px border so heights match even when colors differ.
-    const labelBase = {
-      fontSize: 12,
-      fontWeight: 700,
-      borderRadius: 4,
-      padding: "3px 8px",
-      flexShrink: 0,
-      minWidth: 76,
-      textAlign: "center" as const,
-      boxSizing: "border-box" as const,
-      letterSpacing: "0.04em",
-      border: "1px solid transparent",
-    };
+    const hasVisibleSocial = cover.socials.some(
+      (s) => s.visible && s.value.trim().length > 0,
+    );
+    const hasSocial = sidebar.socialVisible && hasVisibleSocial;
 
     return (
       <div
@@ -89,30 +76,7 @@ const SidebarPanel = forwardRef<HTMLDivElement, SidebarPanelProps>(
               <div style={{ width: 3, height: 10, borderRadius: 2, background: pinkAccent, flexShrink: 0 }} />
               关注我
             </div>
-            {cover.socialBilibili && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ ...labelBase, color: "#fff", background: "#E62117", border: "1px solid #E62117" }}>B站</span>
-                <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialBilibili}</span>
-              </div>
-            )}
-            {cover.socialBlog && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ ...labelBase, color: cyanAccent, background: `${cyanAccent}18`, border: `1px solid ${cyanAccent}40` }}>博客</span>
-                <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialBlog}</span>
-              </div>
-            )}
-            {cover.socialGithub && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ ...labelBase, color: mutedText, background: `${borderColor}15`, border: `1px solid ${borderColor}30` }}>GitHub</span>
-                <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialGithub}</span>
-              </div>
-            )}
-            {cover.socialQQ && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ ...labelBase, color: warmAccent, background: `${warmAccent}15`, border: `1px solid ${warmAccent}35` }}>QQ群</span>
-                <span style={{ fontSize: 14, color: textColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cover.socialQQ}</span>
-              </div>
-            )}
+            <SocialList state={state} size="small" />
           </div>
         )}
       </div>
