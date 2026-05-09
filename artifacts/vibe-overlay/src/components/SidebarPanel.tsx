@@ -19,11 +19,11 @@ const SidebarPanel = forwardRef<HTMLDivElement, SidebarPanelProps>(
         ref={ref}
         data-testid="export-sidebar-panel"
         style={{
-          width: 400,
-          height: 684,
+          width: 470,
+          height: 760,
           background: `${bgPanel}F0`,
           border: `1.5px solid ${borderColor}45`,
-          borderRadius: 12,
+          borderRadius: 0,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",

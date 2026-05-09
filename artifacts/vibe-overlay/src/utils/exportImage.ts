@@ -47,8 +47,6 @@ export async function exportFullOverlay(canvasEl: HTMLElement): Promise<void> {
 export async function exportSidebar(sidebarEl: HTMLElement): Promise<void> {
   await exportElementAsPng(sidebarEl, {
     filename: "vibe-coding-sidebar.png",
-    width: 470,
-    height: 760,
     backgroundColor: undefined,
   });
 }
@@ -56,8 +54,6 @@ export async function exportSidebar(sidebarEl: HTMLElement): Promise<void> {
 export async function exportBottomBar(bottomBarEl: HTMLElement): Promise<void> {
   await exportElementAsPng(bottomBarEl, {
     filename: "vibe-coding-bottom-bar.png",
-    width: 1856,
-    height: 180,
     backgroundColor: undefined,
   });
 }

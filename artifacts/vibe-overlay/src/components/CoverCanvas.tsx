@@ -60,7 +60,7 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
               linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
               linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)
             `,
-            backgroundSize: "120px 120px",
+            backgroundSize: "128px 128px",
             pointerEvents: "none",
           }}
         />
@@ -310,16 +310,15 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
             </div>
           )}
 
-          {/* TODAY'S BUILD card — glassmorphism */}
+          {/* TODAY'S BUILD card — solid translucent panel (export-stable) */}
           <div
             style={{
               marginTop: 52,
-              background: C.glass,
+              background: "rgba(17, 24, 39, 0.85)",
               border: `1px solid ${C.glassBorder}`,
+              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
               borderRadius: 14,
               padding: "24px 48px 28px",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
               textAlign: "center",
               position: "relative",
               minWidth: 420,
