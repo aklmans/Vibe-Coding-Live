@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { OverlayState } from "../types";
 import { fontFamilies, typography } from "../lib/typography";
+import { badgeIconUrl } from "../lib/badges";
 
 interface CoverCanvasProps {
   state: OverlayState;
@@ -259,54 +260,69 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
           }}
         />
 
-        {/* ── macOS-style toolbar — Claude × Codex (top, larger & brighter) ── */}
-        <div
-          style={{
-            position: "absolute",
-            top: 56,
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 10,
-            padding: "10px 24px",
-          }}
-        >
-          <img
-            src="/icons/claude.svg"
-            alt="Claude"
-            style={{ width: 20, height: 20, objectFit: "contain", opacity: 0.85 }}
-          />
-          <span
-            style={{
-              fontSize: 14,
-              color: C.muted,
-              fontWeight: 500,
-              letterSpacing: "0.04em",
-            }}
-          >
-            {cover.badge1}
-          </span>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.22)" }}>×</span>
-          <img
-            src="/icons/codex.svg"
-            alt="Codex"
-            style={{ width: 20, height: 20, objectFit: "contain", opacity: 0.85 }}
-          />
-          <span
-            style={{
-              fontSize: 14,
-              color: C.muted,
-              fontWeight: 500,
-              letterSpacing: "0.04em",
-            }}
-          >
-            {cover.badge2}
-          </span>
-        </div>
+        {/* ── macOS-style toolbar — agent badges (top, larger & brighter) ── */}
+        {(() => {
+          const visibleBadges = cover.badges.filter((b) => b.visible);
+          if (visibleBadges.length === 0) return null;
+          return (
+            <div
+              style={{
+                position: "absolute",
+                top: 56,
+                left: "50%",
+                transform: "translateX(-50%)",
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 10,
+                padding: "10px 24px",
+              }}
+            >
+              {visibleBadges.map((badge, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                  }}
+                >
+                  {i > 0 && (
+                    <span
+                      style={{ fontSize: 12, color: "rgba(255,255,255,0.22)" }}
+                    >
+                      ×
+                    </span>
+                  )}
+                  {badgeIconUrl(badge) && (
+                    <img
+                      src={badgeIconUrl(badge)}
+                      alt={badge.label}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        objectFit: "contain",
+                        opacity: 0.85,
+                      }}
+                    />
+                  )}
+                  <span
+                    style={{
+                      fontSize: 14,
+                      color: C.muted,
+                      fontWeight: 500,
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    {badge.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* ── Hero: avatar (left) + title block (right), horizontal ── */}
         <div

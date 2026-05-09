@@ -1,5 +1,6 @@
 import { DEFAULT_STATE, type OverlayState } from "./types";
 import { type ThemeMode } from "./lib/theme";
+import { BADGE_PRESETS, type BadgeConfig, type BadgeKind } from "./lib/badges";
 
 const STORAGE_KEY = "vibe-overlay-state";
 
@@ -139,6 +140,56 @@ function normalizeTheme(value: unknown): ThemeMode {
   return value === "editorial" ? "editorial" : "neon";
 }
 
+const BADGE_KIND_VALUES: BadgeKind[] = [
+  "claude",
+  "codex",
+  "gemini",
+  "grok",
+  "custom",
+];
+
+function normalizeBadgeKind(value: unknown): BadgeKind {
+  return BADGE_KIND_VALUES.includes(value as BadgeKind)
+    ? (value as BadgeKind)
+    : "claude";
+}
+
+function normalizeBadge(value: unknown, fallback: BadgeConfig): BadgeConfig {
+  const source = record(value);
+  if (!source) return { ...fallback };
+  const kind = normalizeBadgeKind(source.kind);
+  const presetLabel =
+    kind === "custom" ? fallback.label : BADGE_PRESETS[kind].label;
+  return {
+    visible: boolOrDefault(source.visible, fallback.visible),
+    kind,
+    label: stringOrDefault(source.label, presetLabel),
+    customIconUrl: stringOrDefault(source.customIconUrl, fallback.customIconUrl),
+  };
+}
+
+function normalizeBadges(
+  value: unknown,
+  legacy: { badge1?: unknown; badge2?: unknown },
+): BadgeConfig[] {
+  const defaults = DEFAULT_STATE.cover.badges;
+
+  if (Array.isArray(value)) {
+    return defaults.map((fallback, i) => normalizeBadge(value[i], fallback));
+  }
+
+  // Legacy v0 -> v1 migration: { badge1: "Claude", badge2: "Codex" } strings
+  // become the first two BadgeConfig entries.
+  const legacyLabels = [legacy.badge1, legacy.badge2];
+  return defaults.map((fallback, i) => {
+    const legacyLabel = legacyLabels[i];
+    if (typeof legacyLabel === "string" && legacyLabel.length > 0) {
+      return { ...fallback, label: legacyLabel };
+    }
+    return { ...fallback };
+  });
+}
+
 function browserStorage(): StorageLike | null {
   return typeof localStorage === "undefined" ? null : localStorage;
 }
@@ -186,8 +237,10 @@ export function normalizeOverlayState(value: unknown): OverlayState {
     },
     cover: {
       title: stringOrDefault(cover?.title, DEFAULT_STATE.cover.title),
-      badge1: stringOrDefault(cover?.badge1, DEFAULT_STATE.cover.badge1),
-      badge2: stringOrDefault(cover?.badge2, DEFAULT_STATE.cover.badge2),
+      badges: normalizeBadges(cover?.badges, {
+        badge1: cover?.badge1,
+        badge2: cover?.badge2,
+      }),
       avatarUrl: stringOrDefault(
         cover?.avatarUrl,
         DEFAULT_STATE.cover.avatarUrl,

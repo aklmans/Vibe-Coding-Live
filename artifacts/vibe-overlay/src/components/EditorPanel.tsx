@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { OverlayState } from "../types";
 import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
 import SidebarSectionEditor from "./SidebarSectionEditor";
+import BadgesEditor from "./BadgesEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -656,19 +657,10 @@ export default function EditorPanel({
                 onChange={(v) => onChange({ ...state, cover: { ...state.cover, title: v } })}
                 testId="cover-title"
               />
-              <SectionInput
-                label="Badge 1 Label"
-                value={state.cover.badge1}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, badge1: v } })}
-                testId="cover-badge1"
-              />
-              <SectionInput
-                label="Badge 2 Label"
-                value={state.cover.badge2}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, badge2: v } })}
-                testId="cover-badge2"
-              />
             </div>
+
+            <SectionHeading>Cover — Agent Badges</SectionHeading>
+            <BadgesEditor state={state} onChange={onChange} testIdPrefix="cover-badge" />
 
             {/* Subtitle */}
             <SectionHeading>Cover — Subtitle</SectionHeading>
@@ -784,19 +776,10 @@ export default function EditorPanel({
                 onChange={(v) => onChange({ ...state, cover: { ...state.cover, title: v } })}
                 testId="poster-title"
               />
-              <SectionInput
-                label="Badge 1 Label"
-                value={state.cover.badge1}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, badge1: v } })}
-                testId="poster-badge1"
-              />
-              <SectionInput
-                label="Badge 2 Label"
-                value={state.cover.badge2}
-                onChange={(v) => onChange({ ...state, cover: { ...state.cover, badge2: v } })}
-                testId="poster-badge2"
-              />
             </div>
+
+            <SectionHeading>Poster — Agent Badges</SectionHeading>
+            <BadgesEditor state={state} onChange={onChange} testIdPrefix="poster-badge" />
 
             {/* Today's topic */}
             <SectionHeading>Poster — Today's Topic</SectionHeading>

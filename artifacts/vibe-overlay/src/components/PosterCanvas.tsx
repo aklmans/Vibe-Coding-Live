@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { OverlayState } from "../types";
 import { fontFamilies, typography } from "../lib/typography";
+import { badgeIconUrl } from "../lib/badges";
 
 interface PosterCanvasProps {
   state: OverlayState;
@@ -40,16 +41,18 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
       cover.manifestoVisible || cover.closingVisible;
 
     // Large-card label baseline for the Poster social footer.
+    // All labels include a 1px border so heights match across colors.
     const labelBase = {
       fontSize: 14,
       fontWeight: 600,
       borderRadius: 5,
       padding: "4px 12px",
       flexShrink: 0,
-      minWidth: 64,
-      textAlign: "left" as const,
+      minWidth: 84,
+      textAlign: "center" as const,
       boxSizing: "border-box" as const,
       letterSpacing: "0.04em",
+      border: "1px solid transparent",
     };
 
     return (
@@ -278,47 +281,48 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
               marginBottom: hasOptionalContent ? 44 : 52,
             }}
           >
-            {[
-              { src: "/icons/claude.svg", alt: "Claude", label: cover.badge1 },
-              { src: "/icons/codex.svg", alt: "Codex", label: cover.badge2 },
-            ].map((badge, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {i > 0 && (
-                  <span style={{ color: "rgba(255,255,255,0.22)", fontSize: 15, marginRight: 2 }}>
-                    ×
+            {cover.badges
+              .filter((b) => b.visible)
+              .map((badge, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {i > 0 && (
+                    <span style={{ color: "rgba(255,255,255,0.22)", fontSize: 15, marginRight: 2 }}>
+                      ×
+                    </span>
+                  )}
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 8,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 6,
+                    }}
+                  >
+                    {badgeIconUrl(badge) && (
+                      <img
+                        src={badgeIconUrl(badge)}
+                        alt={badge.label}
+                        style={{ width: 28, height: 28, objectFit: "contain", opacity: 0.85 }}
+                      />
+                    )}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 14,
+                      color: E.muted,
+                      fontWeight: 500,
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    {badge.label}
                   </span>
-                )}
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 8,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: 6,
-                  }}
-                >
-                  <img
-                    src={badge.src}
-                    alt={badge.alt}
-                    style={{ width: 28, height: 28, objectFit: "contain", opacity: 0.85 }}
-                  />
                 </div>
-                <span
-                  style={{
-                    fontSize: 14,
-                    color: E.muted,
-                    fontWeight: 500,
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  {badge.label}
-                </span>
-              </div>
-            ))}
+              ))}
 
             <div
               style={{
@@ -610,7 +614,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
               </div>
               {cover.socialBilibili && (
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{ ...labelBase, color: "#fff", background: "#E62117" }}>B站</span>
+                  <span style={{ ...labelBase, color: "#fff", background: "#E62117", border: "1px solid #E62117" }}>B站</span>
                   <span style={{ fontSize: 20, color: E.text, fontWeight: 500, letterSpacing: "0.01em" }}>{cover.socialBilibili}</span>
                 </div>
               )}

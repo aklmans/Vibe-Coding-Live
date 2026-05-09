@@ -1,4 +1,5 @@
 import { NEON_PRESET, type ColorTokens, type ThemeMode } from "./lib/theme";
+import type { BadgeConfig } from "./lib/badges";
 
 export interface OverlayState {
   sidebar: {
@@ -24,8 +25,7 @@ export interface OverlayState {
   };
   cover: {
     title: string;
-    badge1: string;
-    badge2: string;
+    badges: BadgeConfig[];
     avatarUrl: string;
     avatarVisible: boolean;
     todayLabel: string;
@@ -91,8 +91,12 @@ export const DEFAULT_STATE: OverlayState = {
   },
   cover: {
     title: "Building With Agents",
-    badge1: "Claude",
-    badge2: "Codex",
+    badges: [
+      { visible: true, kind: "claude", label: "Claude", customIconUrl: "" },
+      { visible: true, kind: "codex", label: "Codex", customIconUrl: "" },
+      { visible: false, kind: "gemini", label: "Gemini", customIconUrl: "" },
+      { visible: false, kind: "grok", label: "Grok", customIconUrl: "" },
+    ],
     avatarUrl: "",
     avatarVisible: true,
     todayLabel: "TODAY'S BUILD",
