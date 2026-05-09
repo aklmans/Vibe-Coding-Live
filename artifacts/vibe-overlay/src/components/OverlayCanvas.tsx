@@ -83,8 +83,8 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
               position: "absolute",
               left: 24,
               top: 48,
-              width: 1360,
-              height: 760,
+              width: 1448,
+              height: 786,
               background: "#070A12",
               border: `1.5px solid ${borderColor}50`,
               borderRadius: 12,
@@ -144,20 +144,19 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
           </div>
         )}
 
-        {/* Camera Frame — macOS style, bottom-left of main screen area */}
+        {/* Camera Frame — macOS style, bottom-right column (below sidebar) */}
         {mainScreen.cameraVisible && (
           <div
             style={{
               position: "absolute",
-              left: 40,
-              top: 567,
-              width: 300,
-              height: 225,
+              left: 1496,
+              top: 588,
+              width: 400,
+              height: 300,
               background: "#050710",
               border: `1.5px solid ${borderColor}55`,
               borderRadius: 12,
               overflow: "hidden",
-              zIndex: 10,
               display: "flex",
               flexDirection: "column",
               boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px ${bgPanel}`,
@@ -261,10 +260,10 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
             data-testid="overlay-sidebar"
             style={{
               position: "absolute",
-              left: 1410,
+              left: 1496,
               top: 48,
-              width: 470,
-              height: 760,
+              width: 400,
+              height: 516,
               background: `${bgPanel}F0`,
               border: `1.5px solid ${borderColor}45`,
               borderRadius: 12,
@@ -481,9 +480,9 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
             style={{
               position: "absolute",
               left: 24,
-              top: 840,
-              width: 1856,
-              height: 180,
+              top: 870,
+              width: 1448,
+              height: 162,
               background: `${bgPanel}F0`,
               border: `1.5px solid ${borderColor}45`,
               borderRadius: 12,

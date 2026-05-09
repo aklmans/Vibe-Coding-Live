@@ -19,8 +19,8 @@ const SidebarPanel = forwardRef<HTMLDivElement, SidebarPanelProps>(
         ref={ref}
         data-testid="export-sidebar-panel"
         style={{
-          width: 470,
-          height: 760,
+          width: 400,
+          height: 516,
           background: `${bgPanel}F0`,
           border: `1.5px solid ${borderColor}45`,
           borderRadius: 12,
