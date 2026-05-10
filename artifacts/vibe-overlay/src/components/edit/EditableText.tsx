@@ -6,6 +6,7 @@ import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { UI_COLORS } from "../../lib/design-tokens";
 
 type EditableTag = "span" | "div" | "h1" | "h2" | "h3" | "p";
 
@@ -122,7 +123,7 @@ export default function EditableText({
     }
   };
 
-  const ringColor = "#8DA8FFCC";
+  const ringColor = `${UI_COLORS.focus}CC`;
   const baseOutline: CSSProperties = editing
     ? {
         outline: `1px solid ${ringColor}`,

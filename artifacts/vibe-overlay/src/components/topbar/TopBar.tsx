@@ -1,4 +1,6 @@
 import type { OverlayState } from "../../types";
+import { UI_COLORS } from "../../lib/design-tokens";
+import { produceState } from "../../lib/state";
 import { useLocale } from "../../hooks/useLocale";
 import ExportMenu from "./ExportMenu";
 
@@ -52,8 +54,8 @@ export default function TopBar({
       style={{
         height: 56,
         flexShrink: 0,
-        background: "#0D0E1C",
-        borderBottom: "1px solid #1F2235",
+        background: UI_COLORS.appSurface,
+        borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
         display: "flex",
         alignItems: "center",
         gap: 16,
@@ -75,11 +77,11 @@ export default function TopBar({
             height: 26,
             borderRadius: 7,
             background:
-              "linear-gradient(135deg, #7C9FFF 0%, #C084FC 50%, #FF6FAE 100%)",
+              `linear-gradient(135deg, ${UI_COLORS.brandBlue} 0%, ${UI_COLORS.purple} 50%, ${UI_COLORS.danger} 100%)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#0D0E1C",
+            color: UI_COLORS.appSurface,
             fontWeight: 700,
             fontSize: 14,
             letterSpacing: "-0.02em",
@@ -91,7 +93,7 @@ export default function TopBar({
           style={{
             fontSize: 13,
             fontWeight: 600,
-            color: "#F4F7FF",
+            color: UI_COLORS.text,
             letterSpacing: "0.01em",
           }}
         >
@@ -104,10 +106,10 @@ export default function TopBar({
         style={{
           display: "flex",
           gap: 2,
-          background: "#0F1122",
+          background: UI_COLORS.controlSurface,
           padding: 3,
           borderRadius: 8,
-          border: "1px solid #1F2235",
+          border: `1px solid ${UI_COLORS.panelSurface}`,
         }}
       >
         {TABS.map((tab) => {
@@ -116,15 +118,21 @@ export default function TopBar({
             <button
               key={tab}
               data-testid={`tab-${tab}`}
-              onClick={() => onChange({ ...state, activeTab: tab })}
+              onClick={() =>
+                onChange(
+                  produceState(state, (draft) => {
+                    draft.activeTab = tab;
+                  }),
+                )
+              }
               style={{
                 padding: "6px 14px",
-                background: active ? "#1F2235" : "transparent",
+                background: active ? UI_COLORS.panelSurface : "transparent",
                 border: "none",
                 borderRadius: 6,
                 fontSize: 12,
                 fontWeight: 500,
-                color: active ? "#F4F7FF" : "#6B7CA8",
+                color: active ? UI_COLORS.text : UI_COLORS.textMuted,
                 cursor: "pointer",
                 fontFamily: "inherit",
                 letterSpacing: "0.02em",
@@ -149,9 +157,9 @@ export default function TopBar({
           height: 32,
           padding: "0 10px 0 12px",
           borderRadius: 7,
-          border: "1px solid #2a3060",
-          background: "#0F1122",
-          color: "#6B7CA8",
+          border: `1px solid ${UI_COLORS.controlBorder}`,
+          background: UI_COLORS.controlSurface,
+          color: UI_COLORS.textMuted,
           cursor: "pointer",
           fontFamily: "inherit",
           fontSize: 12,
@@ -161,12 +169,12 @@ export default function TopBar({
           flexShrink: 0,
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor = "#3a4080";
-          (e.currentTarget as HTMLElement).style.color = "#C7D2FE";
+          (e.currentTarget as HTMLElement).style.borderColor = UI_COLORS.controlBorderHover;
+          (e.currentTarget as HTMLElement).style.color = UI_COLORS.textSoft;
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor = "#2a3060";
-          (e.currentTarget as HTMLElement).style.color = "#6B7CA8";
+          (e.currentTarget as HTMLElement).style.borderColor = UI_COLORS.controlBorder;
+          (e.currentTarget as HTMLElement).style.color = UI_COLORS.textMuted;
         }}
       >
         <span aria-hidden>⌕</span>
@@ -177,9 +185,9 @@ export default function TopBar({
             fontSize: 10,
             padding: "1px 6px",
             borderRadius: 4,
-            border: "1px solid #2a3060",
-            background: "#0D0E1C",
-            color: "#8DA8FF",
+            border: `1px solid ${UI_COLORS.controlBorder}`,
+            background: UI_COLORS.appSurface,
+            color: UI_COLORS.focus,
             letterSpacing: "0.04em",
           }}
         >
@@ -197,9 +205,9 @@ export default function TopBar({
           width: 32,
           height: 32,
           borderRadius: 7,
-          border: "1px solid #2a3060",
+          border: `1px solid ${UI_COLORS.controlBorder}`,
           background: "transparent",
-          color: "#C7D2FE",
+          color: UI_COLORS.textSoft,
           cursor: "pointer",
           fontFamily: "inherit",
           fontSize: 14,
@@ -209,7 +217,7 @@ export default function TopBar({
           flexShrink: 0,
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.background = "#1F2235";
+          (e.currentTarget as HTMLElement).style.background = UI_COLORS.panelSurface;
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLElement).style.background = "transparent";

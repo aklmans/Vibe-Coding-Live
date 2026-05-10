@@ -1,4 +1,6 @@
 import type { OverlayState } from "../types";
+import { UI_COLORS } from "../lib/design-tokens";
+import { patchSection } from "../lib/state";
 import {
   WALLPAPER_PRESETS,
   getPresetLabels,
@@ -25,7 +27,7 @@ export default function WallpaperEditor({
   const { wallpaper } = state;
 
   const writeWallpaper = (patch: Partial<OverlayState["wallpaper"]>) => {
-    onChange({ ...state, wallpaper: { ...wallpaper, ...patch } });
+    onChange(patchSection(state, "wallpaper", patch));
   };
 
   const setPreset = (id: WallpaperPresetId) => {
@@ -40,10 +42,10 @@ export default function WallpaperEditor({
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 4,
-          background: "#0F1122",
+          background: UI_COLORS.controlSurface,
           padding: 3,
           borderRadius: 6,
-          border: "1px solid #1F2235",
+          border: `1px solid ${UI_COLORS.panelSurface}`,
         }}
       >
         {WALLPAPER_PRESETS.map((preset) => {
@@ -56,12 +58,12 @@ export default function WallpaperEditor({
               onClick={() => setPreset(preset.id)}
               style={{
                 padding: "6px 0",
-                background: active ? "#1F2235" : "transparent",
+                background: active ? UI_COLORS.panelSurface : "transparent",
                 border: "none",
                 borderRadius: 4,
                 fontSize: 11,
                 fontWeight: 500,
-                color: active ? "#F4F7FF" : "#6B7CA8",
+                color: active ? UI_COLORS.text : UI_COLORS.textMuted,
                 cursor: "pointer",
                 fontFamily: "inherit",
                 letterSpacing: "0.04em",
@@ -74,7 +76,7 @@ export default function WallpaperEditor({
                   display: "block",
                   fontSize: 9,
                   fontWeight: 400,
-                  color: active ? "#8DA8FF" : "#3a4060",
+                  color: active ? UI_COLORS.focus : UI_COLORS.textSubtle,
                   marginTop: 2,
                   letterSpacing: "0.02em",
                 }}
@@ -124,8 +126,8 @@ export default function WallpaperEditor({
           display: "flex",
           flexDirection: "column",
           gap: 2,
-          background: "#0F1122",
-          border: "1px solid #1F2235",
+          background: UI_COLORS.controlSurface,
+          border: `1px solid ${UI_COLORS.panelSurface}`,
           borderRadius: 8,
           padding: "4px 12px",
         }}
@@ -153,11 +155,11 @@ export default function WallpaperEditor({
       <div
         style={{
           fontSize: 11,
-          color: "#6B7CA8",
+          color: UI_COLORS.textMuted,
           lineHeight: 1.6,
           padding: "10px 12px",
-          background: "#0F1122",
-          border: "1px solid #1F2235",
+          background: UI_COLORS.controlSurface,
+          border: `1px solid ${UI_COLORS.panelSurface}`,
           borderRadius: 8,
         }}
       >
@@ -194,7 +196,7 @@ function Field({
           style={{
             fontSize: 11,
             fontWeight: 500,
-            color: "#C7D2FE",
+            color: UI_COLORS.textSoft,
             letterSpacing: "0.04em",
             textTransform: "uppercase",
           }}
@@ -204,7 +206,7 @@ function Field({
         <Toggle checked={visible} onChange={onToggle} testId={toggleTestId} />
       </div>
       {helper && (
-        <div style={{ fontSize: 10, color: "#6B7CA8", lineHeight: 1.4 }}>
+        <div style={{ fontSize: 10, color: UI_COLORS.textMuted, lineHeight: 1.4 }}>
           {helper}
         </div>
       )}
@@ -228,19 +230,19 @@ function PlainInput({ value, onChange, placeholder, testId }: PlainInputProps) {
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       style={{
-        background: "#0F1122",
-        border: "1px solid #2a3060",
+        background: UI_COLORS.controlSurface,
+        border: `1px solid ${UI_COLORS.controlBorder}`,
         borderRadius: 6,
         padding: "6px 10px",
         fontSize: 13,
-        color: "#F4F7FF",
+        color: UI_COLORS.text,
         outline: "none",
         fontFamily: "inherit",
         width: "100%",
         boxSizing: "border-box",
       }}
-      onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-      onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+      onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+      onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
     />
   );
 }
@@ -262,7 +264,7 @@ function Toggle({ checked, onChange, testId }: ToggleProps) {
         borderRadius: 10,
         border: "none",
         cursor: "pointer",
-        background: checked ? "#8DA8FF" : "#1F2235",
+        background: checked ? UI_COLORS.focus : UI_COLORS.panelSurface,
         position: "relative",
         transition: "background 0.2s",
         flexShrink: 0,
@@ -273,7 +275,7 @@ function Toggle({ checked, onChange, testId }: ToggleProps) {
           width: 14,
           height: 14,
           borderRadius: "50%",
-          background: "#F4F7FF",
+          background: UI_COLORS.text,
           position: "absolute",
           top: 3,
           left: checked ? 19 : 3,
@@ -301,7 +303,7 @@ function ToggleRow({ label, checked, onChange, testId }: ToggleRowProps) {
         padding: "6px 0",
       }}
     >
-      <span style={{ fontSize: 13, color: "#C7D2FE" }}>{label}</span>
+      <span style={{ fontSize: 13, color: UI_COLORS.textSoft }}>{label}</span>
       <Toggle checked={checked} onChange={onChange} testId={testId} />
     </div>
   );

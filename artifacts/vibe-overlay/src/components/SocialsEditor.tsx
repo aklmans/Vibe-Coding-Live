@@ -1,10 +1,12 @@
 import type { OverlayState } from "../types";
+import { patchSection } from "../lib/state";
 import {
   getSocialKindOptions,
   defaultSocialLabel,
   type SocialConfig,
   type SocialKind,
 } from "../lib/socials";
+import { UI_COLORS } from "../lib/design-tokens";
 import { useLocale } from "../hooks/useLocale";
 
 interface SocialsEditorProps {
@@ -28,7 +30,7 @@ export default function SocialsEditor({
     const socials = state.cover.socials.map((s, i) =>
       i === idx ? { ...s, ...patch } : s,
     );
-    onChange({ ...state, cover: { ...state.cover, socials } });
+    onChange(patchSection(state, "cover", { socials }));
   };
 
   return (
@@ -37,8 +39,8 @@ export default function SocialsEditor({
         <div
           key={idx}
           style={{
-            background: "#0F1122",
-            border: "1px solid #1F2235",
+            background: UI_COLORS.controlSurface,
+            border: `1px solid ${UI_COLORS.panelSurface}`,
             borderRadius: 8,
             padding: 10,
             display: "flex",
@@ -60,7 +62,7 @@ export default function SocialsEditor({
                 flex: 1,
                 fontSize: 12,
                 fontWeight: 600,
-                color: "#C7D2FE",
+                color: UI_COLORS.textSoft,
                 letterSpacing: "0.04em",
               }}
             >
@@ -75,7 +77,7 @@ export default function SocialsEditor({
                 borderRadius: 10,
                 border: "none",
                 cursor: "pointer",
-                background: social.visible ? "#8DA8FF" : "#1F2235",
+                background: social.visible ? UI_COLORS.focus : UI_COLORS.panelSurface,
                 position: "relative",
                 transition: "background 0.2s",
                 flexShrink: 0,
@@ -86,7 +88,7 @@ export default function SocialsEditor({
                   width: 14,
                   height: 14,
                   borderRadius: "50%",
-                  background: "#F4F7FF",
+                  background: UI_COLORS.text,
                   position: "absolute",
                   top: 3,
                   left: social.visible ? 21 : 3,
@@ -102,10 +104,10 @@ export default function SocialsEditor({
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
               gap: 4,
-              background: "#080A14",
+              background: UI_COLORS.inputInset,
               padding: 3,
               borderRadius: 6,
-              border: "1px solid #1F2235",
+              border: `1px solid ${UI_COLORS.panelSurface}`,
             }}
           >
             {getSocialKindOptions(locale).map((opt) => {
@@ -128,12 +130,12 @@ export default function SocialsEditor({
                   }}
                   style={{
                     padding: "5px 0",
-                    background: active ? "#1F2235" : "transparent",
+                    background: active ? UI_COLORS.panelSurface : "transparent",
                     border: "none",
                     borderRadius: 4,
                     fontSize: 10,
                     fontWeight: 500,
-                    color: active ? "#F4F7FF" : "#6B7CA8",
+                    color: active ? UI_COLORS.text : UI_COLORS.textMuted,
                     cursor: "pointer",
                     fontFamily: "inherit",
                     letterSpacing: "0.04em",
@@ -153,19 +155,19 @@ export default function SocialsEditor({
             onChange={(e) => updateSocial(idx, { label: e.target.value })}
             placeholder={t("label.socialLabel")}
             style={{
-              background: "#080A14",
-              border: "1px solid #2a3060",
+              background: UI_COLORS.inputInset,
+              border: `1px solid ${UI_COLORS.controlBorder}`,
               borderRadius: 6,
               padding: "6px 10px",
               fontSize: 13,
-              color: "#F4F7FF",
+              color: UI_COLORS.text,
               outline: "none",
               fontFamily: "inherit",
               width: "100%",
               boxSizing: "border-box",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-            onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+            onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+            onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
           />
 
           {/* Row 4: value (URL / handle / id) */}
@@ -175,19 +177,19 @@ export default function SocialsEditor({
             onChange={(e) => updateSocial(idx, { value: e.target.value })}
             placeholder={t("label.socialValue")}
             style={{
-              background: "#080A14",
-              border: "1px solid #2a3060",
+              background: UI_COLORS.inputInset,
+              border: `1px solid ${UI_COLORS.controlBorder}`,
               borderRadius: 6,
               padding: "6px 10px",
               fontSize: 12,
-              color: "#F4F7FF",
+              color: UI_COLORS.text,
               outline: "none",
               fontFamily: "monospace",
               width: "100%",
               boxSizing: "border-box",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-            onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+            onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+            onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
           />
 
           {/* Row 5: custom color (only when kind === custom) */}
@@ -201,7 +203,7 @@ export default function SocialsEditor({
               }}
             >
               <span
-                style={{ flex: 1, fontSize: 11, color: "#8DA8FF" }}
+                style={{ flex: 1, fontSize: 11, color: UI_COLORS.focus }}
                 title="Drives chip text/border/fill colors"
               >
                 {t("label.customColor")}
@@ -209,21 +211,21 @@ export default function SocialsEditor({
               <input
                 data-testid={`${testIdPrefix}-${idx}-color`}
                 type="color"
-                value={social.customColor || "#8DA8FF"}
+                value={social.customColor || UI_COLORS.focus}
                 onChange={(e) =>
                   updateSocial(idx, { customColor: e.target.value })
                 }
                 style={{
                   width: 28,
                   height: 24,
-                  border: "1px solid #2a3060",
+                  border: `1px solid ${UI_COLORS.controlBorder}`,
                   borderRadius: 4,
                   padding: 1,
                   background: "transparent",
                   cursor: "pointer",
                 }}
               />
-              <span style={{ fontSize: 11, color: "#8DA8FF", fontFamily: "monospace" }}>
+              <span style={{ fontSize: 11, color: UI_COLORS.focus, fontFamily: "monospace" }}>
                 {social.customColor || "—"}
               </span>
             </div>

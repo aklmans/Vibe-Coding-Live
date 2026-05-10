@@ -1,4 +1,6 @@
 import type { OverlayState } from "../../../types";
+import { UI_COLORS } from "../../../lib/design-tokens";
+import { patchSection } from "../../../lib/state";
 import InspectorGroup from "../InspectorGroup";
 import BrandIdentityEditor from "../BrandIdentityEditor";
 import { SectionInput, ToggleButton } from "../../shared/Field";
@@ -23,7 +25,7 @@ export default function WallpaperInspector({
   const { wallpaper } = state;
 
   const writeWallpaper = (patch: Partial<OverlayState["wallpaper"]>) => {
-    onChange({ ...state, wallpaper: { ...wallpaper, ...patch } });
+    onChange(patchSection(state, "wallpaper", patch));
   };
 
   const setPreset = (id: WallpaperPresetId) => {
@@ -54,10 +56,10 @@ export default function WallpaperInspector({
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gap: 4,
-            background: "#0F1122",
+            background: UI_COLORS.controlSurface,
             padding: 3,
             borderRadius: 6,
-            border: "1px solid #1F2235",
+            border: `1px solid ${UI_COLORS.panelSurface}`,
           }}
         >
           {WALLPAPER_PRESETS.map((preset) => {
@@ -66,16 +68,16 @@ export default function WallpaperInspector({
             return (
               <button
                 key={preset.id}
-                data-testid={`wallpaper-preset-${preset.id}`}
-                onClick={() => setPreset(preset.id)}
-                style={{
-                  padding: "6px 0",
-                  background: active ? "#1F2235" : "transparent",
+                  data-testid={`wallpaper-preset-${preset.id}`}
+                  onClick={() => setPreset(preset.id)}
+                  style={{
+                    padding: "6px 0",
+                    background: active ? UI_COLORS.panelSurface : "transparent",
                   border: "none",
                   borderRadius: 4,
                   fontSize: 11,
                   fontWeight: 500,
-                  color: active ? "#F4F7FF" : "#6B7CA8",
+                    color: active ? UI_COLORS.text : UI_COLORS.textMuted,
                   cursor: "pointer",
                   fontFamily: "inherit",
                   letterSpacing: "0.04em",
@@ -88,7 +90,7 @@ export default function WallpaperInspector({
                     display: "block",
                     fontSize: 9,
                     fontWeight: 400,
-                    color: active ? "#8DA8FF" : "#3a4060",
+                    color: active ? UI_COLORS.focus : UI_COLORS.textSubtle,
                     marginTop: 2,
                     letterSpacing: "0.02em",
                   }}

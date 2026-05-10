@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { OverlayState } from "../../types";
+import { UI_COLORS } from "../../lib/design-tokens";
 import { useLocale } from "../../hooks/useLocale";
 
 type ExportKind =
@@ -95,7 +96,7 @@ export default function ExportMenu({
     padding: "8px 12px",
     background: "transparent",
     border: "none",
-    color: loading ? "#6B7CA8" : "#F4F7FF",
+    color: loading ? UI_COLORS.textMuted : UI_COLORS.text,
     fontSize: 13,
     fontFamily: "inherit",
     cursor: loading ? "wait" : "pointer",
@@ -120,7 +121,7 @@ export default function ExportMenu({
         }}
         style={itemStyle(loading)}
         onMouseEnter={(e) => {
-          if (!loading) (e.currentTarget as HTMLElement).style.background = "#1F2235";
+          if (!loading) (e.currentTarget as HTMLElement).style.background = UI_COLORS.panelSurface;
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLElement).style.background = "transparent";
@@ -139,7 +140,7 @@ export default function ExportMenu({
           {label}
         </span>
         {loading && (
-          <span style={{ fontSize: 10, color: "#6B7CA8" }}>{t("export.exporting")}</span>
+          <span style={{ fontSize: 10, color: UI_COLORS.textMuted }}>{t("export.exporting")}</span>
         )}
       </button>
     );
@@ -152,8 +153,8 @@ export default function ExportMenu({
         position: "relative",
         display: "flex",
         alignItems: "stretch",
-        background: "#1F2235",
-        border: "1px solid #2a3060",
+        background: UI_COLORS.panelSurface,
+        border: `1px solid ${UI_COLORS.controlBorder}`,
         borderRadius: 7,
         overflow: "hidden",
       }}
@@ -166,7 +167,7 @@ export default function ExportMenu({
           padding: "7px 14px",
           background: "transparent",
           border: "none",
-          color: isCurrentLoading ? "#6B7CA8" : "#F4F7FF",
+          color: isCurrentLoading ? UI_COLORS.textMuted : UI_COLORS.text,
           fontSize: 12,
           fontWeight: 500,
           cursor: isLoading ? "wait" : "pointer",
@@ -176,7 +177,7 @@ export default function ExportMenu({
       >
         {isCurrentLoading ? t("export.exporting") : t(`export.${state.activeTab}`)}
       </button>
-      <div style={{ width: 1, background: "#2a3060", flexShrink: 0 }} />
+      <div style={{ width: 1, background: UI_COLORS.controlBorder, flexShrink: 0 }} />
       <button
         data-testid="btn-export-menu-toggle"
         onClick={() => setOpen((v) => !v)}
@@ -184,7 +185,7 @@ export default function ExportMenu({
           padding: "7px 10px",
           background: "transparent",
           border: "none",
-          color: "#C7D2FE",
+          color: UI_COLORS.textSoft,
           fontSize: 11,
           cursor: "pointer",
           fontFamily: "inherit",
@@ -201,33 +202,33 @@ export default function ExportMenu({
             top: "calc(100% + 6px)",
             right: 0,
             minWidth: 220,
-            background: "#0F1122",
-            border: "1px solid #2a3060",
+            background: UI_COLORS.controlSurface,
+            border: `1px solid ${UI_COLORS.controlBorder}`,
             borderRadius: 8,
             padding: "4px 0",
             zIndex: 50,
             boxShadow: "0 12px 32px rgba(0,0,0,0.45)",
           }}
         >
-          {itemRow(t("export.fullOverlay"), onExportOverlay, "overlay", "#8DA8FF")}
-          {itemRow(t("export.cover"), onExportCover, "cover", "#FF6FAE")}
-          {itemRow(t("export.poster"), onExportPoster, "poster", "#C084FC")}
+          {itemRow(t("export.fullOverlay"), onExportOverlay, "overlay", UI_COLORS.focus)}
+          {itemRow(t("export.cover"), onExportCover, "cover", UI_COLORS.danger)}
+          {itemRow(t("export.poster"), onExportPoster, "poster", UI_COLORS.purple)}
           {itemRow(
             t("export.wallpaper"),
             onExportWallpaper,
             "wallpaper",
-            "#5EEAD4",
+            UI_COLORS.teal,
           )}
           <div
-            style={{ height: 1, background: "#1F2235", margin: "4px 0" }}
+            style={{ height: 1, background: UI_COLORS.panelSurface, margin: "4px 0" }}
             aria-hidden
           />
-          {itemRow(t("export.sidebar"), onExportSidebar, "sidebar", "#7DD3FC")}
+          {itemRow(t("export.sidebar"), onExportSidebar, "sidebar", UI_COLORS.cyan)}
           {itemRow(
             t("export.bottomBar"),
             onExportBottomBar,
             "bottom-bar",
-            "#FFB86B",
+            UI_COLORS.warm,
           )}
         </div>
       )}

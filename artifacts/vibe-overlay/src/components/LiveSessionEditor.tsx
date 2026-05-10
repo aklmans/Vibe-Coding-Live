@@ -1,5 +1,7 @@
 import type { OverlayState } from "../types";
 import { formatStartLabel } from "../lib/bottomBar";
+import { UI_BORDERS, UI_COLORS } from "../lib/design-tokens";
+import { patchSection } from "../lib/state";
 import { useLocale } from "../hooks/useLocale";
 
 interface LiveSessionEditorProps {
@@ -33,7 +35,7 @@ export default function LiveSessionEditor({
   const ready = Boolean(startedAt) && !Number.isNaN(new Date(startedAt).getTime());
 
   const writeStart = (value: string) => {
-    onChange({ ...state, liveSession: { ...state.liveSession, startedAt: value } });
+    onChange(patchSection(state, "liveSession", { startedAt: value }));
   };
 
   const handleLocalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,20 +58,20 @@ export default function LiveSessionEditor({
         value={isoToLocalInput(startedAt)}
         onChange={handleLocalChange}
         style={{
-          background: "#0F1122",
-          border: "1px solid #2a3060",
+          background: UI_COLORS.controlSurface,
+          border: `1px solid ${UI_COLORS.controlBorder}`,
           borderRadius: 6,
           padding: "6px 10px",
           fontSize: 13,
-          color: "#F4F7FF",
+          color: UI_COLORS.text,
           outline: "none",
           fontFamily: "inherit",
           width: "100%",
           boxSizing: "border-box",
           colorScheme: "dark",
         }}
-        onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-        onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+        onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+        onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
       />
 
       <div style={{ display: "flex", gap: 6 }}>
@@ -79,10 +81,10 @@ export default function LiveSessionEditor({
           style={{
             flex: 1,
             padding: "7px 10px",
-            background: "#7DD3FC18",
-            border: "1px solid #7DD3FC40",
+            background: `${UI_COLORS.cyan}18`,
+            border: `1px solid ${UI_COLORS.cyan}40`,
             borderRadius: 7,
-            color: "#7DD3FC",
+            color: UI_COLORS.cyan,
             fontSize: 12,
             fontWeight: 500,
             cursor: "pointer",
@@ -99,10 +101,10 @@ export default function LiveSessionEditor({
             onClick={() => writeStart("")}
             style={{
               padding: "7px 10px",
-              background: "#FF6FAE12",
-              border: "1px solid #FF6FAE30",
+              background: `${UI_COLORS.danger}12`,
+              border: UI_BORDERS.danger,
               borderRadius: 7,
-              color: "#FF6FAE",
+              color: UI_COLORS.danger,
               fontSize: 12,
               fontWeight: 500,
               cursor: "pointer",
@@ -114,7 +116,7 @@ export default function LiveSessionEditor({
         )}
       </div>
 
-      <div style={{ fontSize: 11, color: "#6B7CA8", lineHeight: 1.5 }}>
+      <div style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.5 }}>
         {ready
           ? `${t("live.started")} · ${formatStartLabel(startedAt)}`
           : t("live.notSet")}

@@ -1,4 +1,6 @@
 import type { OverlayState } from "../types";
+import { UI_COLORS } from "../lib/design-tokens";
+import { patchSection } from "../lib/state";
 import {
   getBottomBarKindOptions,
   defaultSlotForKind,
@@ -30,7 +32,7 @@ export default function BottomBarSegmentEditor({
     const segments = state.bottomBar.segments.map((s, i) =>
       i === index ? next : s,
     );
-    onChange({ ...state, bottomBar: { ...state.bottomBar, segments } });
+    onChange(patchSection(state, "bottomBar", { segments }));
   };
 
   const setKind = (kind: BottomBarKind) => {
@@ -46,10 +48,10 @@ export default function BottomBarSegmentEditor({
           display: "grid",
           gridTemplateColumns: "repeat(5, 1fr)",
           gap: 4,
-          background: "#0F1122",
+          background: UI_COLORS.controlSurface,
           padding: 3,
           borderRadius: 6,
-          border: "1px solid #1F2235",
+          border: `1px solid ${UI_COLORS.panelSurface}`,
         }}
       >
         {getBottomBarKindOptions(locale).map((opt) => {
@@ -61,12 +63,12 @@ export default function BottomBarSegmentEditor({
               onClick={() => setKind(opt.value)}
               style={{
                 padding: "5px 0",
-                background: active ? "#1F2235" : "transparent",
+                background: active ? UI_COLORS.panelSurface : "transparent",
                 border: "none",
                 borderRadius: 4,
                 fontSize: 10,
                 fontWeight: 500,
-                color: active ? "#F4F7FF" : "#6B7CA8",
+                color: active ? UI_COLORS.text : UI_COLORS.textMuted,
                 cursor: "pointer",
                 fontFamily: "inherit",
                 letterSpacing: "0.04em",
@@ -84,11 +86,11 @@ export default function BottomBarSegmentEditor({
         <div
           style={{
             fontSize: 11,
-            color: "#6B7CA8",
+            color: UI_COLORS.textMuted,
             lineHeight: 1.5,
             padding: "6px 10px",
-            background: "#0F1122",
-            border: "1px solid #1F2235",
+            background: UI_COLORS.controlSurface,
+            border: `1px solid ${UI_COLORS.panelSurface}`,
             borderRadius: 6,
           }}
         >
@@ -101,10 +103,10 @@ export default function BottomBarSegmentEditor({
           style={{
             display: "flex",
             gap: 4,
-            background: "#0F1122",
+            background: UI_COLORS.controlSurface,
             padding: 3,
             borderRadius: 6,
-            border: "1px solid #1F2235",
+            border: `1px solid ${UI_COLORS.panelSurface}`,
           }}
         >
           {state.sidebar.sections.map((section, sIdx) => {
@@ -117,12 +119,12 @@ export default function BottomBarSegmentEditor({
                 style={{
                   flex: 1,
                   padding: "5px 0",
-                  background: active ? "#1F2235" : "transparent",
+                  background: active ? UI_COLORS.panelSurface : "transparent",
                   border: "none",
                   borderRadius: 4,
                   fontSize: 11,
                   fontWeight: 500,
-                  color: active ? "#F4F7FF" : "#6B7CA8",
+                  color: active ? UI_COLORS.text : UI_COLORS.textMuted,
                   cursor: "pointer",
                   fontFamily: "inherit",
                   letterSpacing: "0.04em",
@@ -140,11 +142,11 @@ export default function BottomBarSegmentEditor({
         <div
           style={{
             fontSize: 11,
-            color: "#6B7CA8",
+            color: UI_COLORS.textMuted,
             lineHeight: 1.5,
             padding: "6px 10px",
-            background: "#0F1122",
-            border: "1px solid #1F2235",
+            background: UI_COLORS.controlSurface,
+            border: `1px solid ${UI_COLORS.panelSurface}`,
             borderRadius: 6,
           }}
         >
@@ -156,11 +158,11 @@ export default function BottomBarSegmentEditor({
         <div
           style={{
             fontSize: 11,
-            color: "#6B7CA8",
+            color: UI_COLORS.textMuted,
             lineHeight: 1.5,
             padding: "6px 10px",
-            background: "#0F1122",
-            border: "1px solid #1F2235",
+            background: UI_COLORS.controlSurface,
+            border: `1px solid ${UI_COLORS.panelSurface}`,
             borderRadius: 6,
           }}
         >
@@ -202,7 +204,7 @@ function PlainInput({ label, value, onChange, testId }: PlainInputProps) {
         style={{
           fontSize: 11,
           fontWeight: 500,
-          color: "#C7D2FE",
+          color: UI_COLORS.textSoft,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
         }}
@@ -214,19 +216,19 @@ function PlainInput({ label, value, onChange, testId }: PlainInputProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         style={{
-          background: "#0F1122",
-          border: "1px solid #2a3060",
+          background: UI_COLORS.controlSurface,
+          border: `1px solid ${UI_COLORS.controlBorder}`,
           borderRadius: 6,
           padding: "6px 10px",
           fontSize: 13,
-          color: "#F4F7FF",
+          color: UI_COLORS.text,
           outline: "none",
           fontFamily: "inherit",
           width: "100%",
           boxSizing: "border-box",
         }}
-        onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-        onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+        onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+        onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
       />
     </div>
   );

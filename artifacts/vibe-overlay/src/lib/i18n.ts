@@ -208,6 +208,8 @@ export const dict = {
     "canvas.upcoming": "即将开始",
     "canvas.screenCapture": "屏幕捕获",
     "canvas.camera": "摄像头",
+    "canvas.liveBadge": "LIVE",
+    "canvas.idleBrand": "VIBE CODING",
 
     // ─── Social kind labels (editor) ─────────────────────────────────
     "social.bilibili": "B站",
@@ -462,6 +464,8 @@ export const dict = {
     "canvas.upcoming": "Upcoming",
     "canvas.screenCapture": "Screen Capture",
     "canvas.camera": "Camera",
+    "canvas.liveBadge": "LIVE",
+    "canvas.idleBrand": "VIBE CODING",
 
     // ─── Social kind labels (editor) ─────────────────────────────────
     "social.bilibili": "Bilibili",

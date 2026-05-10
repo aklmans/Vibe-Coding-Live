@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { OverlayState } from "../types";
+import { patchSection } from "../lib/state";
 import type { SocialConfig } from "../lib/socials";
 import { socialStyle } from "../lib/socials";
 import EditableText from "./edit/EditableText";
@@ -77,7 +78,7 @@ export default function SocialList({ state, size = "small", editable, onChange }
     const socials = cover.socials.map((s, i) =>
       i === socialIdx ? { ...s, ...patch } : s,
     );
-    onChange({ ...state, cover: { ...cover, socials } });
+    onChange(patchSection(state, "cover", { socials }));
   };
 
   const findSocialIndex = (visibleIdx: number): number => {

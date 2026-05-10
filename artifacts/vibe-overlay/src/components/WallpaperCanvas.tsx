@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
 import type { OverlayState } from "../types";
+import { avatarPlaceholder } from "../lib/avatar";
+import { patchSection } from "../lib/state";
 import { fontFamilies } from "../lib/typography";
-import { badgeIconUrl } from "../lib/badges";
-import { socialStyle } from "../lib/socials";
 import { useLocale } from "../hooks/useLocale";
 import {
   HORIZONTAL_BASE,
@@ -10,6 +10,10 @@ import {
   type WallpaperPreset,
 } from "../lib/wallpaper";
 import EditableText from "./edit/EditableText";
+import { EDITORIAL_PALETTE as E } from "./lib/editorial-palette";
+import AvatarCircle from "./shared/AvatarCircle";
+import BadgeToolbar from "./shared/BadgeToolbar";
+import SocialCard from "./shared/SocialCard";
 
 interface WallpaperCanvasProps {
   state: OverlayState;
@@ -19,32 +23,7 @@ interface WallpaperCanvasProps {
   onChange?: (next: OverlayState) => void;
 }
 
-/* Editorial palette, shared with Cover/Poster so the wallpaper reads as the
- * same brand even when the layout is different. */
-const E = {
-  bg1: "#0B1020",
-  bg2: "#111827",
-  bg3: "#0A0E1A",
-  text: "#F5F5F2",
-  muted: "#C7C9D1",
-  subtle: "#5A6178",
-  accent: "#DA7756",
-  glassBorder: "rgba(255, 255, 255, 0.06)",
-} as const;
-
-const AVATAR_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1E2438"/>
-      <stop offset="100%" stop-color="#2A3350"/>
-    </linearGradient>
-  </defs>
-  <circle cx="100" cy="100" r="100" fill="url(#g)"/>
-  <text x="100" y="118" text-anchor="middle" font-family="system-ui,sans-serif"
-    font-size="56" font-weight="500" fill="rgba(245,245,242,0.5)">VC</text>
-</svg>
-`)}`;
+const AVATAR_PLACEHOLDER = avatarPlaceholder("rgba(245,245,242,0.5)", "VC", 56);
 
 const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
   ({ state, preset, editable = false, onChange }, ref) => {
@@ -66,18 +45,18 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
 
     const writeCover = (patch: Partial<OverlayState["cover"]>) => {
       if (!onChange) return;
-      onChange({ ...state, cover: { ...state.cover, ...patch } });
+      onChange(patchSection(state, "cover", patch));
     };
     const writeWallpaper = (patch: Partial<OverlayState["wallpaper"]>) => {
       if (!onChange) return;
-      onChange({ ...state, wallpaper: { ...state.wallpaper, ...patch } });
+      onChange(patchSection(state, "wallpaper", patch));
     };
     const writeBadgeLabel = (originalIdx: number, label: string) => {
       if (!onChange) return;
       const badges = state.cover.badges.map((b, i) =>
         i === originalIdx ? { ...b, label } : b,
       );
-      onChange({ ...state, cover: { ...state.cover, badges } });
+      onChange(patchSection(state, "cover", { badges }));
     };
 
     return (
@@ -165,6 +144,7 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
             avatarSrc={avatarSrc}
             visibleBadges={visibleBadges}
             visibleSocials={visibleSocials}
+            scale={scale}
             colors={state.colors}
             readonly={readonly}
             writeCover={writeCover}
@@ -181,6 +161,7 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
             avatarSrc={avatarSrc}
             visibleBadges={visibleBadges}
             visibleSocials={visibleSocials}
+            scale={scale}
             colors={state.colors}
             readonly={readonly}
             writeCover={writeCover}
@@ -207,6 +188,7 @@ interface LayoutProps {
   avatarSrc: string;
   visibleBadges: OverlayState["cover"]["badges"];
   visibleSocials: OverlayState["cover"]["socials"];
+  scale: number;
   colors: OverlayState["colors"];
   readonly: boolean;
   writeCover: (patch: Partial<OverlayState["cover"]>) => void;
@@ -223,6 +205,7 @@ function HorizontalLayout({
   avatarSrc,
   visibleBadges,
   visibleSocials,
+  scale,
   colors,
   readonly,
   writeCover,
@@ -342,30 +325,12 @@ function HorizontalLayout({
             justifyContent: "center",
           }}
         >
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            <div
-              style={{
-                position: "absolute",
-                inset: -S(8),
-                borderRadius: "50%",
-                border: `${S(1)}px solid rgba(255,255,255,0.08)`,
-                zIndex: 0,
-              }}
-            />
-            <img
-              src={avatarSrc}
-              alt="Avatar"
-              style={{
-                position: "relative",
-                zIndex: 1,
-                width: S(620),
-                height: S(620),
-                borderRadius: "50%",
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
-          </div>
+          <AvatarCircle
+            src={avatarSrc}
+            size={S(620)}
+            borderInset={S(8)}
+            borderWidth={S(1)}
+          />
         </div>
       )}
 
@@ -382,59 +347,24 @@ function HorizontalLayout({
         }}
       >
         {visibleBadges.length > 0 && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: S(28),
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: S(20),
-              padding: `${S(22)}px ${S(44)}px`,
-            }}
-          >
-            {visibleBadges.map((badge, i) => {
-              const originalIdx = cover.badges.indexOf(badge);
-              return (
-                <div
-                  key={i}
-                  style={{ display: "flex", alignItems: "center", gap: S(18) }}
-                >
-                  {i > 0 && (
-                    <span
-                      style={{ fontSize: S(22), color: "rgba(255,255,255,0.2)" }}
-                    >
-                      ×
-                    </span>
-                  )}
-                  {badgeIconUrl(badge) && (
-                    <img
-                      src={badgeIconUrl(badge)}
-                      alt={badge.label}
-                      style={{
-                        width: S(40),
-                        height: S(40),
-                        objectFit: "contain",
-                        opacity: 0.85,
-                      }}
-                    />
-                  )}
-                  <EditableText
-                    readonly={readonly}
-                    value={badge.label}
-                    onCommit={(v) => writeBadgeLabel(originalIdx, v)}
-                    ariaLabel={`Badge ${i + 1} label`}
-                    style={{
-                      fontSize: S(30),
-                      color: E.muted,
-                      fontWeight: 500,
-                      letterSpacing: "0.04em",
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <BadgeToolbar
+            badges={cover.badges}
+            scale={scale}
+            readonly={readonly}
+            onBadgeLabelChange={writeBadgeLabel}
+            labelColor={E.muted}
+            background="rgba(255,255,255,0.05)"
+            border="1px solid rgba(255,255,255,0.1)"
+            borderRadius={20}
+            paddingY={22}
+            paddingX={44}
+            outerGap={28}
+            itemGap={18}
+            iconSize={40}
+            labelFontSize={30}
+            separatorFontSize={22}
+            separatorColor="rgba(255,255,255,0.2)"
+          />
         )}
 
         {visibleSocials.length > 0 && (
@@ -455,6 +385,7 @@ function PortraitLayout({
   avatarSrc,
   visibleBadges,
   visibleSocials,
+  scale,
   colors,
   readonly,
   writeCover,
@@ -478,30 +409,12 @@ function PortraitLayout({
         }}
       >
       {wallpaper.avatarVisible && (
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          <div
-            style={{
-              position: "absolute",
-              inset: -S(8),
-              borderRadius: "50%",
-              border: `${S(1)}px solid rgba(255,255,255,0.08)`,
-              zIndex: 0,
-            }}
-          />
-          <img
-            src={avatarSrc}
-            alt="Avatar"
-            style={{
-              position: "relative",
-              zIndex: 1,
-              width: S(440),
-              height: S(440),
-              borderRadius: "50%",
-              objectFit: "cover",
-              display: "block",
-            }}
-          />
-        </div>
+        <AvatarCircle
+          src={avatarSrc}
+          size={S(440)}
+          borderInset={S(8)}
+          borderWidth={S(1)}
+        />
       )}
 
       {wallpaper.brandLabelVisible && wallpaper.brandLabel && (
@@ -585,59 +498,23 @@ function PortraitLayout({
       <div style={{ flex: 1, minHeight: S(40) }} />
 
       {visibleBadges.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: S(28),
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: S(20),
-            padding: `${S(18)}px ${S(40)}px`,
-          }}
-        >
-          {visibleBadges.map((badge, i) => {
-            const originalIdx = cover.badges.indexOf(badge);
-            return (
-              <div
-                key={i}
-                style={{ display: "flex", alignItems: "center", gap: S(20) }}
-              >
-                {i > 0 && (
-                  <span
-                    style={{ fontSize: S(22), color: "rgba(255,255,255,0.22)" }}
-                  >
-                    ×
-                  </span>
-                )}
-                {badgeIconUrl(badge) && (
-                  <img
-                    src={badgeIconUrl(badge)}
-                    alt={badge.label}
-                    style={{
-                      width: S(40),
-                      height: S(40),
-                      objectFit: "contain",
-                      opacity: 0.85,
-                    }}
-                  />
-                )}
-                <EditableText
-                  readonly={readonly}
-                  value={badge.label}
-                  onCommit={(v) => writeBadgeLabel(originalIdx, v)}
-                  ariaLabel={`Badge ${i + 1} label`}
-                  style={{
-                    fontSize: S(30),
-                    color: E.muted,
-                    fontWeight: 500,
-                    letterSpacing: "0.04em",
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
+        <BadgeToolbar
+          badges={cover.badges}
+          scale={scale}
+          readonly={readonly}
+          onBadgeLabelChange={writeBadgeLabel}
+          labelColor={E.muted}
+          background="rgba(255,255,255,0.04)"
+          border="1px solid rgba(255,255,255,0.08)"
+          borderRadius={20}
+          paddingY={18}
+          paddingX={40}
+          outerGap={28}
+          itemGap={20}
+          iconSize={40}
+          labelFontSize={30}
+          separatorFontSize={22}
+        />
       )}
 
       {visibleSocials.length > 0 && (
@@ -649,100 +526,6 @@ function PortraitLayout({
           t={t}
         />
       )}
-    </div>
-  );
-}
-
-/* ─── Social card — wallpaper-tuned size, shared by both layouts ─────────── */
-
-interface SocialCardProps {
-  S: (n: number) => number;
-  socials: OverlayState["cover"]["socials"];
-  colors: OverlayState["colors"];
-  fullWidth?: boolean;
-  t: (key: import("../lib/i18n").TranslationKey) => string;
-}
-
-function SocialCard({ S, socials, colors, fullWidth, t }: SocialCardProps) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: S(28),
-        padding: `${S(22)}px ${S(44)}px`,
-        background: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        borderRadius: S(20),
-        minWidth: fullWidth ? undefined : undefined,
-        width: fullWidth ? "100%" : undefined,
-        boxSizing: "border-box",
-        flexWrap: "wrap",
-      }}
-    >
-      <div
-        style={{
-          fontSize: S(18),
-          fontWeight: 600,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          color: E.subtle,
-          display: "flex",
-          alignItems: "center",
-          gap: S(10),
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            width: S(4),
-            height: S(16),
-            borderRadius: 2,
-            background: E.accent,
-            flexShrink: 0,
-          }}
-        />
-        {t("canvas.followMe")}
-      </div>
-      {socials.map((social, idx) => {
-        const style = socialStyle(social, colors);
-        return (
-          <div
-            key={idx}
-            style={{ display: "flex", alignItems: "center", gap: S(10) }}
-          >
-            <span
-              style={{
-                ...style,
-                fontSize: S(20),
-                fontWeight: 600,
-                borderRadius: S(8),
-                padding: `${S(4)}px ${S(14)}px`,
-                flexShrink: 0,
-                textAlign: "center",
-                boxSizing: "border-box",
-                letterSpacing: "0.04em",
-                border: "1px solid transparent",
-              }}
-            >
-              {social.label}
-            </span>
-            <span
-              style={{
-                fontSize: S(30),
-                color: E.muted,
-                fontWeight: 500,
-                letterSpacing: "0.01em",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {social.value}
-            </span>
-          </div>
-        );
-      })}
     </div>
   );
 }

@@ -66,8 +66,9 @@ export interface OverlayState {
   activeTab: "overlay" | "cover" | "poster" | "wallpaper";
 }
 
-export const DEFAULT_STATE: OverlayState = {
-  sidebar: {
+export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
+  zh: {
+    sidebar: {
     visible: true,
     socialVisible: false,
     activeSection: 0,
@@ -156,11 +157,8 @@ export const DEFAULT_STATE: OverlayState = {
     ...NEON_PRESET,
   },
   theme: "neon",
-  activeTab: "overlay",
-};
-
-export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
-  zh: DEFAULT_STATE,
+    activeTab: "overlay",
+  },
   en: {
     sidebar: {
       visible: true,
@@ -254,3 +252,5 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
     activeTab: "overlay",
   },
 };
+
+export const DEFAULT_STATE = DEFAULT_STATE_BY_LOCALE.zh;

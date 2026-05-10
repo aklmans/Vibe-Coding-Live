@@ -1,8 +1,12 @@
 import { forwardRef } from "react";
 import { OverlayState } from "../types";
+import { avatarPlaceholder } from "../lib/avatar";
+import { patchSection } from "../lib/state";
 import { fontFamilies, typography } from "../lib/typography";
-import { badgeIconUrl } from "../lib/badges";
 import EditableText from "./edit/EditableText";
+import { EDITORIAL_PALETTE as C } from "./lib/editorial-palette";
+import AvatarCircle from "./shared/AvatarCircle";
+import BadgeToolbar from "./shared/BadgeToolbar";
 
 interface CoverCanvasProps {
   state: OverlayState;
@@ -11,30 +15,7 @@ interface CoverCanvasProps {
   onChange?: (next: OverlayState) => void;
 }
 
-/* ── Cover-specific editorial palette ──────────────────────────── */
-const C = {
-  bg1: "#0B1020",
-  bg2: "#111827",
-  text: "#F5F5F2",
-  muted: "#C7C9D1",
-  subtle: "#5A6178",
-  accent: "#DA7756",
-  glassBorder: "rgba(255, 255, 255, 0.06)",
-} as const;
-
-const AVATAR_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1E2438"/>
-      <stop offset="100%" stop-color="#2A3350"/>
-    </linearGradient>
-  </defs>
-  <circle cx="100" cy="100" r="100" fill="url(#g)"/>
-  <text x="100" y="118" text-anchor="middle" font-family="system-ui,sans-serif"
-    font-size="56" font-weight="500" fill="rgba(245,245,242,0.5)">VC</text>
-</svg>
-`)}`;
+const AVATAR_PLACEHOLDER = avatarPlaceholder("rgba(245,245,242,0.5)", "VC", 56);
 
 const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
   ({ state, editable = false, onChange }, ref) => {
@@ -44,7 +25,7 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
 
     const writeCover = (patch: Partial<OverlayState["cover"]>) => {
       if (!onChange) return;
-      onChange({ ...state, cover: { ...state.cover, ...patch } });
+      onChange(patchSection(state, "cover", patch));
     };
 
     const writeBadgeLabel = (originalIdx: number, label: string) => {
@@ -52,7 +33,7 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
       const badges = state.cover.badges.map((b, i) =>
         i === originalIdx ? { ...b, label } : b,
       );
-      onChange({ ...state, cover: { ...state.cover, badges } });
+      onChange(patchSection(state, "cover", { badges }));
     };
 
     return (
@@ -63,7 +44,7 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
           width: 1920,
           height: 1080,
           position: "relative",
-          background: `linear-gradient(170deg, ${C.bg2} 0%, ${C.bg1} 55%, #0A0E1A 100%)`,
+          background: `linear-gradient(170deg, ${C.bg2} 0%, ${C.bg1} 55%, ${C.bg3} 100%)`,
           fontFamily: fontFamilies.sans,
           overflow: "hidden",
           flexShrink: 0,
@@ -279,73 +260,18 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
         />
 
         {/* ── macOS-style toolbar — agent badges (top, larger & brighter) ── */}
-        {(() => {
-          const visibleBadges = cover.badges.filter((b) => b.visible);
-          if (visibleBadges.length === 0) return null;
-          return (
-            <div
-              style={{
-                position: "absolute",
-                top: 56,
-                left: "50%",
-                transform: "translateX(-50%)",
-                display: "flex",
-                alignItems: "center",
-                gap: 14,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 10,
-                padding: "10px 24px",
-              }}
-            >
-              {visibleBadges.map((badge, i) => {
-                const originalIdx = cover.badges.indexOf(badge);
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
-                    }}
-                  >
-                    {i > 0 && (
-                      <span
-                        style={{ fontSize: 12, color: "rgba(255,255,255,0.22)" }}
-                      >
-                        ×
-                      </span>
-                    )}
-                    {badgeIconUrl(badge) && (
-                      <img
-                        src={badgeIconUrl(badge)}
-                        alt={badge.label}
-                        style={{
-                          width: 20,
-                          height: 20,
-                          objectFit: "contain",
-                          opacity: 0.85,
-                        }}
-                      />
-                    )}
-                    <EditableText
-                      readonly={readonly}
-                      value={badge.label}
-                      onCommit={(v) => writeBadgeLabel(originalIdx, v)}
-                      ariaLabel={`Badge ${i + 1} label`}
-                      style={{
-                        fontSize: 14,
-                        color: C.muted,
-                        fontWeight: 500,
-                        letterSpacing: "0.04em",
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
+        <BadgeToolbar
+          badges={cover.badges}
+          readonly={readonly}
+          onBadgeLabelChange={writeBadgeLabel}
+          labelColor={C.muted}
+          style={{
+            position: "absolute",
+            top: 56,
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        />
 
         {/* ── Hero: avatar (left) + title block (right), horizontal ── */}
         <div
@@ -361,46 +287,12 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
         >
           {/* Avatar — 240px, left side */}
           {cover.avatarVisible && (
-            <div style={{ position: "relative", flexShrink: 0 }}>
-              <div
-                style={{
-                  position: "absolute",
-                  inset: -3,
-                  borderRadius: "50%",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  zIndex: 0,
-                }}
-              />
-              <img
-                src={avatarSrc}
-                alt="Avatar"
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  width: 240,
-                  height: 240,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-              {/* Faint screen-light reflection */}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: 160,
-                  height: 48,
-                  background:
-                    "radial-gradient(ellipse at center bottom, rgba(255,255,255,0.05), transparent 80%)",
-                  borderRadius: "50%",
-                  zIndex: 2,
-                  pointerEvents: "none",
-                }}
-              />
-            </div>
+            <AvatarCircle
+              src={avatarSrc}
+              size={240}
+              borderInset={3}
+              reflection={{ width: 160, height: 48 }}
+            />
           )}
 
           {/* Title block */}

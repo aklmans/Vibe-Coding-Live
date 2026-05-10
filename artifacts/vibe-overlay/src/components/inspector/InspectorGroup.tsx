@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { UI_COLORS } from "../../lib/design-tokens";
 
 interface InspectorGroupProps {
   title: string;
@@ -27,7 +28,7 @@ export default function InspectorGroup({
     <div
       data-testid={testId}
       style={{
-        borderBottom: "1px solid #1F2235",
+        borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
       }}
     >
       <button
@@ -42,7 +43,7 @@ export default function InspectorGroup({
           justifyContent: "space-between",
           cursor: "pointer",
           fontFamily: "inherit",
-          color: "#F4F7FF",
+          color: UI_COLORS.text,
         }}
         data-testid={testId ? `${testId}-toggle` : undefined}
       >
@@ -53,7 +54,7 @@ export default function InspectorGroup({
               fontWeight: 600,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
-              color: "#8DA8FF",
+              color: UI_COLORS.focus,
             }}
           >
             {title}
@@ -62,7 +63,7 @@ export default function InspectorGroup({
             <span
               style={{
                 fontSize: 10,
-                color: "#6B7CA8",
+                color: UI_COLORS.textMuted,
                 fontWeight: 400,
                 letterSpacing: "0.02em",
                 textTransform: "none",
@@ -76,7 +77,7 @@ export default function InspectorGroup({
           aria-hidden
           style={{
             fontSize: 14,
-            color: "#6B7CA8",
+            color: UI_COLORS.textMuted,
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.18s",
           }}

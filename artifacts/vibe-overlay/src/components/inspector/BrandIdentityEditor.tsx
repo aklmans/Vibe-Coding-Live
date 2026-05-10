@@ -1,4 +1,6 @@
 import type { OverlayState } from "../../types";
+import { UI_COLORS } from "../../lib/design-tokens";
+import { patchSection } from "../../lib/state";
 import AvatarUploader from "../shared/AvatarUploader";
 import { SectionInput } from "../shared/Field";
 import BadgesEditor from "../BadgesEditor";
@@ -25,7 +27,7 @@ export default function BrandIdentityEditor({
 }: BrandIdentityEditorProps) {
   const { t } = useLocale();
   const writeCover = (patch: Partial<OverlayState["cover"]>) => {
-    onChange({ ...state, cover: { ...state.cover, ...patch } });
+    onChange(patchSection(state, "cover", patch));
   };
 
   return (
@@ -59,7 +61,7 @@ export default function BrandIdentityEditor({
           style={{
             fontSize: 11,
             fontWeight: 500,
-            color: "#C7D2FE",
+            color: UI_COLORS.textSoft,
             letterSpacing: "0.04em",
             textTransform: "uppercase",
           }}
@@ -76,11 +78,11 @@ export default function BrandIdentityEditor({
       <div
         style={{
           fontSize: 10,
-          color: "#6B7CA8",
+          color: UI_COLORS.textMuted,
           lineHeight: 1.5,
           padding: "8px 10px",
-          background: "#0F1122",
-          border: "1px dashed #1F2235",
+          background: UI_COLORS.controlSurface,
+          border: `1px dashed ${UI_COLORS.panelSurface}`,
           borderRadius: 6,
         }}
       >

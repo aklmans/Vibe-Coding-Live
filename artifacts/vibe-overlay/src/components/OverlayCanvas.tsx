@@ -1,5 +1,7 @@
 import { forwardRef } from "react";
 import { OverlayState } from "../types";
+import { avatarPlaceholder } from "../lib/avatar";
+import { UI_COLORS } from "../lib/design-tokens";
 import { useLocale } from "../hooks/useLocale";
 import SidebarSections from "./SidebarSections";
 import SocialList from "./SocialList";
@@ -12,19 +14,7 @@ interface OverlayCanvasProps {
   bottomBarRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const AVATAR_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B4FD8"/>
-      <stop offset="100%" stop-color="#7C3AED"/>
-    </linearGradient>
-  </defs>
-  <circle cx="100" cy="100" r="100" fill="url(#g)"/>
-  <text x="100" y="118" text-anchor="middle" font-family="system-ui,sans-serif"
-    font-size="68" font-weight="700" fill="rgba(255,255,255,0.9)">VC</text>
-</svg>
-`)}`;
+const AVATAR_PLACEHOLDER = avatarPlaceholder("rgba(255,255,255,0.9)", "VC", 68);
 
 const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
   ({ state, onChange, sidebarRef, bottomBarRef }, ref) => {
@@ -92,7 +82,7 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
               top: 24,
               width: 1448,
               height: 846,
-              background: "#070A12",
+              background: UI_COLORS.appBackground,
               border: `2px solid ${borderColor}50`,
               borderRadius: 0,
               overflow: "hidden",
@@ -114,9 +104,9 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
               }}
             >
               <div style={{ display: "flex", gap: 6 }}>
-                <div style={{ width: 11, height: 11, borderRadius: "50%", background: "#FF5F57", opacity: 0.7 }} />
-                <div style={{ width: 11, height: 11, borderRadius: "50%", background: "#FEBC2E", opacity: 0.7 }} />
-                <div style={{ width: 11, height: 11, borderRadius: "50%", background: "#28C840", opacity: 0.7 }} />
+                <div style={{ width: 11, height: 11, borderRadius: "50%", background: UI_COLORS.macRed, opacity: 0.7 }} />
+                <div style={{ width: 11, height: 11, borderRadius: "50%", background: UI_COLORS.macYellow, opacity: 0.7 }} />
+                <div style={{ width: 11, height: 11, borderRadius: "50%", background: UI_COLORS.macGreen, opacity: 0.7 }} />
               </div>
               <div
                 style={{
@@ -135,7 +125,7 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
-                  background: "#E62117",
+                  background: UI_COLORS.live,
                   borderRadius: 999,
                   padding: "0 10px",
                   height: 20,
@@ -154,11 +144,11 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
-                    color: "#fff",
+                    color: UI_COLORS.white,
                     letterSpacing: "0.12em",
                   }}
                 >
-                  LIVE
+                  {t("canvas.liveBadge")}
                 </span>
               </div>
             </div>
@@ -186,7 +176,7 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
                   whiteSpace: "nowrap",
                 }}
               >
-                VIBE CODING
+                {t("canvas.idleBrand")}
               </div>
             </div>
           </div>
@@ -201,7 +191,7 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
               top: 756,
               width: 400,
               height: 300,
-              background: "#050710",
+              background: UI_COLORS.cameraShell,
               border: `2px solid ${borderColor}55`,
               borderRadius: 0,
               overflow: "hidden",
@@ -224,9 +214,9 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
               }}
             >
               <div style={{ display: "flex", gap: 5 }}>
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#FF5F57", opacity: 0.7 }} />
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#FEBC2E", opacity: 0.7 }} />
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#28C840", opacity: 0.7 }} />
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: UI_COLORS.macRed, opacity: 0.7 }} />
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: UI_COLORS.macYellow, opacity: 0.7 }} />
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: UI_COLORS.macGreen, opacity: 0.7 }} />
               </div>
               <div
                 style={{
@@ -248,7 +238,7 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "#07090F",
+                background: UI_COLORS.cameraStage,
                 position: "relative",
                 overflow: "hidden",
               }}
@@ -291,11 +281,11 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
                     width: 6,
                     height: 6,
                     borderRadius: "50%",
-                    background: "#FF5F57",
-                    boxShadow: "0 0 4px #FF5F57",
+                    background: UI_COLORS.macRed,
+                    boxShadow: `0 0 4px ${UI_COLORS.macRed}`,
                   }}
                 />
-                <span style={{ fontSize: 9, color: "#fff", fontWeight: 600, letterSpacing: "0.08em" }}>LIVE</span>
+                <span style={{ fontSize: 9, color: UI_COLORS.white, fontWeight: 600, letterSpacing: "0.08em" }}>{t("canvas.liveBadge")}</span>
               </div>
             </div>
           </div>

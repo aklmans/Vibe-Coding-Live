@@ -1,4 +1,6 @@
 import type { OverlayState } from "../types";
+import { UI_COLORS } from "../lib/design-tokens";
+import { patchSection } from "../lib/state";
 import { useLocale } from "../hooks/useLocale";
 
 interface SectionInputProps {
@@ -15,7 +17,7 @@ function SectionInput({ label, value, onChange, testId }: SectionInputProps) {
         style={{
           fontSize: 11,
           fontWeight: 500,
-          color: "#C7D2FE",
+          color: UI_COLORS.textSoft,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
         }}
@@ -27,19 +29,19 @@ function SectionInput({ label, value, onChange, testId }: SectionInputProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         style={{
-          background: "#0F1122",
-          border: "1px solid #2a3060",
+          background: UI_COLORS.controlSurface,
+          border: `1px solid ${UI_COLORS.controlBorder}`,
           borderRadius: 6,
           padding: "6px 10px",
           fontSize: 13,
-          color: "#F4F7FF",
+          color: UI_COLORS.text,
           outline: "none",
           fontFamily: "inherit",
           width: "100%",
           boxSizing: "border-box",
         }}
-        onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-        onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+        onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+        onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
       />
     </div>
   );
@@ -71,7 +73,7 @@ export default function SidebarSectionEditor({
     const sections = state.sidebar.sections.map((s, i) =>
       i === index ? { ...s, title: value } : s,
     );
-    onChange({ ...state, sidebar: { ...state.sidebar, sections } });
+    onChange(patchSection(state, "sidebar", { sections }));
   };
 
   const updateBullet = (bulletIdx: number, value: string) => {
@@ -80,14 +82,14 @@ export default function SidebarSectionEditor({
       const bullets = s.bullets.map((b, j) => (j === bulletIdx ? value : b));
       return { ...s, bullets };
     });
-    onChange({ ...state, sidebar: { ...state.sidebar, sections } });
+    onChange(patchSection(state, "sidebar", { sections }));
   };
 
   const toggleBulletDone = (bulletIdx: number) => {
     const sectionsDone = (state.sidebar.sectionsDone ?? []).map((row, i) =>
       i === index ? row.map((v, j) => (j === bulletIdx ? !v : v)) : row,
     );
-    onChange({ ...state, sidebar: { ...state.sidebar, sectionsDone } });
+    onChange(patchSection(state, "sidebar", { sectionsDone }));
   };
 
   return (
@@ -120,8 +122,8 @@ export default function SidebarSectionEditor({
                 width: 28,
                 height: 28,
                 borderRadius: 6,
-                border: `1px solid ${done ? `${accentColor}60` : "#2a3060"}`,
-                background: done ? `${accentColor}20` : "#0F1122",
+                border: `1px solid ${done ? `${accentColor}60` : UI_COLORS.controlBorder}`,
+                background: done ? `${accentColor}20` : UI_COLORS.controlSurface,
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -133,7 +135,7 @@ export default function SidebarSectionEditor({
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                 <path
                   d="M2 5.5L4.5 8L9 3"
-                  stroke={done ? accentColor : "#3a4060"}
+                  stroke={done ? accentColor : UI_COLORS.textSubtle}
                   strokeWidth="1.6"
                   strokeLinecap="round"
                   strokeLinejoin="round"

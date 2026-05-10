@@ -1,9 +1,11 @@
 import type { OverlayState } from "../types";
+import { patchSection } from "../lib/state";
 import {
   BADGE_PRESETS,
   type BadgeConfig,
   type BadgeKind,
 } from "../lib/badges";
+import { UI_COLORS } from "../lib/design-tokens";
 import { useLocale } from "../hooks/useLocale";
 
 interface BadgesEditorProps {
@@ -35,7 +37,7 @@ export default function BadgesEditor({
     const badges = state.cover.badges.map((b, i) =>
       i === idx ? { ...b, ...patch } : b,
     );
-    onChange({ ...state, cover: { ...state.cover, badges } });
+    onChange(patchSection(state, "cover", { badges }));
   };
 
   return (
@@ -49,8 +51,8 @@ export default function BadgesEditor({
           <div
             key={idx}
             style={{
-              background: "#0F1122",
-              border: "1px solid #1F2235",
+              background: UI_COLORS.controlSurface,
+              border: `1px solid ${UI_COLORS.panelSurface}`,
               borderRadius: 8,
               padding: 10,
               display: "flex",
@@ -92,7 +94,7 @@ export default function BadgesEditor({
                     }}
                   />
                 ) : (
-                  <span style={{ fontSize: 10, color: "#6B7CA8" }}>?</span>
+                  <span style={{ fontSize: 10, color: UI_COLORS.textMuted }}>?</span>
                 )}
               </div>
               <span
@@ -100,7 +102,7 @@ export default function BadgesEditor({
                   flex: 1,
                   fontSize: 12,
                   fontWeight: 600,
-                  color: "#C7D2FE",
+                  color: UI_COLORS.textSoft,
                   letterSpacing: "0.04em",
                 }}
               >
@@ -115,7 +117,7 @@ export default function BadgesEditor({
                   borderRadius: 10,
                   border: "none",
                   cursor: "pointer",
-                  background: badge.visible ? "#8DA8FF" : "#1F2235",
+                  background: badge.visible ? UI_COLORS.focus : UI_COLORS.panelSurface,
                   position: "relative",
                   transition: "background 0.2s",
                   flexShrink: 0,
@@ -126,7 +128,7 @@ export default function BadgesEditor({
                     width: 14,
                     height: 14,
                     borderRadius: "50%",
-                    background: "#F4F7FF",
+                    background: UI_COLORS.text,
                     position: "absolute",
                     top: 3,
                     left: badge.visible ? 21 : 3,
@@ -141,10 +143,10 @@ export default function BadgesEditor({
               style={{
                 display: "flex",
                 gap: 4,
-                background: "#080A14",
+                background: UI_COLORS.inputInset,
                 padding: 3,
                 borderRadius: 6,
-                border: "1px solid #1F2235",
+                border: `1px solid ${UI_COLORS.panelSurface}`,
               }}
             >
               {KIND_OPTIONS.map((opt) => {
@@ -163,12 +165,12 @@ export default function BadgesEditor({
                     style={{
                       flex: 1,
                       padding: "4px 0",
-                      background: active ? "#1F2235" : "transparent",
+                      background: active ? UI_COLORS.panelSurface : "transparent",
                       border: "none",
                       borderRadius: 4,
                       fontSize: 10,
                       fontWeight: 500,
-                      color: active ? "#F4F7FF" : "#6B7CA8",
+                      color: active ? UI_COLORS.text : UI_COLORS.textMuted,
                       cursor: "pointer",
                       fontFamily: "inherit",
                       letterSpacing: "0.04em",
@@ -188,19 +190,19 @@ export default function BadgesEditor({
               onChange={(e) => updateBadge(idx, { label: e.target.value })}
               placeholder={t("label.displayLabel")}
               style={{
-                background: "#080A14",
-                border: "1px solid #2a3060",
+                background: UI_COLORS.inputInset,
+                border: `1px solid ${UI_COLORS.controlBorder}`,
                 borderRadius: 6,
                 padding: "6px 10px",
                 fontSize: 13,
-                color: "#F4F7FF",
+                color: UI_COLORS.text,
                 outline: "none",
                 fontFamily: "inherit",
                 width: "100%",
                 boxSizing: "border-box",
               }}
-              onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-              onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+              onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+              onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
             />
 
             {/* Row 4: custom icon URL (only when kind === custom) */}
@@ -213,19 +215,19 @@ export default function BadgesEditor({
                 }
                 placeholder={t("label.iconUrl")}
                 style={{
-                  background: "#080A14",
-                  border: "1px solid #2a3060",
+                  background: UI_COLORS.inputInset,
+                  border: `1px solid ${UI_COLORS.controlBorder}`,
                   borderRadius: 6,
                   padding: "6px 10px",
                   fontSize: 12,
-                  color: "#F4F7FF",
+                  color: UI_COLORS.text,
                   outline: "none",
                   fontFamily: "monospace",
                   width: "100%",
                   boxSizing: "border-box",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-                onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+                onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+                onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
               />
             )}
           </div>

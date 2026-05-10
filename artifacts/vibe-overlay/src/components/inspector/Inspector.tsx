@@ -1,4 +1,5 @@
 import type { OverlayState } from "../../types";
+import { UI_COLORS } from "../../lib/design-tokens";
 import { useLocale } from "../../hooks/useLocale";
 import OverlayInspector from "./groups/OverlayInspector";
 import CoverInspector from "./groups/CoverInspector";
@@ -23,8 +24,8 @@ export default function Inspector({ state, onChange }: InspectorProps) {
       style={{
         width: 320,
         minWidth: 320,
-        background: "#0D0E1C",
-        borderLeft: "1px solid #1F2235",
+        background: UI_COLORS.appSurface,
+        borderLeft: `1px solid ${UI_COLORS.panelSurface}`,
         height: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -34,7 +35,7 @@ export default function Inspector({ state, onChange }: InspectorProps) {
       <div
         style={{
           padding: "14px 16px",
-          borderBottom: "1px solid #1F2235",
+          borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
           flexShrink: 0,
         }}
       >
@@ -42,7 +43,7 @@ export default function Inspector({ state, onChange }: InspectorProps) {
           style={{
             fontSize: 13,
             fontWeight: 600,
-            color: "#F4F7FF",
+            color: UI_COLORS.text,
             letterSpacing: "0.02em",
           }}
         >
@@ -51,7 +52,7 @@ export default function Inspector({ state, onChange }: InspectorProps) {
         <div
           style={{
             fontSize: 11,
-            color: "#6B7CA8",
+            color: UI_COLORS.textMuted,
             marginTop: 2,
           }}
         >

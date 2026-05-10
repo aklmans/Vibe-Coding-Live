@@ -163,8 +163,9 @@ function normalizeActiveSection(value: unknown, max: number): number {
   return idx;
 }
 
-function normalizeTheme(value: unknown): ThemeMode {
-  return value === "editorial" ? "editorial" : "neon";
+function normalizeTheme(value: unknown, fallback: ThemeMode): ThemeMode {
+  if (value === "editorial" || value === "neon") return value;
+  return fallback;
 }
 
 const BADGE_KIND_VALUES: BadgeKind[] = [
@@ -441,7 +442,7 @@ export function normalizeOverlayState(value: unknown, defaultValue: OverlayState
       ),
     },
     colors: normalizeColors(source?.colors, defaultValue.colors),
-    theme: normalizeTheme(source?.theme),
+    theme: normalizeTheme(source?.theme, defaultValue.theme),
     activeTab:
       source?.activeTab === "cover"
         ? "cover"

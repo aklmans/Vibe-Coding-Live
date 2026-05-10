@@ -1,4 +1,5 @@
 import type { OverlayState } from "../../../types";
+import { patchSection } from "../../../lib/state";
 import InspectorGroup from "../InspectorGroup";
 import BrandIdentityEditor from "../BrandIdentityEditor";
 import { SectionInput, ToggleButton } from "../../shared/Field";
@@ -16,7 +17,7 @@ export default function CoverInspector({
 }: CoverInspectorProps) {
   const { t } = useLocale();
   const writeCover = (patch: Partial<OverlayState["cover"]>) => {
-    onChange({ ...state, cover: { ...state.cover, ...patch } });
+    onChange(patchSection(state, "cover", patch));
   };
 
   return (

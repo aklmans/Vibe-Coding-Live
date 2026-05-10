@@ -19,6 +19,8 @@ import {
   exportWallpaper,
 } from "./utils/exportImage";
 import { loadOverlayState, saveOverlayState } from "./stateStorage";
+import { UI_BORDERS, UI_COLORS } from "./lib/design-tokens";
+import { produceState } from "./lib/state";
 import {
   WALLPAPER_PRESETS,
   getWallpaperPreset,
@@ -194,7 +196,13 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
     onCommandPalette: () => setCmdkOpen((v) => !v),
     onSwitchTab: (idx) => {
       const tab = TAB_ORDER[idx];
-      if (tab) setState({ ...state, activeTab: tab });
+      if (tab) {
+        setState(
+          produceState(state, (draft) => {
+            draft.activeTab = tab;
+          }),
+        );
+      }
     },
     onExportCurrent: handleExportCurrent,
     onOpenSettings: () => setSettingsOpen(true),
@@ -274,7 +282,7 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
           display: "flex",
           flexDirection: "column",
           height: "100vh",
-          background: "#070A12",
+          background: UI_COLORS.appBackground,
           fontFamily:
             '-apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif',
           overflow: "hidden",
@@ -311,7 +319,7 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
               flexDirection: "column",
               padding: "20px 24px 24px",
               gap: 12,
-              background: "#070A12",
+              background: UI_COLORS.appBackground,
             }}
           >
             <div
@@ -326,17 +334,17 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
                 <div
                   style={{
                     fontSize: 11,
-                    color: "#8DA8FF",
-                    background: "#1A1C2E",
+                    color: UI_COLORS.focus,
+                    background: UI_COLORS.previewBadgeSurface,
                     padding: "4px 10px",
                     borderRadius: 6,
-                    border: "1px solid #2a3060",
+                    border: UI_BORDERS.control,
                     letterSpacing: "0.04em",
                   }}
                 >
                   {tabBadge}
                 </div>
-                <div style={{ fontSize: 11, color: "#6B7CA8" }}>
+                <div style={{ fontSize: 11, color: UI_COLORS.textMuted }}>
                   {t("app.previewHint")}
                 </div>
               </div>
@@ -345,9 +353,9 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
                 <div
                   style={{
                     fontSize: 12,
-                    color: "#FF6FAE",
-                    background: "#1A0A12",
-                    border: "1px solid #FF6FAE30",
+                    color: UI_COLORS.danger,
+                    background: UI_COLORS.dangerSurface,
+                    border: UI_BORDERS.danger,
                     borderRadius: 6,
                     padding: "4px 12px",
                   }}
@@ -501,7 +509,7 @@ function PreviewFrame({
           bottom: 8,
           right: 12,
           fontSize: 10,
-          color: "#3a4060",
+          color: UI_COLORS.textSubtle,
           fontFamily: "monospace",
           lineHeight: 1.6,
           pointerEvents: "none",

@@ -1,10 +1,14 @@
 import { forwardRef } from "react";
 import { OverlayState } from "../types";
+import { avatarPlaceholder } from "../lib/avatar";
+import { patchSection } from "../lib/state";
 import { fontFamilies, typography } from "../lib/typography";
-import { badgeIconUrl } from "../lib/badges";
 import { useLocale } from "../hooks/useLocale";
 import SocialList from "./SocialList";
 import EditableText from "./edit/EditableText";
+import { EDITORIAL_PALETTE as E } from "./lib/editorial-palette";
+import AvatarCircle from "./shared/AvatarCircle";
+import BadgeToolbar from "./shared/BadgeToolbar";
 
 interface PosterCanvasProps {
   state: OverlayState;
@@ -13,30 +17,7 @@ interface PosterCanvasProps {
   onChange?: (next: OverlayState) => void;
 }
 
-/* ── Editorial palette (shared with CoverCanvas) ─────────────── */
-const E = {
-  bg1: "#0B1020",
-  bg2: "#111827",
-  text: "#F5F5F2",
-  muted: "#C7C9D1",
-  subtle: "#5A6178",
-  accent: "#DA7756",
-  glassBorder: "rgba(255, 255, 255, 0.06)",
-} as const;
-
-const AVATAR_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1E2438"/>
-      <stop offset="100%" stop-color="#2A3350"/>
-    </linearGradient>
-  </defs>
-  <circle cx="100" cy="100" r="100" fill="url(#g)"/>
-  <text x="100" y="118" text-anchor="middle" font-family="system-ui,sans-serif"
-    font-size="56" font-weight="500" fill="rgba(245,245,242,0.5)">VC</text>
-</svg>
-`)}`;
+const AVATAR_PLACEHOLDER = avatarPlaceholder("rgba(245,245,242,0.5)", "VC", 56);
 
 const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
   ({ state, editable = false, onChange }, ref) => {
@@ -50,7 +31,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
 
     const writeCover = (patch: Partial<OverlayState["cover"]>) => {
       if (!onChange) return;
-      onChange({ ...state, cover: { ...state.cover, ...patch } });
+      onChange(patchSection(state, "cover", patch));
     };
 
     const writeBadgeLabel = (originalIdx: number, label: string) => {
@@ -58,7 +39,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
       const badges = state.cover.badges.map((b, i) =>
         i === originalIdx ? { ...b, label } : b,
       );
-      onChange({ ...state, cover: { ...state.cover, badges } });
+      onChange(patchSection(state, "cover", { badges }));
     };
 
     return (
@@ -69,7 +50,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
           width: 1920,
           height: 1080,
           position: "relative",
-          background: `linear-gradient(170deg, ${E.bg2} 0%, ${E.bg1} 55%, #0A0E1A 100%)`,
+          background: `linear-gradient(170deg, ${E.bg2} 0%, ${E.bg1} 55%, ${E.bg3} 100%)`,
           fontFamily: fontFamilies.sans,
           overflow: "hidden",
           flexShrink: 0,
@@ -229,69 +210,16 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
           }}
         >
           {/* ── Agent badges toolbar — same style as CoverCanvas, but in flow ── */}
-          {(() => {
-            const visibleBadges = cover.badges.filter((b) => b.visible);
-            if (visibleBadges.length === 0) return null;
-            return (
-              <div
-                style={{
-                  alignSelf: "flex-start",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 14,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: 10,
-                  padding: "10px 24px",
-                  marginBottom: hasOptionalContent ? 28 : 36,
-                }}
-              >
-                {visibleBadges.map((badge, i) => {
-                  const originalIdx = cover.badges.indexOf(badge);
-                  return (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 14,
-                      }}
-                    >
-                      {i > 0 && (
-                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.22)" }}>
-                          ×
-                        </span>
-                      )}
-                      {badgeIconUrl(badge) && (
-                        <img
-                          src={badgeIconUrl(badge)}
-                          alt={badge.label}
-                          style={{
-                            width: 20,
-                            height: 20,
-                            objectFit: "contain",
-                            opacity: 0.85,
-                          }}
-                        />
-                      )}
-                      <EditableText
-                        readonly={readonly}
-                        value={badge.label}
-                        onCommit={(v) => writeBadgeLabel(originalIdx, v)}
-                        ariaLabel={`Badge ${i + 1} label`}
-                        style={{
-                          fontSize: 14,
-                          color: E.muted,
-                          fontWeight: 500,
-                          letterSpacing: "0.04em",
-                        }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
+          <BadgeToolbar
+            badges={cover.badges}
+            readonly={readonly}
+            onBadgeLabelChange={writeBadgeLabel}
+            labelColor={E.muted}
+            style={{
+              alignSelf: "flex-start",
+              marginBottom: hasOptionalContent ? 28 : 36,
+            }}
+          />
 
           {/* Eyebrow — hookText */}
           {cover.hookVisible && cover.hookText && (
@@ -513,46 +441,12 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
         >
           {/* Avatar — editorial, simple inner hairline ring (no conic gradient) */}
           {cover.avatarVisible && (
-            <div style={{ position: "relative", flexShrink: 0 }}>
-              <div
-                style={{
-                  position: "absolute",
-                  inset: -4,
-                  borderRadius: "50%",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  zIndex: 0,
-                }}
-              />
-              <img
-                src={avatarSrc}
-                alt="Avatar"
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  width: 260,
-                  height: 260,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-              {/* Faint screen-light reflection */}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: 180,
-                  height: 52,
-                  background:
-                    "radial-gradient(ellipse at center bottom, rgba(255,255,255,0.05), transparent 80%)",
-                  borderRadius: "50%",
-                  zIndex: 2,
-                  pointerEvents: "none",
-                }}
-              />
-            </div>
+            <AvatarCircle
+              src={avatarSrc}
+              size={260}
+              borderInset={4}
+              reflection={{ width: 180, height: 52 }}
+            />
           )}
 
           {/* Social info block */}

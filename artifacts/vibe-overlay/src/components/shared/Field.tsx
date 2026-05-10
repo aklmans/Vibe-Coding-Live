@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { UI_COLORS } from "../../lib/design-tokens";
 
 /* Shared low-level form atoms used across the inspector + drawer. Extracted
  * from the legacy EditorPanel.tsx so the visual style stays identical while
@@ -25,7 +26,7 @@ export function SectionInput({
         style={{
           fontSize: 11,
           fontWeight: 500,
-          color: "#C7D2FE",
+          color: UI_COLORS.textSoft,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
         }}
@@ -38,19 +39,19 @@ export function SectionInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         style={{
-          background: "#0F1122",
-          border: "1px solid #2a3060",
+          background: UI_COLORS.controlSurface,
+          border: `1px solid ${UI_COLORS.controlBorder}`,
           borderRadius: 6,
           padding: "6px 10px",
           fontSize: 13,
-          color: "#F4F7FF",
+          color: UI_COLORS.text,
           outline: "none",
           fontFamily: "inherit",
           width: "100%",
           boxSizing: "border-box",
         }}
-        onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-        onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+        onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+        onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
       />
     </div>
   );
@@ -93,11 +94,11 @@ export function ColorInput({
         }}
       />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-        <label style={{ fontSize: 12, color: "#C7D2FE" }} title={hint}>
+        <label style={{ fontSize: 12, color: UI_COLORS.textSoft }} title={hint}>
           {label}
         </label>
         {hint && (
-          <span style={{ fontSize: 10, color: "#6B7CA8", lineHeight: 1.3 }}>
+          <span style={{ fontSize: 10, color: UI_COLORS.textMuted, lineHeight: 1.3 }}>
             {hint}
           </span>
         )}
@@ -111,14 +112,14 @@ export function ColorInput({
           style={{
             width: 28,
             height: 24,
-            border: "1px solid #2a3060",
+            border: `1px solid ${UI_COLORS.controlBorder}`,
             borderRadius: 4,
             padding: 1,
             background: "transparent",
             cursor: "pointer",
           }}
         />
-        <span style={{ fontSize: 11, color: "#8DA8FF", fontFamily: "monospace" }}>
+        <span style={{ fontSize: 11, color: UI_COLORS.focus, fontFamily: "monospace" }}>
           {value}
         </span>
       </div>
@@ -148,7 +149,7 @@ export function ToggleButton({
         padding: "6px 0",
       }}
     >
-      <span style={{ fontSize: 13, color: "#C7D2FE" }}>{label}</span>
+      <span style={{ fontSize: 13, color: UI_COLORS.textSoft }}>{label}</span>
       <button
         data-testid={testId}
         onClick={() => onChange(!checked)}
@@ -158,7 +159,7 @@ export function ToggleButton({
           borderRadius: 11,
           border: "none",
           cursor: "pointer",
-          background: checked ? "#8DA8FF" : "#1F2235",
+          background: checked ? UI_COLORS.focus : UI_COLORS.panelSurface,
           position: "relative",
           transition: "background 0.2s",
           flexShrink: 0,
@@ -169,7 +170,7 @@ export function ToggleButton({
             width: 16,
             height: 16,
             borderRadius: "50%",
-            background: "#F4F7FF",
+            background: UI_COLORS.text,
             position: "absolute",
             top: 3,
             left: checked ? 21 : 3,
@@ -197,11 +198,11 @@ export function SectionHeading({ children, style }: SectionHeadingProps) {
       style={{
         fontSize: 11,
         fontWeight: 600,
-        color: "#8DA8FF",
+        color: UI_COLORS.focus,
         letterSpacing: "0.1em",
         textTransform: "uppercase",
         padding: "16px 0 8px",
-        borderTop: "1px solid #1F2235",
+        borderTop: `1px solid ${UI_COLORS.panelSurface}`,
         marginTop: 4,
         ...style,
       }}

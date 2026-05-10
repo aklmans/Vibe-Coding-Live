@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { UI_BORDERS, UI_COLORS } from "../../lib/design-tokens";
 import { useLocale } from "../../hooks/useLocale";
 
 interface AvatarUploaderProps {
@@ -46,7 +47,7 @@ export default function AvatarUploader({
           padding: "6px 0",
         }}
       >
-        <span style={{ fontSize: 13, color: "#C7D2FE" }}>{t("toggle.showAvatar")}</span>
+        <span style={{ fontSize: 13, color: UI_COLORS.textSoft }}>{t("toggle.showAvatar")}</span>
         <button
           data-testid={`${testIdPrefix}-visible`}
           onClick={() => onVisibleChange(!visible)}
@@ -56,7 +57,7 @@ export default function AvatarUploader({
             borderRadius: 11,
             border: "none",
             cursor: "pointer",
-            background: visible ? "#8DA8FF" : "#1F2235",
+            background: visible ? UI_COLORS.focus : UI_COLORS.panelSurface,
             position: "relative",
             transition: "background 0.2s",
             flexShrink: 0,
@@ -67,7 +68,7 @@ export default function AvatarUploader({
               width: 16,
               height: 16,
               borderRadius: "50%",
-              background: "#F4F7FF",
+              background: UI_COLORS.text,
               position: "absolute",
               top: 3,
               left: visible ? 21 : 3,
@@ -93,10 +94,10 @@ export default function AvatarUploader({
           style={{
             flex: 1,
             padding: "7px 10px",
-            background: "#3B4FD818",
-            border: "1px solid #3B4FD840",
+            background: `${UI_COLORS.uploadBlue}18`,
+            border: `1px solid ${UI_COLORS.uploadBlue}40`,
             borderRadius: 7,
-            color: "#7C9FFF",
+            color: UI_COLORS.brandBlue,
             fontSize: 12,
             fontWeight: 500,
             cursor: "pointer",
@@ -112,10 +113,10 @@ export default function AvatarUploader({
             onClick={() => onUrlChange("")}
             style={{
               padding: "7px 10px",
-              background: "#FF6FAE12",
-              border: "1px solid #FF6FAE30",
+              background: `${UI_COLORS.danger}12`,
+              border: UI_BORDERS.danger,
               borderRadius: 7,
-              color: "#FF6FAE",
+              color: UI_COLORS.danger,
               fontSize: 12,
               fontWeight: 500,
               cursor: "pointer",
@@ -137,10 +138,10 @@ export default function AvatarUploader({
               height: 40,
               borderRadius: "50%",
               objectFit: "cover",
-              border: "1px solid #2a3060",
+              border: `1px solid ${UI_COLORS.controlBorder}`,
             }}
           />
-          <span style={{ fontSize: 11, color: "#6B7CA8" }}>{t("avatar.uploaded")}</span>
+          <span style={{ fontSize: 11, color: UI_COLORS.textMuted }}>{t("avatar.uploaded")}</span>
         </div>
       )}
     </div>

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { OverlayState } from "../types";
+import { UI_COLORS } from "../lib/design-tokens";
+import { produceState } from "../lib/state";
 import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
 import { useLocale } from "../hooks/useLocale";
 import type { Locale } from "../lib/i18n";
@@ -44,15 +46,20 @@ export default function SettingsDrawer({
   }, [open, onClose]);
 
   const updateColor = (key: keyof typeof state.colors, value: string) => {
-    onChange({ ...state, colors: { ...state.colors, [key]: value } });
+    onChange(
+      produceState(state, (draft) => {
+        draft.colors[key] = value;
+      }),
+    );
   };
 
   const applyTheme = (mode: ThemeMode) => {
-    onChange({
-      ...state,
-      theme: mode,
-      colors: { ...THEME_PRESETS[mode] },
-    });
+    onChange(
+      produceState(state, (draft) => {
+        draft.theme = mode;
+        draft.colors = { ...THEME_PRESETS[mode] };
+      }),
+    );
   };
 
   return (
@@ -80,8 +87,8 @@ export default function SettingsDrawer({
           right: 0,
           width: 360,
           height: "100vh",
-          background: "#0D0E1C",
-          borderLeft: "1px solid #1F2235",
+          background: UI_COLORS.appSurface,
+          borderLeft: `1px solid ${UI_COLORS.panelSurface}`,
           transform: open ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.22s ease",
           zIndex: 70,
@@ -92,7 +99,7 @@ export default function SettingsDrawer({
         <div
           style={{
             padding: "14px 16px",
-            borderBottom: "1px solid #1F2235",
+            borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -104,7 +111,7 @@ export default function SettingsDrawer({
               style={{
                 fontSize: 13,
                 fontWeight: 600,
-                color: "#F4F7FF",
+                color: UI_COLORS.text,
               }}
             >
               {t("settings.title")}
@@ -112,7 +119,7 @@ export default function SettingsDrawer({
             <div
               style={{
                 fontSize: 11,
-                color: "#6B7CA8",
+                color: UI_COLORS.textMuted,
                 marginTop: 2,
               }}
             >
@@ -126,9 +133,9 @@ export default function SettingsDrawer({
               width: 28,
               height: 28,
               borderRadius: 6,
-              border: "1px solid #2a3060",
+              border: `1px solid ${UI_COLORS.controlBorder}`,
               background: "transparent",
-              color: "#C7D2FE",
+              color: UI_COLORS.textSoft,
               cursor: "pointer",
               fontFamily: "inherit",
               fontSize: 14,
@@ -154,10 +161,10 @@ export default function SettingsDrawer({
               style={{
                 display: "flex",
                 gap: 4,
-                background: "#0F1122",
+                background: UI_COLORS.controlSurface,
                 padding: 3,
                 borderRadius: 8,
-                border: "1px solid #1F2235",
+                border: `1px solid ${UI_COLORS.panelSurface}`,
               }}
             >
               {(["zh", "en"] as const).map((loc) => (
@@ -168,12 +175,12 @@ export default function SettingsDrawer({
                   style={{
                     flex: 1,
                     padding: "7px 0",
-                    background: locale === loc ? "#1F2235" : "transparent",
+                    background: locale === loc ? UI_COLORS.panelSurface : "transparent",
                     border: "none",
                     borderRadius: 6,
                     fontSize: 12,
                     fontWeight: 500,
-                    color: locale === loc ? "#F4F7FF" : "#6B7CA8",
+                    color: locale === loc ? UI_COLORS.text : UI_COLORS.textMuted,
                     cursor: "pointer",
                     fontFamily: "inherit",
                     transition: "all 0.15s",
@@ -190,10 +197,10 @@ export default function SettingsDrawer({
               style={{
                 display: "flex",
                 gap: 4,
-                background: "#0F1122",
+                background: UI_COLORS.controlSurface,
                 padding: 3,
                 borderRadius: 8,
-                border: "1px solid #1F2235",
+                border: `1px solid ${UI_COLORS.panelSurface}`,
               }}
             >
               {(["neon", "editorial"] as const).map((mode) => (
@@ -204,12 +211,12 @@ export default function SettingsDrawer({
                   style={{
                     flex: 1,
                     padding: "7px 0",
-                    background: state.theme === mode ? "#1F2235" : "transparent",
+                    background: state.theme === mode ? UI_COLORS.panelSurface : "transparent",
                     border: "none",
                     borderRadius: 6,
                     fontSize: 12,
                     fontWeight: 500,
-                    color: state.theme === mode ? "#F4F7FF" : "#6B7CA8",
+                    color: state.theme === mode ? UI_COLORS.text : UI_COLORS.textMuted,
                     cursor: "pointer",
                     fontFamily: "inherit",
                     textTransform: "capitalize",
@@ -303,21 +310,21 @@ export default function SettingsDrawer({
                     width: "100%",
                     padding: "8px 12px",
                     background: "transparent",
-                    border: "1px solid #2a2d4a",
+                    border: `1px solid ${UI_COLORS.resetBorder}`,
                     borderRadius: 7,
-                    color: "#6B7CA8",
+                    color: UI_COLORS.textMuted,
                     fontSize: 12,
                     cursor: "pointer",
                     fontFamily: "inherit",
                     transition: "all 0.15s",
                   }}
                   onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.color = "#F4F7FF";
-                    (e.target as HTMLElement).style.borderColor = "#3a3d5a";
+                    (e.target as HTMLElement).style.color = UI_COLORS.text;
+                    (e.target as HTMLElement).style.borderColor = UI_COLORS.subtleBorderHover;
                   }}
                   onMouseLeave={(e) => {
-                    (e.target as HTMLElement).style.color = "#6B7CA8";
-                    (e.target as HTMLElement).style.borderColor = "#2a2d4a";
+                    (e.target as HTMLElement).style.color = UI_COLORS.textMuted;
+                    (e.target as HTMLElement).style.borderColor = UI_COLORS.resetBorder;
                   }}
                 >
                   {t("reset.button")}
@@ -367,7 +374,7 @@ function Section({ title, hint, children }: SectionProps) {
           style={{
             fontSize: 11,
             fontWeight: 600,
-            color: "#8DA8FF",
+            color: UI_COLORS.focus,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
           }}
@@ -375,7 +382,7 @@ function Section({ title, hint, children }: SectionProps) {
           {title}
         </div>
         {hint && (
-          <div style={{ fontSize: 10, color: "#6B7CA8", marginTop: 2 }}>
+          <div style={{ fontSize: 10, color: UI_COLORS.textMuted, marginTop: 2 }}>
             {hint}
           </div>
         )}

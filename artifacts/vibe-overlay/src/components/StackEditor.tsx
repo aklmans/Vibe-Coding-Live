@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { OverlayState } from "../types";
+import { UI_COLORS } from "../lib/design-tokens";
+import { patchSection } from "../lib/state";
 import { useLocale } from "../hooks/useLocale";
 
 interface StackEditorProps {
@@ -17,7 +19,7 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
   const [draft, setDraft] = useState("");
 
   const writeItems = (items: string[]) => {
-    onChange({ ...state, stack: { ...state.stack, items } });
+    onChange(patchSection(state, "stack", { items }));
   };
 
   const updateItem = (idx: number, value: string) => {
@@ -45,18 +47,18 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
             onChange={(e) => updateItem(idx, e.target.value)}
             style={{
               flex: 1,
-              background: "#0F1122",
-              border: "1px solid #2a3060",
+              background: UI_COLORS.controlSurface,
+              border: `1px solid ${UI_COLORS.controlBorder}`,
               borderRadius: 6,
               padding: "6px 10px",
               fontSize: 13,
-              color: "#F4F7FF",
+              color: UI_COLORS.text,
               outline: "none",
               fontFamily: "inherit",
               boxSizing: "border-box",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-            onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+            onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+            onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
           />
           <button
             data-testid={`stack-remove-${idx}`}
@@ -66,9 +68,9 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
               width: 28,
               height: 28,
               borderRadius: 6,
-              border: "1px solid #2a3060",
-              background: "#0F1122",
-              color: "#6B7CA8",
+              border: `1px solid ${UI_COLORS.controlBorder}`,
+              background: UI_COLORS.controlSurface,
+              color: UI_COLORS.textMuted,
               cursor: "pointer",
               fontFamily: "inherit",
               fontSize: 14,
@@ -78,12 +80,12 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
               justifyContent: "center",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.color = "#FF6FAE";
-              (e.currentTarget as HTMLElement).style.borderColor = "#FF6FAE60";
+              (e.currentTarget as HTMLElement).style.color = UI_COLORS.danger;
+              (e.currentTarget as HTMLElement).style.borderColor = `${UI_COLORS.danger}60`;
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.color = "#6B7CA8";
-              (e.currentTarget as HTMLElement).style.borderColor = "#2a3060";
+              (e.currentTarget as HTMLElement).style.color = UI_COLORS.textMuted;
+              (e.currentTarget as HTMLElement).style.borderColor = UI_COLORS.controlBorder;
             }}
           >
             ×
@@ -105,18 +107,18 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
           placeholder={t("stackEditor.placeholder")}
           style={{
             flex: 1,
-            background: "#0F1122",
-            border: "1px dashed #2a3060",
+            background: UI_COLORS.controlSurface,
+            border: `1px dashed ${UI_COLORS.controlBorder}`,
             borderRadius: 6,
             padding: "6px 10px",
             fontSize: 13,
-            color: "#F4F7FF",
+            color: UI_COLORS.text,
             outline: "none",
             fontFamily: "inherit",
             boxSizing: "border-box",
           }}
-          onFocus={(e) => (e.target.style.borderColor = "#8DA8FF")}
-          onBlur={(e) => (e.target.style.borderColor = "#2a3060")}
+          onFocus={(e) => (e.target.style.borderColor = UI_COLORS.focus)}
+          onBlur={(e) => (e.target.style.borderColor = UI_COLORS.controlBorder)}
         />
         <button
           data-testid="stack-add"
@@ -126,9 +128,9 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
             width: 28,
             height: 28,
             borderRadius: 6,
-            border: "1px solid #2a3060",
-            background: draft.trim() ? "#1F2235" : "#0F1122",
-            color: draft.trim() ? "#7DD3FC" : "#3a4060",
+            border: `1px solid ${UI_COLORS.controlBorder}`,
+            background: draft.trim() ? UI_COLORS.panelSurface : UI_COLORS.controlSurface,
+            color: draft.trim() ? UI_COLORS.cyan : UI_COLORS.textSubtle,
             cursor: draft.trim() ? "pointer" : "not-allowed",
             fontFamily: "inherit",
             fontSize: 16,

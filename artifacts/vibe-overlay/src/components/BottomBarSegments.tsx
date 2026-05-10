@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { OverlayState } from "../types";
 import type { BottomBarSlot } from "../lib/bottomBar";
 import { formatElapsed, formatStartLabel } from "../lib/bottomBar";
+import { UI_COLORS } from "../lib/design-tokens";
 import { useNow } from "../hooks/useNow";
 import { useLocale } from "../hooks/useLocale";
 
@@ -25,11 +26,6 @@ export default function BottomBarSegments({
   const { bottomBar, colors } = state;
   const { borderColor, textColor, mutedText, cyanAccent, pinkAccent, warmAccent } = colors;
   const accents = [cyanAccent, warmAccent, pinkAccent];
-
-  // Tick once per second so the live clock stays current. Disabled if no
-  // segment is in "live" mode to avoid burning a timer for nothing.
-  const liveEnabled = bottomBar.segments.some((s) => s.kind === "live");
-  const now = useNow(liveEnabled);
 
   const baseTitleSize = size === "large" ? 13 : 12;
   const baseValueSize = size === "large" ? 32 : 28;
@@ -68,7 +64,6 @@ export default function BottomBarSegments({
               slot={seg}
               accent={accent}
               state={state}
-              now={now}
               titleSize={baseTitleSize}
               valueSize={baseValueSize}
               textColor={textColor}
@@ -87,7 +82,6 @@ interface SegmentBodyProps {
   slot: BottomBarSlot;
   accent: string;
   state: OverlayState;
-  now: number;
   titleSize: number;
   valueSize: number;
   textColor: string;
@@ -100,7 +94,6 @@ function SegmentBody({
   slot,
   accent,
   state,
-  now,
   titleSize,
   valueSize,
   textColor,
@@ -137,7 +130,6 @@ function SegmentBody({
       const startedAt = state.liveSession.startedAt;
       const startedMs = startedAt ? new Date(startedAt).getTime() : NaN;
       const ready = Number.isFinite(startedMs);
-      const elapsed = ready ? Math.max(0, now - startedMs) : 0;
       const startLabel = ready ? formatStartLabel(startedAt) : "—";
       return (
         <>
@@ -150,7 +142,7 @@ function SegmentBody({
                 alignItems: "center",
                 gap: 5,
                 marginLeft: 4,
-                background: "#E62117",
+                background: UI_COLORS.live,
                 borderRadius: 999,
                 padding: "1px 8px",
                 height: 16,
@@ -168,42 +160,22 @@ function SegmentBody({
                 style={{
                   fontSize: 9,
                   fontWeight: 700,
-                  color: "#fff",
+                  color: UI_COLORS.white,
                   letterSpacing: "0.12em",
                 }}
               >
-                LIVE
+                {t("canvas.liveBadge")}
               </span>
             </span>
           </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 14,
-            }}
-          >
-            <span
-              style={{
-                ...valueStyle,
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {ready ? formatElapsed(elapsed) : "—:——"}
-            </span>
-            {ready && (
-              <span
-                style={{
-                  fontSize: 12,
-                  color: `${mutedText}99`,
-                  letterSpacing: "0.04em",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {t("live.started")} · {startLabel}
-              </span>
-            )}
-          </div>
+          <LiveElapsedValue
+            ready={ready}
+            startedMs={startedMs}
+            startLabel={startLabel}
+            valueStyle={valueStyle}
+            mutedText={mutedText}
+            t={t}
+          />
         </>
       );
     }
@@ -342,4 +314,56 @@ function SegmentBody({
       );
     }
   }
+}
+
+interface LiveElapsedValueProps {
+  ready: boolean;
+  startedMs: number;
+  startLabel: string;
+  valueStyle: CSSProperties;
+  mutedText: string;
+  t: (key: import("../lib/i18n").TranslationKey) => string;
+}
+
+function LiveElapsedValue({
+  ready,
+  startedMs,
+  startLabel,
+  valueStyle,
+  mutedText,
+  t,
+}: LiveElapsedValueProps) {
+  const now = useNow(ready);
+  const elapsed = ready ? Math.max(0, now - startedMs) : 0;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        gap: 14,
+      }}
+    >
+      <span
+        style={{
+          ...valueStyle,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {ready ? formatElapsed(elapsed) : "—:——"}
+      </span>
+      {ready && (
+        <span
+          style={{
+            fontSize: 12,
+            color: `${mutedText}99`,
+            letterSpacing: "0.04em",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {t("live.started")} · {startLabel}
+        </span>
+      )}
+    </div>
+  );
 }

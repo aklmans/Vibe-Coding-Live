@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Command } from "cmdk";
 import type { OverlayState } from "../types";
+import { UI_COLORS } from "../lib/design-tokens";
+import { patchSection, produceState } from "../lib/state";
 import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
 import { useLocale } from "../hooks/useLocale";
 import type { Locale } from "../lib/i18n";
@@ -66,50 +68,46 @@ export default function CommandPalette({
   };
 
   const switchTab = (tab: OverlayState["activeTab"]) =>
-    onChange({ ...state, activeTab: tab });
+    onChange(
+      produceState(state, (draft) => {
+        draft.activeTab = tab;
+      }),
+    );
 
   const applyTheme = (mode: ThemeMode) =>
-    onChange({ ...state, theme: mode, colors: { ...THEME_PRESETS[mode] } });
+    onChange(
+      produceState(state, (draft) => {
+        draft.theme = mode;
+        draft.colors = { ...THEME_PRESETS[mode] };
+      }),
+    );
 
   const toggleVisibility = (
     section: "main" | "camera" | "sidebar" | "sidebar-social" | "bottom-bar",
   ) => {
     switch (section) {
       case "main":
-        onChange({
-          ...state,
-          mainScreen: { ...state.mainScreen, visible: !state.mainScreen.visible },
-        });
+        onChange(patchSection(state, "mainScreen", { visible: !state.mainScreen.visible }));
         break;
       case "camera":
-        onChange({
-          ...state,
-          mainScreen: {
-            ...state.mainScreen,
+        onChange(
+          patchSection(state, "mainScreen", {
             cameraVisible: !state.mainScreen.cameraVisible,
-          },
-        });
+          }),
+        );
         break;
       case "sidebar":
-        onChange({
-          ...state,
-          sidebar: { ...state.sidebar, visible: !state.sidebar.visible },
-        });
+        onChange(patchSection(state, "sidebar", { visible: !state.sidebar.visible }));
         break;
       case "sidebar-social":
-        onChange({
-          ...state,
-          sidebar: {
-            ...state.sidebar,
+        onChange(
+          patchSection(state, "sidebar", {
             socialVisible: !state.sidebar.socialVisible,
-          },
-        });
+          }),
+        );
         break;
       case "bottom-bar":
-        onChange({
-          ...state,
-          bottomBar: { ...state.bottomBar, visible: !state.bottomBar.visible },
-        });
+        onChange(patchSection(state, "bottomBar", { visible: !state.bottomBar.visible }));
         break;
     }
   };
@@ -118,7 +116,7 @@ export default function CommandPalette({
     <>
       <style>{`
         [cmdk-item=""][data-selected="true"] {
-          background: #1F2235;
+          background: ${UI_COLORS.panelSurface};
         }
         [cmdk-item=""][data-disabled="true"] {
           opacity: 0.5;
@@ -129,7 +127,7 @@ export default function CommandPalette({
           font-weight: 600;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: #8DA8FF;
+          color: ${UI_COLORS.focus};
           padding: 8px 12px 4px;
         }
       `}</style>
@@ -155,8 +153,8 @@ export default function CommandPalette({
           left: "50%",
           transform: "translateX(-50%)",
           width: "min(640px, 92vw)",
-          background: "#0D0E1C",
-          border: "1px solid #2a3060",
+          background: UI_COLORS.appSurface,
+          border: `1px solid ${UI_COLORS.controlBorder}`,
           borderRadius: 12,
           boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
           zIndex: 110,
@@ -170,20 +168,20 @@ export default function CommandPalette({
             display: "flex",
             flexDirection: "column",
             background: "transparent",
-            color: "#F4F7FF",
+            color: UI_COLORS.text,
             fontFamily: "inherit",
           }}
         >
           <div
             style={{
               padding: "12px 16px",
-              borderBottom: "1px solid #1F2235",
+              borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
               display: "flex",
               alignItems: "center",
               gap: 10,
             }}
           >
-            <span style={{ fontSize: 14, color: "#6B7CA8" }}>⌕</span>
+            <span style={{ fontSize: 14, color: UI_COLORS.textMuted }}>⌕</span>
             <Command.Input
               ref={inputRef}
               data-testid="cmdk-input"
@@ -196,7 +194,7 @@ export default function CommandPalette({
                 background: "transparent",
                 border: "none",
                 outline: "none",
-                color: "#F4F7FF",
+                color: UI_COLORS.text,
                 fontSize: 14,
                 fontFamily: "inherit",
               }}
@@ -215,7 +213,7 @@ export default function CommandPalette({
               style={{
                 padding: "20px 16px",
                 fontSize: 13,
-                color: "#6B7CA8",
+                color: UI_COLORS.textMuted,
                 textAlign: "center",
               }}
             >
@@ -400,12 +398,12 @@ export default function CommandPalette({
           <div
             style={{
               padding: "8px 14px",
-              borderTop: "1px solid #1F2235",
+              borderTop: `1px solid ${UI_COLORS.panelSurface}`,
               display: "flex",
               alignItems: "center",
               gap: 14,
               fontSize: 11,
-              color: "#6B7CA8",
+              color: UI_COLORS.textMuted,
             }}
           >
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -498,7 +496,7 @@ function Item({
         justifyContent: "space-between",
         gap: 10,
         fontSize: 13,
-        color: tone === "danger" ? "#FF6FAE" : "#F4F7FF",
+        color: tone === "danger" ? UI_COLORS.danger : UI_COLORS.text,
       }}
     >
       <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -509,7 +507,7 @@ function Item({
               width: 5,
               height: 5,
               borderRadius: "50%",
-              background: "#7DD3FC",
+              background: UI_COLORS.cyan,
               flexShrink: 0,
             }}
           />
@@ -529,9 +527,9 @@ function Kbd({ children }: { children: React.ReactNode }) {
         fontSize: 10,
         padding: "2px 6px",
         borderRadius: 4,
-        border: "1px solid #2a3060",
-        background: "#0F1122",
-        color: "#8DA8FF",
+        border: `1px solid ${UI_COLORS.controlBorder}`,
+        background: UI_COLORS.controlSurface,
+        color: UI_COLORS.focus,
         letterSpacing: "0.04em",
       }}
     >

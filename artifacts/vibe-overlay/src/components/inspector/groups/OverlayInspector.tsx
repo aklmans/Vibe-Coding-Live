@@ -1,4 +1,6 @@
 import type { OverlayState } from "../../../types";
+import { UI_COLORS } from "../../../lib/design-tokens";
+import { patchSection } from "../../../lib/state";
 import InspectorGroup from "../InspectorGroup";
 import { SectionInput, ToggleButton } from "../../shared/Field";
 import SidebarSectionEditor from "../../SidebarSectionEditor";
@@ -12,7 +14,7 @@ interface OverlayInspectorProps {
   onChange: (state: OverlayState) => void;
 }
 
-const SECTION_ACCENTS = ["#7DD3FC", "#FF6FAE", "#FFB86B"] as const;
+const SECTION_ACCENTS = [UI_COLORS.cyan, UI_COLORS.danger, UI_COLORS.warm] as const;
 
 export default function OverlayInspector({
   state,
@@ -30,7 +32,7 @@ export default function OverlayInspector({
           label={t("toggle.mainScreen")}
           checked={state.mainScreen.visible}
           onChange={(v) =>
-            onChange({ ...state, mainScreen: { ...state.mainScreen, visible: v } })
+            onChange(patchSection(state, "mainScreen", { visible: v }))
           }
           testId="toggle-main-screen"
         />
@@ -38,10 +40,7 @@ export default function OverlayInspector({
           label={t("toggle.cameraFrame")}
           checked={state.mainScreen.cameraVisible}
           onChange={(v) =>
-            onChange({
-              ...state,
-              mainScreen: { ...state.mainScreen, cameraVisible: v },
-            })
+            onChange(patchSection(state, "mainScreen", { cameraVisible: v }))
           }
           testId="toggle-camera"
         />
@@ -49,7 +48,7 @@ export default function OverlayInspector({
           label={t("toggle.rightSidebar")}
           checked={state.sidebar.visible}
           onChange={(v) =>
-            onChange({ ...state, sidebar: { ...state.sidebar, visible: v } })
+            onChange(patchSection(state, "sidebar", { visible: v }))
           }
           testId="toggle-sidebar"
         />
@@ -57,10 +56,7 @@ export default function OverlayInspector({
           label={t("toggle.sidebarSocial")}
           checked={state.sidebar.socialVisible}
           onChange={(v) =>
-            onChange({
-              ...state,
-              sidebar: { ...state.sidebar, socialVisible: v },
-            })
+            onChange(patchSection(state, "sidebar", { socialVisible: v }))
           }
           testId="toggle-sidebar-social"
         />
@@ -68,7 +64,7 @@ export default function OverlayInspector({
           label={t("toggle.bottomBar")}
           checked={state.bottomBar.visible}
           onChange={(v) =>
-            onChange({ ...state, bottomBar: { ...state.bottomBar, visible: v } })
+            onChange(patchSection(state, "bottomBar", { visible: v }))
           }
           testId="toggle-bottom-bar"
         />
@@ -84,7 +80,7 @@ export default function OverlayInspector({
             style={{
               fontSize: 11,
               fontWeight: 500,
-              color: "#C7D2FE",
+              color: UI_COLORS.textSoft,
               letterSpacing: "0.04em",
               textTransform: "uppercase",
             }}
@@ -95,10 +91,10 @@ export default function OverlayInspector({
             style={{
               display: "flex",
               gap: 4,
-              background: "#0F1122",
+              background: UI_COLORS.controlSurface,
               padding: 3,
               borderRadius: 8,
-              border: "1px solid #1F2235",
+              border: `1px solid ${UI_COLORS.panelSurface}`,
             }}
           >
             {state.sidebar.sections.map((s, idx) => (
@@ -106,23 +102,20 @@ export default function OverlayInspector({
                 key={idx}
                 data-testid={`active-section-${idx}`}
                 onClick={() =>
-                  onChange({
-                    ...state,
-                    sidebar: { ...state.sidebar, activeSection: idx },
-                  })
+                  onChange(patchSection(state, "sidebar", { activeSection: idx }))
                 }
                 style={{
                   flex: 1,
                   padding: "5px 0",
                   background:
                     state.sidebar.activeSection === idx
-                      ? "#1F2235"
+                      ? UI_COLORS.panelSurface
                       : "transparent",
                   border: "none",
                   borderRadius: 6,
                   fontSize: 11,
                   fontWeight: 500,
-                  color: "#F4F7FF",
+                  color: UI_COLORS.text,
                   cursor: "pointer",
                   fontFamily: "inherit",
                   letterSpacing: "0.04em",
@@ -169,7 +162,7 @@ export default function OverlayInspector({
             style={{
               fontSize: 11,
               fontWeight: 500,
-              color: "#C7D2FE",
+              color: UI_COLORS.textSoft,
               letterSpacing: "0.04em",
               textTransform: "uppercase",
             }}
@@ -184,7 +177,7 @@ export default function OverlayInspector({
             style={{
               fontSize: 11,
               fontWeight: 500,
-              color: "#C7D2FE",
+              color: UI_COLORS.textSoft,
               letterSpacing: "0.04em",
               textTransform: "uppercase",
             }}
@@ -200,7 +193,7 @@ export default function OverlayInspector({
               style={{
                 fontSize: 11,
                 fontWeight: 500,
-                color: "#C7D2FE",
+                color: UI_COLORS.textSoft,
                 letterSpacing: "0.04em",
                 textTransform: "uppercase",
               }}
