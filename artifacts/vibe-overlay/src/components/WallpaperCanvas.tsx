@@ -369,20 +369,19 @@ function HorizontalLayout({
         </div>
       )}
 
-      {/* Bottom band: badges (left) + social card (right) */}
+      {/* Bottom band: badges + social card, stacked */}
       <div
         style={{
           position: "absolute",
           left: S(200),
           right: S(200),
-          bottom: S(160),
+          bottom: S(120),
           display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          gap: S(40),
+          flexDirection: "column",
+          gap: S(32),
         }}
       >
-        {visibleBadges.length > 0 ? (
+        {visibleBadges.length > 0 && (
           <div
             style={{
               display: "flex",
@@ -392,6 +391,7 @@ function HorizontalLayout({
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: S(20),
               padding: `${S(18)}px ${S(40)}px`,
+              alignSelf: "flex-start",
             }}
           >
             {visibleBadges.map((badge, i) => {
@@ -436,8 +436,6 @@ function HorizontalLayout({
               );
             })}
           </div>
-        ) : (
-          <div />
         )}
 
         {visibleSocials.length > 0 && (
@@ -468,18 +466,18 @@ function PortraitLayout({
   /* Stack from top: safe area → avatar → brand → title → slogan → spacer →
    * badges → social card → bottom safe area. Sizes tuned for iPhone Pro Max. */
   return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: `${S(440)}px ${S(80)}px ${S(480)}px`,
-        boxSizing: "border-box",
-        gap: S(36),
-      }}
-    >
+<div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: `${S(440)}px ${S(80)}px ${S(320)}px`,
+          boxSizing: "border-box",
+          gap: S(32),
+        }}
+      >
       {wallpaper.avatarVisible && (
         <div style={{ position: "relative", flexShrink: 0 }}>
           <div
@@ -672,13 +670,13 @@ function SocialCard({ S, socials, colors, fullWidth, t }: SocialCardProps) {
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: S(22),
-        padding: `${S(36)}px ${S(48)}px`,
+        gap: S(18),
+        padding: `${S(32)}px ${S(44)}px`,
         background: "rgba(17, 24, 39, 0.78)",
         border: `1px solid ${E.glassBorder}`,
         boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
         borderRadius: S(22),
-        minWidth: fullWidth ? undefined : S(640),
+        minWidth: fullWidth ? undefined : S(560),
         width: fullWidth ? "100%" : undefined,
         boxSizing: "border-box",
       }}
@@ -712,7 +710,7 @@ function SocialCard({ S, socials, colors, fullWidth, t }: SocialCardProps) {
         return (
           <div
             key={idx}
-            style={{ display: "flex", alignItems: "center", gap: S(24) }}
+            style={{ display: "flex", alignItems: "center", gap: S(20) }}
           >
             <span
               style={{
@@ -720,9 +718,9 @@ function SocialCard({ S, socials, colors, fullWidth, t }: SocialCardProps) {
                 fontSize: S(24),
                 fontWeight: 600,
                 borderRadius: S(8),
-                padding: `${S(8)}px ${S(20)}px`,
+                padding: `${S(6)}px ${S(18)}px`,
                 flexShrink: 0,
-                minWidth: S(140),
+                minWidth: S(120),
                 textAlign: "center",
                 boxSizing: "border-box",
                 letterSpacing: "0.04em",
@@ -733,7 +731,7 @@ function SocialCard({ S, socials, colors, fullWidth, t }: SocialCardProps) {
             </span>
             <span
               style={{
-                fontSize: S(32),
+                fontSize: S(28),
                 color: colors.textColor,
                 fontWeight: 500,
                 letterSpacing: "0.01em",
