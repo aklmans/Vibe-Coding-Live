@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { DEFAULT_STATE_BY_LOCALE, type OverlayState } from "../types";
 import OverlayCanvas from "./OverlayCanvas";
 import CoverCanvas from "./CoverCanvas";
@@ -426,6 +426,24 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
   );
 }
 
+export function calculatePreviewScale(
+  containerSize: { w: number; h: number },
+  nativeW: number,
+  nativeH: number,
+  fallbackScale = 0.5,
+) {
+  if (
+    containerSize.w <= 0 ||
+    containerSize.h <= 0 ||
+    nativeW <= 0 ||
+    nativeH <= 0
+  ) {
+    return fallbackScale;
+  }
+
+  return Math.min(containerSize.w / nativeW, containerSize.h / nativeH);
+}
+
 function PreviewFrame({
   nativeW,
   nativeH,
@@ -436,25 +454,25 @@ function PreviewFrame({
   children: React.ReactNode;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [scale, setScale] = useState(0.5);
   const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const update = () => {
       const cw = el.clientWidth;
       const ch = el.clientHeight;
-      const s = Math.min(cw / nativeW, ch / nativeH);
-      setScale(s);
-      setContainerSize({ w: cw, h: ch });
+      setContainerSize((current) =>
+        current.w === cw && current.h === ch ? current : { w: cw, h: ch },
+      );
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [nativeW, nativeH]);
+  }, []);
 
+  const scale = calculatePreviewScale(containerSize, nativeW, nativeH);
   const scaledW = Math.round(nativeW * scale);
   const scaledH = Math.round(nativeH * scale);
 
