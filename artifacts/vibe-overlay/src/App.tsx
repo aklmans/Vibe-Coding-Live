@@ -6,7 +6,9 @@ import PosterCanvas from "./components/PosterCanvas";
 import WallpaperCanvas from "./components/WallpaperCanvas";
 import SidebarPanel from "./components/SidebarPanel";
 import BottomBarPanel from "./components/BottomBarPanel";
-import EditorPanel from "./components/EditorPanel";
+import TopBar from "./components/topbar/TopBar";
+import Inspector from "./components/inspector/Inspector";
+import SettingsDrawer from "./components/SettingsDrawer";
 import {
   exportFullOverlay,
   exportSidebar,
@@ -35,6 +37,7 @@ export default function App() {
   const [state, setStateRaw] = useState<OverlayState>(loadOverlayState);
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Preview ref (for the visible scaled canvas — not used for export)
   const previewOverlayRef = useRef<HTMLDivElement | null>(null);
@@ -215,6 +218,7 @@ export default function App() {
       <div
         style={{
           display: "flex",
+          flexDirection: "column",
           height: "100vh",
           background: "#070A12",
           fontFamily:
@@ -222,90 +226,107 @@ export default function App() {
           overflow: "hidden",
         }}
       >
-        {/* Left Editor Panel */}
-        <EditorPanel
+        <TopBar
           state={state}
           onChange={setState}
+          exporting={exporting}
           onExportOverlay={handleExportOverlay}
           onExportSidebar={handleExportSidebar}
           onExportBottomBar={handleExportBottomBar}
           onExportCover={handleExportCover}
           onExportPoster={handleExportPoster}
           onExportWallpaper={handleExportWallpaper}
-          onReset={handleReset}
-          exporting={exporting}
+          onOpenSettings={() => setSettingsOpen(true)}
         />
 
-        {/* Main Preview Area */}
         <div
           style={{
             flex: 1,
-            overflow: "hidden",
+            minHeight: 0,
             display: "flex",
-            flexDirection: "column",
-            padding: "24px",
-            gap: 16,
-            background: "#070A12",
           }}
         >
-          {/* Top bar */}
+          {/* Main Preview Area */}
           <div
             style={{
+              flex: 1,
+              minWidth: 0,
+              overflow: "hidden",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexShrink: 0,
+              flexDirection: "column",
+              padding: "20px 24px 24px",
+              gap: 12,
+              background: "#070A12",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "#8DA8FF",
-                  background: "#1A1C2E",
-                  padding: "4px 10px",
-                  borderRadius: 6,
-                  border: "1px solid #2a3060",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {tabBadge}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#8DA8FF",
+                    background: "#1A1C2E",
+                    padding: "4px 10px",
+                    borderRadius: 6,
+                    border: "1px solid #2a3060",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  {tabBadge}
+                </div>
+                <div style={{ fontSize: 11, color: "#6B7CA8" }}>
+                  Scaled preview — export at full resolution
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: "#6B7CA8" }}>
-                Scaled preview — export at full resolution
-              </div>
+
+              {exportError && (
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "#FF6FAE",
+                    background: "#1A0A12",
+                    border: "1px solid #FF6FAE30",
+                    borderRadius: 6,
+                    padding: "4px 12px",
+                  }}
+                >
+                  {exportError}
+                </div>
+              )}
             </div>
 
-            {exportError && (
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "#FF6FAE",
-                  background: "#1A0A12",
-                  border: "1px solid #FF6FAE30",
-                  borderRadius: 6,
-                  padding: "4px 12px",
-                }}
-              >
-                {exportError}
-              </div>
-            )}
+            {/* Scaled Canvas Preview */}
+            <PreviewFrame nativeW={previewW} nativeH={previewH}>
+              {state.activeTab === "overlay" ? (
+                <OverlayCanvas ref={previewOverlayRef} state={state} />
+              ) : state.activeTab === "cover" ? (
+                <CoverCanvas ref={previewCoverRef} state={state} />
+              ) : state.activeTab === "poster" ? (
+                <PosterCanvas ref={previewPosterRef} state={state} />
+              ) : (
+                <WallpaperCanvas state={state} preset={wallpaperPreset} />
+              )}
+            </PreviewFrame>
           </div>
 
-          {/* Scaled Canvas Preview */}
-          <PreviewFrame nativeW={previewW} nativeH={previewH}>
-            {state.activeTab === "overlay" ? (
-              <OverlayCanvas ref={previewOverlayRef} state={state} />
-            ) : state.activeTab === "cover" ? (
-              <CoverCanvas ref={previewCoverRef} state={state} />
-            ) : state.activeTab === "poster" ? (
-              <PosterCanvas ref={previewPosterRef} state={state} />
-            ) : (
-              <WallpaperCanvas state={state} preset={wallpaperPreset} />
-            )}
-          </PreviewFrame>
+          <Inspector state={state} onChange={setState} />
         </div>
       </div>
+
+      <SettingsDrawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        state={state}
+        onChange={setState}
+        onReset={handleReset}
+      />
     </>
   );
 }
