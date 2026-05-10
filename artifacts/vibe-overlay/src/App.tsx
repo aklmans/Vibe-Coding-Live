@@ -307,11 +307,26 @@ export default function App() {
               {state.activeTab === "overlay" ? (
                 <OverlayCanvas ref={previewOverlayRef} state={state} />
               ) : state.activeTab === "cover" ? (
-                <CoverCanvas ref={previewCoverRef} state={state} />
+                <CoverCanvas
+                  ref={previewCoverRef}
+                  state={state}
+                  editable
+                  onChange={setState}
+                />
               ) : state.activeTab === "poster" ? (
-                <PosterCanvas ref={previewPosterRef} state={state} />
+                <PosterCanvas
+                  ref={previewPosterRef}
+                  state={state}
+                  editable
+                  onChange={setState}
+                />
               ) : (
-                <WallpaperCanvas state={state} preset={wallpaperPreset} />
+                <WallpaperCanvas
+                  state={state}
+                  preset={wallpaperPreset}
+                  editable
+                  onChange={setState}
+                />
               )}
             </PreviewFrame>
           </div>

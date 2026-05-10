@@ -3,9 +3,13 @@ import { OverlayState } from "../types";
 import { fontFamilies, typography } from "../lib/typography";
 import { badgeIconUrl } from "../lib/badges";
 import SocialList from "./SocialList";
+import EditableText from "./edit/EditableText";
 
 interface PosterCanvasProps {
   state: OverlayState;
+  /** When true (preview mode), text fields can be double-clicked to edit. */
+  editable?: boolean;
+  onChange?: (next: OverlayState) => void;
 }
 
 /* ── Editorial palette (shared with CoverCanvas) ─────────────── */
@@ -34,12 +38,26 @@ const AVATAR_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
 `)}`;
 
 const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
-  ({ state }, ref) => {
+  ({ state, editable = false, onChange }, ref) => {
     const { cover } = state;
 
     const avatarSrc = cover.avatarUrl || AVATAR_PLACEHOLDER;
     const hasOptionalContent =
       cover.manifestoVisible || cover.closingVisible;
+    const readonly = !editable || !onChange;
+
+    const writeCover = (patch: Partial<OverlayState["cover"]>) => {
+      if (!onChange) return;
+      onChange({ ...state, cover: { ...state.cover, ...patch } });
+    };
+
+    const writeBadgeLabel = (originalIdx: number, label: string) => {
+      if (!onChange) return;
+      const badges = state.cover.badges.map((b, i) =>
+        i === originalIdx ? { ...b, label } : b,
+      );
+      onChange({ ...state, cover: { ...state.cover, badges } });
+    };
 
     return (
       <div
@@ -226,64 +244,77 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                   marginBottom: hasOptionalContent ? 28 : 36,
                 }}
               >
-                {visibleBadges.map((badge, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
-                    }}
-                  >
-                    {i > 0 && (
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.22)" }}>
-                        ×
-                      </span>
-                    )}
-                    {badgeIconUrl(badge) && (
-                      <img
-                        src={badgeIconUrl(badge)}
-                        alt={badge.label}
-                        style={{
-                          width: 20,
-                          height: 20,
-                          objectFit: "contain",
-                          opacity: 0.85,
-                        }}
-                      />
-                    )}
-                    <span
+                {visibleBadges.map((badge, i) => {
+                  const originalIdx = cover.badges.indexOf(badge);
+                  return (
+                    <div
+                      key={i}
                       style={{
-                        fontSize: 14,
-                        color: E.muted,
-                        fontWeight: 500,
-                        letterSpacing: "0.04em",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
                       }}
                     >
-                      {badge.label}
-                    </span>
-                  </div>
-                ))}
+                      {i > 0 && (
+                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.22)" }}>
+                          ×
+                        </span>
+                      )}
+                      {badgeIconUrl(badge) && (
+                        <img
+                          src={badgeIconUrl(badge)}
+                          alt={badge.label}
+                          style={{
+                            width: 20,
+                            height: 20,
+                            objectFit: "contain",
+                            opacity: 0.85,
+                          }}
+                        />
+                      )}
+                      <EditableText
+                        readonly={readonly}
+                        value={badge.label}
+                        onCommit={(v) => writeBadgeLabel(originalIdx, v)}
+                        ariaLabel={`Badge ${i + 1} label`}
+                        style={{
+                          fontSize: 14,
+                          color: E.muted,
+                          fontWeight: 500,
+                          letterSpacing: "0.04em",
+                        }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             );
           })()}
 
           {/* Eyebrow — hookText */}
           {cover.hookVisible && cover.hookText && (
-            <div
+            <EditableText
+              readonly={readonly}
+              value={cover.hookText}
+              onCommit={(v) => writeCover({ hookText: v })}
+              as="div"
+              ariaLabel="Hook text"
               style={{
                 ...typography.eyebrow,
                 color: E.subtle,
                 letterSpacing: "0.18em",
                 marginBottom: 18,
               }}
-            >
-              {cover.hookText}
-            </div>
+            />
           )}
 
           {/* Main title — serif, editorial */}
-          <h1
+          <EditableText
+            readonly={readonly}
+            value={cover.title}
+            onCommit={(v) => writeCover({ title: v })}
+            as="h1"
+            ariaLabel="Poster title"
             style={{
               fontFamily: fontFamilies.serif,
               fontSize: hasOptionalContent ? 88 : 96,
@@ -294,9 +325,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
               margin: 0,
               marginBottom: 40,
             }}
-          >
-            {cover.title}
-          </h1>
+          />
 
           {/* Today's topic card */}
           <div
@@ -358,7 +387,12 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                 Upcoming
               </span>
             </div>
-            <div
+            <EditableText
+              readonly={readonly}
+              value={cover.todayLabel}
+              onCommit={(v) => writeCover({ todayLabel: v })}
+              as="div"
+              ariaLabel="Today label"
               style={{
                 fontSize: 11,
                 fontWeight: 500,
@@ -367,10 +401,13 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                 textTransform: "uppercase",
                 marginBottom: 10,
               }}
-            >
-              {cover.todayLabel}
-            </div>
-            <div
+            />
+            <EditableText
+              readonly={readonly}
+              value={cover.todayTopic}
+              onCommit={(v) => writeCover({ todayTopic: v })}
+              as="div"
+              ariaLabel="Today topic"
               style={{
                 fontSize: 30,
                 fontWeight: 500,
@@ -378,9 +415,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                 lineHeight: 1.3,
                 letterSpacing: "0.01em",
               }}
-            >
-              {cover.todayTopic}
-            </div>
+            />
           </div>
 
           {/* Optional section divider */}

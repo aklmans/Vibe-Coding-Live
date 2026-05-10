@@ -8,10 +8,14 @@ import {
   PORTRAIT_BASE,
   type WallpaperPreset,
 } from "../lib/wallpaper";
+import EditableText from "./edit/EditableText";
 
 interface WallpaperCanvasProps {
   state: OverlayState;
   preset: WallpaperPreset;
+  /** When true (preview mode), text fields can be double-clicked to edit. */
+  editable?: boolean;
+  onChange?: (next: OverlayState) => void;
 }
 
 /* Editorial palette, shared with Cover/Poster so the wallpaper reads as the
@@ -42,7 +46,7 @@ const AVATAR_PLACEHOLDER = `data:image/svg+xml;utf8,${encodeURIComponent(`
 `)}`;
 
 const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
-  ({ state, preset }, ref) => {
+  ({ state, preset, editable = false, onChange }, ref) => {
     const { cover, wallpaper } = state;
     const isPortrait = preset.orientation === "portrait";
     const base = isPortrait ? PORTRAIT_BASE : HORIZONTAL_BASE;
@@ -56,6 +60,23 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
     const visibleSocials = wallpaper.socialVisible
       ? cover.socials.filter((s) => s.visible && s.value.trim().length > 0)
       : [];
+    const readonly = !editable || !onChange;
+
+    const writeCover = (patch: Partial<OverlayState["cover"]>) => {
+      if (!onChange) return;
+      onChange({ ...state, cover: { ...state.cover, ...patch } });
+    };
+    const writeWallpaper = (patch: Partial<OverlayState["wallpaper"]>) => {
+      if (!onChange) return;
+      onChange({ ...state, wallpaper: { ...state.wallpaper, ...patch } });
+    };
+    const writeBadgeLabel = (originalIdx: number, label: string) => {
+      if (!onChange) return;
+      const badges = state.cover.badges.map((b, i) =>
+        i === originalIdx ? { ...b, label } : b,
+      );
+      onChange({ ...state, cover: { ...state.cover, badges } });
+    };
 
     return (
       <div
@@ -143,6 +164,10 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
             visibleBadges={visibleBadges}
             visibleSocials={visibleSocials}
             colors={state.colors}
+            readonly={readonly}
+            writeCover={writeCover}
+            writeWallpaper={writeWallpaper}
+            writeBadgeLabel={writeBadgeLabel}
           />
         ) : (
           <HorizontalLayout
@@ -154,6 +179,10 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
             visibleBadges={visibleBadges}
             visibleSocials={visibleSocials}
             colors={state.colors}
+            readonly={readonly}
+            writeCover={writeCover}
+            writeWallpaper={writeWallpaper}
+            writeBadgeLabel={writeBadgeLabel}
           />
         )}
       </div>
@@ -175,6 +204,10 @@ interface LayoutProps {
   visibleBadges: OverlayState["cover"]["badges"];
   visibleSocials: OverlayState["cover"]["socials"];
   colors: OverlayState["colors"];
+  readonly: boolean;
+  writeCover: (patch: Partial<OverlayState["cover"]>) => void;
+  writeWallpaper: (patch: Partial<OverlayState["wallpaper"]>) => void;
+  writeBadgeLabel: (originalIdx: number, label: string) => void;
 }
 
 function HorizontalLayout({
@@ -186,6 +219,10 @@ function HorizontalLayout({
   visibleBadges,
   visibleSocials,
   colors,
+  readonly,
+  writeCover,
+  writeWallpaper,
+  writeBadgeLabel,
 }: LayoutProps) {
   /* Title block sits left-of-center, avatar floats right.
    * Badges + social card occupy the bottom band, mirroring across the gutter. */
@@ -239,11 +276,21 @@ function HorizontalLayout({
                 borderRadius: 1,
               }}
             />
-            <span>{wallpaper.brandLabel}</span>
+            <EditableText
+              readonly={readonly}
+              value={wallpaper.brandLabel}
+              onCommit={(v) => writeWallpaper({ brandLabel: v })}
+              ariaLabel="Brand label"
+            />
           </div>
         )}
 
-        <h1
+        <EditableText
+          readonly={readonly}
+          value={cover.title}
+          onCommit={(v) => writeCover({ title: v })}
+          as="h1"
+          ariaLabel="Wallpaper title"
           style={{
             fontFamily: fontFamilies.serif,
             fontSize: S(208),
@@ -254,12 +301,15 @@ function HorizontalLayout({
             margin: 0,
             marginBottom: wallpaper.sloganVisible && wallpaper.slogan ? S(48) : 0,
           }}
-        >
-          {cover.title}
-        </h1>
+        />
 
         {wallpaper.sloganVisible && wallpaper.slogan && (
-          <div
+          <EditableText
+            readonly={readonly}
+            value={wallpaper.slogan}
+            onCommit={(v) => writeWallpaper({ slogan: v })}
+            as="div"
+            ariaLabel="Wallpaper slogan"
             style={{
               fontSize: S(40),
               fontWeight: 400,
@@ -268,9 +318,7 @@ function HorizontalLayout({
               lineHeight: 1.4,
               maxWidth: S(1700),
             }}
-          >
-            {wallpaper.slogan}
-          </div>
+          />
         )}
       </div>
 
@@ -340,42 +388,47 @@ function HorizontalLayout({
               padding: `${S(18)}px ${S(40)}px`,
             }}
           >
-            {visibleBadges.map((badge, i) => (
-              <div
-                key={i}
-                style={{ display: "flex", alignItems: "center", gap: S(28) }}
-              >
-                {i > 0 && (
-                  <span
-                    style={{ fontSize: S(22), color: "rgba(255,255,255,0.22)" }}
-                  >
-                    ×
-                  </span>
-                )}
-                {badgeIconUrl(badge) && (
-                  <img
-                    src={badgeIconUrl(badge)}
-                    alt={badge.label}
+            {visibleBadges.map((badge, i) => {
+              const originalIdx = cover.badges.indexOf(badge);
+              return (
+                <div
+                  key={i}
+                  style={{ display: "flex", alignItems: "center", gap: S(28) }}
+                >
+                  {i > 0 && (
+                    <span
+                      style={{ fontSize: S(22), color: "rgba(255,255,255,0.22)" }}
+                    >
+                      ×
+                    </span>
+                  )}
+                  {badgeIconUrl(badge) && (
+                    <img
+                      src={badgeIconUrl(badge)}
+                      alt={badge.label}
+                      style={{
+                        width: S(40),
+                        height: S(40),
+                        objectFit: "contain",
+                        opacity: 0.85,
+                      }}
+                    />
+                  )}
+                  <EditableText
+                    readonly={readonly}
+                    value={badge.label}
+                    onCommit={(v) => writeBadgeLabel(originalIdx, v)}
+                    ariaLabel={`Badge ${i + 1} label`}
                     style={{
-                      width: S(40),
-                      height: S(40),
-                      objectFit: "contain",
-                      opacity: 0.85,
+                      fontSize: S(28),
+                      color: E.muted,
+                      fontWeight: 500,
+                      letterSpacing: "0.04em",
                     }}
                   />
-                )}
-                <span
-                  style={{
-                    fontSize: S(28),
-                    color: E.muted,
-                    fontWeight: 500,
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  {badge.label}
-                </span>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div />
@@ -400,6 +453,10 @@ function PortraitLayout({
   visibleBadges,
   visibleSocials,
   colors,
+  readonly,
+  writeCover,
+  writeWallpaper,
+  writeBadgeLabel,
 }: LayoutProps) {
   /* Stack from top: safe area → avatar → brand → title → slogan → spacer →
    * badges → social card → bottom safe area. Sizes tuned for iPhone Pro Max. */
@@ -465,7 +522,12 @@ function PortraitLayout({
               borderRadius: 1,
             }}
           />
-          <span>{wallpaper.brandLabel}</span>
+          <EditableText
+            readonly={readonly}
+            value={wallpaper.brandLabel}
+            onCommit={(v) => writeWallpaper({ brandLabel: v })}
+            ariaLabel="Brand label"
+          />
           <div
             style={{
               width: S(46),
@@ -477,7 +539,12 @@ function PortraitLayout({
         </div>
       )}
 
-      <h1
+      <EditableText
+        readonly={readonly}
+        value={cover.title}
+        onCommit={(v) => writeCover({ title: v })}
+        as="h1"
+        ariaLabel="Wallpaper title"
         style={{
           fontFamily: fontFamilies.serif,
           fontSize: S(160),
@@ -489,12 +556,15 @@ function PortraitLayout({
           textAlign: "center",
           maxWidth: preset.width - S(160),
         }}
-      >
-        {cover.title}
-      </h1>
+      />
 
       {wallpaper.sloganVisible && wallpaper.slogan && (
-        <div
+        <EditableText
+          readonly={readonly}
+          value={wallpaper.slogan}
+          onCommit={(v) => writeWallpaper({ slogan: v })}
+          as="div"
+          ariaLabel="Wallpaper slogan"
           style={{
             fontSize: S(44),
             fontWeight: 400,
@@ -504,9 +574,7 @@ function PortraitLayout({
             textAlign: "center",
             maxWidth: preset.width - S(200),
           }}
-        >
-          {wallpaper.slogan}
-        </div>
+        />
       )}
 
       {/* Spacer pushes badges + socials toward the lower third */}
@@ -524,42 +592,47 @@ function PortraitLayout({
             padding: `${S(18)}px ${S(40)}px`,
           }}
         >
-          {visibleBadges.map((badge, i) => (
-            <div
-              key={i}
-              style={{ display: "flex", alignItems: "center", gap: S(20) }}
-            >
-              {i > 0 && (
-                <span
-                  style={{ fontSize: S(22), color: "rgba(255,255,255,0.22)" }}
-                >
-                  ×
-                </span>
-              )}
-              {badgeIconUrl(badge) && (
-                <img
-                  src={badgeIconUrl(badge)}
-                  alt={badge.label}
+          {visibleBadges.map((badge, i) => {
+            const originalIdx = cover.badges.indexOf(badge);
+            return (
+              <div
+                key={i}
+                style={{ display: "flex", alignItems: "center", gap: S(20) }}
+              >
+                {i > 0 && (
+                  <span
+                    style={{ fontSize: S(22), color: "rgba(255,255,255,0.22)" }}
+                  >
+                    ×
+                  </span>
+                )}
+                {badgeIconUrl(badge) && (
+                  <img
+                    src={badgeIconUrl(badge)}
+                    alt={badge.label}
+                    style={{
+                      width: S(40),
+                      height: S(40),
+                      objectFit: "contain",
+                      opacity: 0.85,
+                    }}
+                  />
+                )}
+                <EditableText
+                  readonly={readonly}
+                  value={badge.label}
+                  onCommit={(v) => writeBadgeLabel(originalIdx, v)}
+                  ariaLabel={`Badge ${i + 1} label`}
                   style={{
-                    width: S(40),
-                    height: S(40),
-                    objectFit: "contain",
-                    opacity: 0.85,
+                    fontSize: S(30),
+                    color: E.muted,
+                    fontWeight: 500,
+                    letterSpacing: "0.04em",
                   }}
                 />
-              )}
-              <span
-                style={{
-                  fontSize: S(30),
-                  color: E.muted,
-                  fontWeight: 500,
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {badge.label}
-              </span>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 
