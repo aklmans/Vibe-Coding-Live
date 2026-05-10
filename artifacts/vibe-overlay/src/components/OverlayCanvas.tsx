@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import { OverlayState } from "../types";
 import SidebarSections from "./SidebarSections";
 import SocialList from "./SocialList";
+import BottomBarSegments from "./BottomBarSegments";
 
 interface OverlayCanvasProps {
   state: OverlayState;
@@ -384,67 +385,7 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
               overflow: "hidden",
             }}
           >
-            {bottomBar.segments.map((seg, idx) => (
-              <div
-                key={idx}
-                style={{
-                  flex: 1,
-                  padding: "20px 32px",
-                  position: "relative",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  gap: 10,
-                }}
-              >
-                {/* Soft fade-out divider, top->bottom transparent gradient */}
-                {idx < bottomBar.segments.length - 1 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      right: 0,
-                      top: 16,
-                      bottom: 16,
-                      width: 1,
-                      background: `linear-gradient(180deg, transparent 0%, ${borderColor}40 50%, transparent 100%)`,
-                    }}
-                  />
-                )}
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: idx === 0 ? cyanAccent : idx === 1 ? warmAccent : pinkAccent,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 3,
-                      height: 12,
-                      borderRadius: 2,
-                      background: idx === 0 ? cyanAccent : idx === 1 ? warmAccent : pinkAccent,
-                      flexShrink: 0,
-                    }}
-                  />
-                  {seg.title}
-                </div>
-                <div
-                  style={{
-                    fontSize: 28,
-                    color: textColor,
-                    fontWeight: 500,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {seg.text}
-                </div>
-              </div>
-            ))}
+            <BottomBarSegments state={state} size="small" />
           </div>
         )}
 

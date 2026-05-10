@@ -4,6 +4,9 @@ import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
 import SidebarSectionEditor from "./SidebarSectionEditor";
 import BadgesEditor from "./BadgesEditor";
 import SocialsEditor from "./SocialsEditor";
+import BottomBarSegmentEditor from "./BottomBarSegmentEditor";
+import LiveSessionEditor from "./LiveSessionEditor";
+import StackEditor from "./StackEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -275,13 +278,6 @@ export default function EditorPanel({
   onReset,
   exporting,
 }: EditorPanelProps) {
-  const updateSegment = (idx: number, field: "title" | "text", value: string) => {
-    const segments = state.bottomBar.segments.map((s, i) =>
-      i === idx ? { ...s, [field]: value } : s
-    );
-    onChange({ ...state, bottomBar: { ...state.bottomBar, segments } });
-  };
-
   const updateColor = (key: keyof typeof state.colors, value: string) => {
     onChange({ ...state, colors: { ...state.colors, [key]: value } });
   };
@@ -485,10 +481,7 @@ export default function EditorPanel({
                     borderRadius: 6,
                     fontSize: 11,
                     fontWeight: 500,
-                    color:
-                      state.sidebar.activeSection === idx
-                        ? "#F4F7FF"
-                        : "#6B7CA8",
+                    color: "#F4F7FF",
                     cursor: "pointer",
                     fontFamily: "inherit",
                     letterSpacing: "0.04em",
@@ -525,53 +518,20 @@ export default function EditorPanel({
             />
 
             {/* Bottom Bar */}
+            <SectionHeading>Live Session</SectionHeading>
+            <LiveSessionEditor state={state} onChange={onChange} />
+
+            <SectionHeading>Stack</SectionHeading>
+            <StackEditor state={state} onChange={onChange} />
+
             <SectionHeading>Bottom Bar — Segment 1</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Title"
-                value={state.bottomBar.segments[0].title}
-                onChange={(v) => updateSegment(0, "title", v)}
-                testId="bottom-seg1-title"
-              />
-              <SectionInput
-                label="Text"
-                value={state.bottomBar.segments[0].text}
-                onChange={(v) => updateSegment(0, "text", v)}
-                testId="bottom-seg1-text"
-              />
-            </div>
+            <BottomBarSegmentEditor state={state} onChange={onChange} index={0} />
 
             <SectionHeading>Bottom Bar — Segment 2</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Title"
-                value={state.bottomBar.segments[1].title}
-                onChange={(v) => updateSegment(1, "title", v)}
-                testId="bottom-seg2-title"
-              />
-              <SectionInput
-                label="Text"
-                value={state.bottomBar.segments[1].text}
-                onChange={(v) => updateSegment(1, "text", v)}
-                testId="bottom-seg2-text"
-              />
-            </div>
+            <BottomBarSegmentEditor state={state} onChange={onChange} index={1} />
 
             <SectionHeading>Bottom Bar — Segment 3</SectionHeading>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <SectionInput
-                label="Title"
-                value={state.bottomBar.segments[2].title}
-                onChange={(v) => updateSegment(2, "title", v)}
-                testId="bottom-seg3-title"
-              />
-              <SectionInput
-                label="Text"
-                value={state.bottomBar.segments[2].text}
-                onChange={(v) => updateSegment(2, "text", v)}
-                testId="bottom-seg3-text"
-              />
-            </div>
+            <BottomBarSegmentEditor state={state} onChange={onChange} index={2} />
           </>
         )}
 

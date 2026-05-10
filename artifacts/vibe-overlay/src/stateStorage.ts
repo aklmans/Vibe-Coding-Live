@@ -6,13 +6,18 @@ import {
   type SocialConfig,
   type SocialKind,
 } from "./lib/socials";
+import {
+  defaultSlotForKind,
+  isBottomBarKind,
+  type BottomBarKind,
+  type BottomBarSlot,
+} from "./lib/bottomBar";
 
 const STORAGE_KEY = "vibe-overlay-state";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem">;
 type OverlayColors = OverlayState["colors"];
 type SidebarSection = OverlayState["sidebar"]["sections"][number];
-type BottomBarSegment = OverlayState["bottomBar"]["segments"][number];
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object"
@@ -76,7 +81,46 @@ function normalizeSections(value: unknown): SidebarSection[] {
   });
 }
 
-function normalizeSegments(value: unknown): BottomBarSegment[] {
+function normalizeSegment(value: unknown, fallback: BottomBarSlot): BottomBarSlot {
+  const source = record(value);
+  if (!source) return { ...fallback } as BottomBarSlot;
+
+  // Legacy v0 shape: { title: string, text: string }. Promote to a "text" slot.
+  if (!source.kind && (typeof source.title === "string" || typeof source.text === "string")) {
+    return {
+      kind: "text",
+      title: stringOrDefault(source.title, ""),
+      text: stringOrDefault(source.text, ""),
+    };
+  }
+
+  const kind: BottomBarKind = isBottomBarKind(source.kind)
+    ? source.kind
+    : fallback.kind;
+
+  switch (kind) {
+    case "live":
+      return { kind: "live" };
+    case "progress": {
+      const max = DEFAULT_STATE.sidebar.sections.length;
+      const raw = typeof source.sectionIndex === "number" ? Math.floor(source.sectionIndex) : 0;
+      const clamped = Number.isFinite(raw) ? Math.min(Math.max(raw, 0), Math.max(0, max - 1)) : 0;
+      return { kind: "progress", sectionIndex: clamped };
+    }
+    case "stack":
+      return { kind: "stack" };
+    case "topic":
+      return { kind: "topic" };
+    case "text":
+      return {
+        kind: "text",
+        title: stringOrDefault(source.title, ""),
+        text: stringOrDefault(source.text, ""),
+      };
+  }
+}
+
+function normalizeSegments(value: unknown): BottomBarSlot[] {
   const items = Array.isArray(value) ? value : [];
   const length = Math.max(
     items.length,
@@ -87,13 +131,18 @@ function normalizeSegments(value: unknown): BottomBarSegment[] {
     const fallback =
       DEFAULT_STATE.bottomBar.segments[index] ??
       DEFAULT_STATE.bottomBar.segments[0];
-    const source = record(items[index]);
-
-    return {
-      title: stringOrDefault(source?.title, fallback.title),
-      text: stringOrDefault(source?.text, fallback.text),
-    };
+    return normalizeSegment(items[index], fallback);
   });
+}
+
+function normalizeStackItems(value: unknown): string[] {
+  const fallback = DEFAULT_STATE.stack.items;
+  if (!Array.isArray(value)) return [...fallback];
+  const cleaned = value
+    .map((entry) => (typeof entry === "string" ? entry : ""))
+    .filter((entry) => entry.trim().length > 0);
+  if (cleaned.length === 0) return [];
+  return cleaned;
 }
 
 function normalizeColors(value: unknown): OverlayColors {
@@ -259,6 +308,8 @@ export function normalizeOverlayState(value: unknown): OverlayState {
   const bottomBar = record(source?.bottomBar);
   const mainScreen = record(source?.mainScreen);
   const cover = record(source?.cover);
+  const liveSession = record(source?.liveSession);
+  const stack = record(source?.stack);
 
   return {
     sidebar: {
@@ -283,6 +334,15 @@ export function normalizeOverlayState(value: unknown): OverlayState {
         DEFAULT_STATE.bottomBar.visible,
       ),
       segments: normalizeSegments(bottomBar?.segments),
+    },
+    liveSession: {
+      startedAt: stringOrDefault(
+        liveSession?.startedAt,
+        DEFAULT_STATE.liveSession.startedAt,
+      ),
+    },
+    stack: {
+      items: normalizeStackItems(stack?.items),
     },
     mainScreen: {
       visible: boolOrDefault(

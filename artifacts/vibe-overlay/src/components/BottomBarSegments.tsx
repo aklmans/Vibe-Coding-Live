@@ -1,0 +1,340 @@
+import type { CSSProperties } from "react";
+import type { OverlayState } from "../types";
+import type { BottomBarSlot } from "../lib/bottomBar";
+import { formatElapsed, formatStartLabel } from "../lib/bottomBar";
+import { useNow } from "../hooks/useNow";
+
+type Size = "small" | "large";
+
+interface BottomBarSegmentsProps {
+  state: OverlayState;
+  size?: Size;
+}
+
+/**
+ * Shared renderer for the three bottom-bar slots. OverlayCanvas uses
+ * size="small" (162px tall row), the BottomBarPanel export slice uses
+ * size="large" (180px tall standalone export).
+ */
+export default function BottomBarSegments({
+  state,
+  size = "small",
+}: BottomBarSegmentsProps) {
+  const { bottomBar, colors } = state;
+  const { borderColor, textColor, mutedText, cyanAccent, pinkAccent, warmAccent } = colors;
+  const accents = [cyanAccent, warmAccent, pinkAccent];
+
+  // Tick once per second so the live clock stays current. Disabled if no
+  // segment is in "live" mode to avoid burning a timer for nothing.
+  const liveEnabled = bottomBar.segments.some((s) => s.kind === "live");
+  const now = useNow(liveEnabled);
+
+  const baseTitleSize = size === "large" ? 13 : 12;
+  const baseValueSize = size === "large" ? 32 : 28;
+  const padding = size === "large" ? "24px 36px" : "20px 32px";
+
+  return (
+    <>
+      {bottomBar.segments.map((seg, idx) => {
+        const accent = accents[idx] ?? cyanAccent;
+        return (
+          <div
+            key={idx}
+            style={{
+              flex: 1,
+              padding,
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            {idx < bottomBar.segments.length - 1 && (
+              <div
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: 16,
+                  bottom: 16,
+                  width: 1,
+                  background: `linear-gradient(180deg, transparent 0%, ${borderColor}40 50%, transparent 100%)`,
+                }}
+              />
+            )}
+            <SegmentBody
+              slot={seg}
+              accent={accent}
+              state={state}
+              now={now}
+              titleSize={baseTitleSize}
+              valueSize={baseValueSize}
+              textColor={textColor}
+              mutedText={mutedText}
+              borderColor={borderColor}
+            />
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+interface SegmentBodyProps {
+  slot: BottomBarSlot;
+  accent: string;
+  state: OverlayState;
+  now: number;
+  titleSize: number;
+  valueSize: number;
+  textColor: string;
+  mutedText: string;
+  borderColor: string;
+}
+
+function SegmentBody({
+  slot,
+  accent,
+  state,
+  now,
+  titleSize,
+  valueSize,
+  textColor,
+  mutedText,
+  borderColor,
+}: SegmentBodyProps) {
+  const titleStyle: CSSProperties = {
+    fontSize: titleSize,
+    fontWeight: 600,
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: accent,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  };
+  const railStyle: CSSProperties = {
+    width: 3,
+    height: 12,
+    borderRadius: 2,
+    background: accent,
+    flexShrink: 0,
+  };
+  const valueStyle: CSSProperties = {
+    fontSize: valueSize,
+    color: textColor,
+    fontWeight: 500,
+    letterSpacing: "-0.01em",
+  };
+
+  switch (slot.kind) {
+    case "live": {
+      const startedAt = state.liveSession.startedAt;
+      const startedMs = startedAt ? new Date(startedAt).getTime() : NaN;
+      const ready = Number.isFinite(startedMs);
+      const elapsed = ready ? Math.max(0, now - startedMs) : 0;
+      const startLabel = ready ? formatStartLabel(startedAt) : "—";
+      return (
+        <>
+          <div style={titleStyle}>
+            <div style={railStyle} />
+            <span>On Air</span>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                marginLeft: 4,
+                background: "#E62117",
+                borderRadius: 999,
+                padding: "1px 8px",
+                height: 16,
+              }}
+            >
+              <span
+                style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.95)",
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: "#fff",
+                  letterSpacing: "0.12em",
+                }}
+              >
+                LIVE
+              </span>
+            </span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: 14,
+            }}
+          >
+            <span
+              style={{
+                ...valueStyle,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {ready ? formatElapsed(elapsed) : "—:——"}
+            </span>
+            {ready && (
+              <span
+                style={{
+                  fontSize: 12,
+                  color: `${mutedText}99`,
+                  letterSpacing: "0.04em",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                started · {startLabel}
+              </span>
+            )}
+          </div>
+        </>
+      );
+    }
+
+    case "progress": {
+      const sectionIdx = slot.sectionIndex;
+      const section =
+        state.sidebar.sections[sectionIdx] ?? state.sidebar.sections[0];
+      const doneRow = state.sidebar.sectionsDone?.[sectionIdx] ?? [];
+      const total = section?.bullets.length ?? 0;
+      const done = doneRow.filter(Boolean).length;
+      const ratio = total === 0 ? 0 : done / total;
+      const titleText = section?.title || "进度";
+      return (
+        <>
+          <div style={titleStyle}>
+            <div style={railStyle} />
+            <span>Progress · {titleText}</span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+            }}
+          >
+            <span
+              style={{
+                ...valueStyle,
+                fontVariantNumeric: "tabular-nums",
+                flexShrink: 0,
+              }}
+            >
+              {done}
+              <span style={{ color: `${mutedText}80`, margin: "0 4px" }}>/</span>
+              {total}
+            </span>
+            <div
+              style={{
+                flex: 1,
+                minWidth: 80,
+                height: 6,
+                borderRadius: 3,
+                background: `${borderColor}18`,
+                border: `1px solid ${borderColor}25`,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.round(ratio * 100)}%`,
+                  height: "100%",
+                  background: `linear-gradient(90deg, ${accent}90, ${accent}55)`,
+                  transition: "width 0.4s ease",
+                }}
+              />
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    case "stack": {
+      const items = state.stack.items;
+      if (items.length === 0) {
+        return (
+          <>
+            <div style={titleStyle}>
+              <div style={railStyle} />
+              <span>Stack</span>
+            </div>
+            <span style={{ ...valueStyle, color: `${mutedText}80`, fontSize: titleSize + 2 }}>
+              点击编辑器添加工具
+            </span>
+          </>
+        );
+      }
+      return (
+        <>
+          <div style={titleStyle}>
+            <div style={railStyle} />
+            <span>Stack</span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
+              alignItems: "center",
+            }}
+          >
+            {items.map((item, i) => (
+              <span
+                key={i}
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: textColor,
+                  background: `${borderColor}15`,
+                  border: `1px solid ${borderColor}30`,
+                  borderRadius: 6,
+                  padding: "4px 10px",
+                  letterSpacing: "0.01em",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    case "topic": {
+      return (
+        <>
+          <div style={titleStyle}>
+            <div style={railStyle} />
+            <span>{state.cover.todayLabel || "Topic"}</span>
+          </div>
+          <div style={valueStyle}>{state.cover.todayTopic}</div>
+        </>
+      );
+    }
+
+    case "text": {
+      return (
+        <>
+          <div style={titleStyle}>
+            <div style={railStyle} />
+            <span>{slot.title}</span>
+          </div>
+          <div style={valueStyle}>{slot.text}</div>
+        </>
+      );
+    }
+  }
+}

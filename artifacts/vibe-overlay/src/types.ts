@@ -1,6 +1,7 @@
 import { NEON_PRESET, type ColorTokens, type ThemeMode } from "./lib/theme";
 import type { BadgeConfig } from "./lib/badges";
 import type { SocialConfig } from "./lib/socials";
+import type { BottomBarSlot } from "./lib/bottomBar";
 
 export interface OverlayState {
   sidebar: {
@@ -15,10 +16,13 @@ export interface OverlayState {
   };
   bottomBar: {
     visible: boolean;
-    segments: {
-      title: string;
-      text: string;
-    }[];
+    segments: BottomBarSlot[];
+  };
+  liveSession: {
+    startedAt: string;
+  };
+  stack: {
+    items: string[];
   };
   mainScreen: {
     visible: boolean;
@@ -78,10 +82,16 @@ export const DEFAULT_STATE: OverlayState = {
   bottomBar: {
     visible: true,
     segments: [
-      { title: "正在做", text: "AI 工作流直播搭建" },
-      { title: "下一步", text: "测试 → 解释 → 优化" },
-      { title: "资料", text: "命令 · 笔记 · 链接" },
+      { kind: "live" },
+      { kind: "progress", sectionIndex: 0 },
+      { kind: "stack" },
     ],
+  },
+  liveSession: {
+    startedAt: "",
+  },
+  stack: {
+    items: ["Claude Opus 4.7", "Cursor", "React + Vite"],
   },
   mainScreen: {
     visible: true,

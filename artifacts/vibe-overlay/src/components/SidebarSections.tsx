@@ -20,10 +20,8 @@ export default function SidebarSections({ state }: SidebarSectionsProps) {
       {sidebar.sections.map((section, idx) => {
         const isActive = idx === activeIdx;
         const sectionAccent = accents[idx] ?? cyanAccent;
-        // Active section uses its accent. Inactive sections fall back to a
-        // neutral muted color so the viewer's eye locks onto the current step.
-        const headingColor = isActive ? sectionAccent : `${mutedText}80`;
-        const railColor = isActive ? sectionAccent : `${mutedText}40`;
+        const headingColor = sectionAccent;
+        const railColor = sectionAccent;
 
         const doneBullets = sidebar.sectionsDone?.[idx] ?? [];
         const doneCount = doneBullets.filter(Boolean).length;
@@ -80,7 +78,7 @@ export default function SidebarSections({ state }: SidebarSectionsProps) {
                   gap: 6,
                   fontSize: 10,
                   fontWeight: 600,
-                  color: isActive ? sectionAccent : `${mutedText}60`,
+                  color: sectionAccent,
                   letterSpacing: "0.06em",
                 }}
               >
