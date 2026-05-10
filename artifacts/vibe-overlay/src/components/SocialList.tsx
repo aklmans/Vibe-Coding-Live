@@ -6,9 +6,9 @@ import { socialStyle } from "../lib/socials";
 import EditableText from "./edit/EditableText";
 
 type Size = "small" | "large";
-const LABEL_WIDTH: Record<Size, number> = {
-  small: 76,
-  large: 96,
+const LABEL_SIZE: Record<Size, { width: number; height: number }> = {
+  small: { width: 76, height: 22 },
+  large: { width: 96, height: 26 },
 };
 
 interface SocialListProps {
@@ -34,7 +34,11 @@ export default function SocialList({ state, size = "small", editable, onChange }
         borderRadius: 5,
         padding: "4px 12px",
         flexShrink: 0,
-        width: LABEL_WIDTH.large,
+        width: LABEL_SIZE.large.width,
+        height: LABEL_SIZE.large.height,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         textAlign: "center",
         boxSizing: "border-box",
         letterSpacing: "0.04em",
@@ -46,7 +50,11 @@ export default function SocialList({ state, size = "small", editable, onChange }
         borderRadius: 4,
         padding: "3px 8px",
         flexShrink: 0,
-        width: LABEL_WIDTH.small,
+        width: LABEL_SIZE.small.width,
+        height: LABEL_SIZE.small.height,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         textAlign: "center",
         boxSizing: "border-box",
         letterSpacing: "0.04em",

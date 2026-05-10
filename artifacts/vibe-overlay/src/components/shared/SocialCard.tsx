@@ -12,6 +12,7 @@ interface SocialCardProps {
 }
 
 const LABEL_WIDTH = 132;
+const LABEL_HEIGHT = 34;
 
 export default function SocialCard({
   S,
@@ -76,6 +77,10 @@ export default function SocialCard({
                 padding: `${S(4)}px ${S(14)}px`,
                 flexShrink: 0,
                 width: S(LABEL_WIDTH),
+                height: S(LABEL_HEIGHT),
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
                 textAlign: "center",
                 boxSizing: "border-box",
                 letterSpacing: "0.04em",

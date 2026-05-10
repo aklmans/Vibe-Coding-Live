@@ -34,7 +34,7 @@ function childrenOf(node: ReactNode): ReactNode[] {
   return [asElement(node).props.children].flat(Number.POSITIVE_INFINITY) as ReactNode[];
 }
 
-test("SocialList renders same-width label chips", () => {
+test("SocialList renders same-size label chips", () => {
   const state = {
     ...DEFAULT_STATE,
     cover: {
@@ -43,15 +43,22 @@ test("SocialList renders same-width label chips", () => {
     },
   };
   const rows = childrenOf(SocialList({ state, size: "small" }));
-  const widths = rows.map((row) => {
+  const sizes = rows.map((row) => {
     const label = childrenOf(row)[0];
-    return asElement(label).props.style?.width;
+    const style = asElement(label).props.style;
+    return { width: style?.width, height: style?.height };
   });
 
-  assert.deepEqual(widths, [76, 76, 76, 76, 76]);
+  assert.deepEqual(sizes, [
+    { width: 76, height: 22 },
+    { width: 76, height: 22 },
+    { width: 76, height: 22 },
+    { width: 76, height: 22 },
+    { width: 76, height: 22 },
+  ]);
 });
 
-test("SocialCard renders same-width label chips", () => {
+test("SocialCard renders same-size label chips", () => {
   const card = SocialCard({
     S: (n) => n,
     socials: SOCIALS,
@@ -60,10 +67,17 @@ test("SocialCard renders same-width label chips", () => {
     t: (key) => key,
   });
   const rows = childrenOf(card).slice(1);
-  const widths = rows.map((row) => {
+  const sizes = rows.map((row) => {
     const label = childrenOf(row)[0];
-    return asElement(label).props.style?.width;
+    const style = asElement(label).props.style;
+    return { width: style?.width, height: style?.height };
   });
 
-  assert.deepEqual(widths, [132, 132, 132, 132, 132]);
+  assert.deepEqual(sizes, [
+    { width: 132, height: 34 },
+    { width: 132, height: 34 },
+    { width: 132, height: 34 },
+    { width: 132, height: 34 },
+    { width: 132, height: 34 },
+  ]);
 });
