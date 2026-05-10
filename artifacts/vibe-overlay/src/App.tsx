@@ -9,6 +9,7 @@ import BottomBarPanel from "./components/BottomBarPanel";
 import TopBar from "./components/topbar/TopBar";
 import Inspector from "./components/inspector/Inspector";
 import SettingsDrawer from "./components/SettingsDrawer";
+import CommandPalette from "./components/CommandPalette";
 import {
   exportFullOverlay,
   exportSidebar,
@@ -22,6 +23,7 @@ import {
   WALLPAPER_PRESETS,
   getWallpaperPreset,
 } from "./lib/wallpaper";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 // Offscreen export stage styles — rendered at native resolution, invisible to user
 const exportStageStyle: React.CSSProperties = {
@@ -38,6 +40,7 @@ export default function App() {
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [cmdkOpen, setCmdkOpen] = useState(false);
 
   // Preview ref (for the visible scaled canvas — not used for export)
   const previewOverlayRef = useRef<HTMLDivElement | null>(null);
@@ -146,6 +149,46 @@ export default function App() {
     setState({ ...DEFAULT_STATE });
   }, [setState]);
 
+  const handleExportCurrent = useCallback(() => {
+    switch (state.activeTab) {
+      case "overlay":
+        handleExportOverlay();
+        break;
+      case "cover":
+        handleExportCover();
+        break;
+      case "poster":
+        handleExportPoster();
+        break;
+      case "wallpaper":
+        handleExportWallpaper();
+        break;
+    }
+  }, [
+    state.activeTab,
+    handleExportOverlay,
+    handleExportCover,
+    handleExportPoster,
+    handleExportWallpaper,
+  ]);
+
+  const TAB_ORDER: OverlayState["activeTab"][] = [
+    "overlay",
+    "cover",
+    "poster",
+    "wallpaper",
+  ];
+
+  useKeyboardShortcuts({
+    onCommandPalette: () => setCmdkOpen((v) => !v),
+    onSwitchTab: (idx) => {
+      const tab = TAB_ORDER[idx];
+      if (tab) setState({ ...state, activeTab: tab });
+    },
+    onExportCurrent: handleExportCurrent,
+    onOpenSettings: () => setSettingsOpen(true),
+  });
+
   const CANVAS_NATIVE_W = 1920;
   const CANVAS_NATIVE_H = 1080;
 
@@ -237,6 +280,7 @@ export default function App() {
           onExportPoster={handleExportPoster}
           onExportWallpaper={handleExportWallpaper}
           onOpenSettings={() => setSettingsOpen(true)}
+          onOpenCommandPalette={() => setCmdkOpen(true)}
         />
 
         <div
@@ -340,6 +384,21 @@ export default function App() {
         onClose={() => setSettingsOpen(false)}
         state={state}
         onChange={setState}
+        onReset={handleReset}
+      />
+
+      <CommandPalette
+        open={cmdkOpen}
+        onClose={() => setCmdkOpen(false)}
+        state={state}
+        onChange={setState}
+        onExportOverlay={handleExportOverlay}
+        onExportCover={handleExportCover}
+        onExportPoster={handleExportPoster}
+        onExportWallpaper={handleExportWallpaper}
+        onExportSidebar={handleExportSidebar}
+        onExportBottomBar={handleExportBottomBar}
+        onOpenSettings={() => setSettingsOpen(true)}
         onReset={handleReset}
       />
     </>

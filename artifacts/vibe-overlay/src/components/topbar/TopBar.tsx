@@ -12,6 +12,7 @@ interface TopBarProps {
   onExportPoster: () => void;
   onExportWallpaper: () => void;
   onOpenSettings: () => void;
+  onOpenCommandPalette: () => void;
 }
 
 const TABS: OverlayState["activeTab"][] = [
@@ -45,7 +46,11 @@ export default function TopBar({
   onExportPoster,
   onExportWallpaper,
   onOpenSettings,
+  onOpenCommandPalette,
 }: TopBarProps) {
+  const isMac =
+    typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
+  const Mod = isMac ? "⌘" : "Ctrl";
   return (
     <header
       data-testid="topbar"
@@ -138,6 +143,54 @@ export default function TopBar({
       </div>
 
       <div style={{ flex: 1 }} />
+
+      {/* Command palette trigger — discoverable surface for ⌘K */}
+      <button
+        data-testid="btn-open-cmdk"
+        onClick={onOpenCommandPalette}
+        title={`Command palette (${Mod}K)`}
+        aria-label="Open command palette"
+        style={{
+          height: 32,
+          padding: "0 10px 0 12px",
+          borderRadius: 7,
+          border: "1px solid #2a3060",
+          background: "#0F1122",
+          color: "#6B7CA8",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          fontSize: 12,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.borderColor = "#3a4080";
+          (e.currentTarget as HTMLElement).style.color = "#C7D2FE";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.borderColor = "#2a3060";
+          (e.currentTarget as HTMLElement).style.color = "#6B7CA8";
+        }}
+      >
+        <span aria-hidden>⌕</span>
+        <span>Search…</span>
+        <span
+          style={{
+            fontFamily: "monospace",
+            fontSize: 10,
+            padding: "1px 6px",
+            borderRadius: 4,
+            border: "1px solid #2a3060",
+            background: "#0D0E1C",
+            color: "#8DA8FF",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {Mod}K
+        </span>
+      </button>
 
       {/* Settings */}
       <button
