@@ -35,16 +35,33 @@ interface LocaleContextValue {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
-export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(loadLocale);
+export function LocaleProvider({
+  children,
+  initialLocale,
+  persist = true,
+}: {
+  children: React.ReactNode;
+  initialLocale?: Locale;
+  persist?: boolean;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(
+    initialLocale ?? loadLocale,
+  );
 
   useEffect(() => {
+    if (initialLocale) {
+      setLocaleState(initialLocale);
+    }
+  }, [initialLocale]);
+
+  useEffect(() => {
+    if (!persist) return;
     try {
       window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
     } catch {
       // Ignore quota/private-mode failures
     }
-  }, [locale]);
+  }, [locale, persist]);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);

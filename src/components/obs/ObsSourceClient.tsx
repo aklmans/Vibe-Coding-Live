@@ -1,0 +1,93 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { DEFAULT_STATE_BY_LOCALE } from "../../types";
+import OverlayCanvas from "../OverlayCanvas";
+import SidebarPanel from "../SidebarPanel";
+import BottomBarPanel from "../BottomBarPanel";
+import { LocaleProvider } from "../../hooks/useLocale";
+import {
+  normalizeLiveStatePayload,
+  type LiveStateSnapshot,
+} from "../../lib/live-state";
+import { OBS_SOURCES, type ObsSource } from "../../lib/obs-sources";
+
+function parseLiveSnapshot(
+  payload: string,
+  fallback: LiveStateSnapshot,
+): LiveStateSnapshot {
+  try {
+    return normalizeLiveStatePayload(JSON.parse(payload), fallback);
+  } catch {
+    return fallback;
+  }
+}
+
+function renderSource(source: ObsSource, snapshot: LiveStateSnapshot) {
+  switch (source) {
+    case "overlay":
+      return <OverlayCanvas state={snapshot.state} />;
+    case "sidebar":
+      return <SidebarPanel state={snapshot.state} />;
+    case "bottom-bar":
+      return <BottomBarPanel state={snapshot.state} />;
+  }
+}
+
+export default function ObsSourceClient({ source }: { source: ObsSource }) {
+  const [snapshot, setSnapshot] = useState<LiveStateSnapshot>(() =>
+    normalizeLiveStatePayload({
+      locale: "zh",
+      state: DEFAULT_STATE_BY_LOCALE.zh,
+    }),
+  );
+  const dimensions = OBS_SOURCES[source];
+
+  useEffect(() => {
+    document.documentElement.dataset.obsSource = source;
+    return () => {
+      delete document.documentElement.dataset.obsSource;
+    };
+  }, [source]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetch("/api/live-state")
+      .then((response) => response.text())
+      .then((payload) => {
+        if (!cancelled) {
+          setSnapshot((current) => parseLiveSnapshot(payload, current));
+        }
+      })
+      .catch(() => {
+        // Keep rendering the current snapshot if the initial request fails.
+      });
+
+    const events = new EventSource("/api/live-state/stream");
+    events.onmessage = (event) => {
+      setSnapshot((current) => parseLiveSnapshot(event.data, current));
+    };
+
+    return () => {
+      cancelled = true;
+      events.close();
+    };
+  }, []);
+
+  return (
+    <LocaleProvider initialLocale={snapshot.locale} persist={false}>
+      <div
+        data-testid={`obs-source-${source}`}
+        style={{
+          width: dimensions.width,
+          height: dimensions.height,
+          background: "transparent",
+          overflow: "hidden",
+        }}
+      >
+        {renderSource(source, snapshot)}
+      </div>
+    </LocaleProvider>
+  );
+}

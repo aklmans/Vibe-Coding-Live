@@ -23,6 +23,7 @@ import {
 import { loadOverlayState, saveOverlayState } from "../stateStorage";
 import { UI_BORDERS, UI_COLORS } from "../lib/design-tokens";
 import { produceState } from "../lib/state";
+import { publishLiveState } from "../lib/live-state-client";
 import {
   WALLPAPER_PRESETS,
   getWallpaperPreset,
@@ -82,6 +83,15 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
   useEffect(() => {
     saveOverlayState(state);
   }, [state]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void publishLiveState(state, locale, controller.signal).catch((err) => {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      console.warn("Failed to publish live OBS state", err);
+    });
+    return () => controller.abort();
+  }, [state, locale]);
 
   const handleExport = useCallback(
     async (
