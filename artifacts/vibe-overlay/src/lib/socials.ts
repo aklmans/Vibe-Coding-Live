@@ -16,6 +16,7 @@ export type SocialKind =
   | "qq"
   | "x"
   | "youtube"
+  | "discord"
   | "wechat"
   | "custom";
 
@@ -66,6 +67,14 @@ const BRAND_PRESETS: Record<
       border: "1px solid #FF0000",
     },
   },
+  discord: {
+    label: "Discord",
+    style: {
+      color: "#ffffff",
+      background: "#5865F2",
+      border: "1px solid #5865F2",
+    },
+  },
   wechat: {
     label: "微信",
     style: {
@@ -83,6 +92,7 @@ export const SOCIAL_KIND_VALUES: SocialKind[] = [
   "qq",
   "x",
   "youtube",
+  "discord",
   "wechat",
   "custom",
 ];
@@ -96,6 +106,7 @@ export function getSocialKindOptions(locale: Locale): { value: SocialKind; label
     { value: "qq", label: t("social.qq") },
     { value: "x", label: t("social.x") },
     { value: "youtube", label: t("social.youtube") },
+    { value: "discord", label: t("social.discord") },
     { value: "wechat", label: t("social.wechat") },
     { value: "custom", label: t("social.custom") },
   ];
@@ -116,6 +127,8 @@ export function defaultSocialLabel(kind: SocialKind, locale: Locale = "zh"): str
       return t("social.x");
     case "youtube":
       return t("social.youtube");
+    case "discord":
+      return t("social.discord");
     case "wechat":
       return t("social.wechat");
     case "custom":
@@ -136,6 +149,7 @@ export function socialStyle(
     case "bilibili":
     case "x":
     case "youtube":
+    case "discord":
     case "wechat":
       return BRAND_PRESETS[badge.kind].style;
     case "blog":

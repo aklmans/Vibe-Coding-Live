@@ -218,6 +218,7 @@ export const dict = {
     "social.qq": "QQ群",
     "social.x": "X",
     "social.youtube": "YouTube",
+    "social.discord": "Discord",
     "social.wechat": "微信",
     "social.custom": "自定义…",
 
@@ -474,6 +475,7 @@ export const dict = {
     "social.qq": "QQ Group",
     "social.x": "X",
     "social.youtube": "YouTube",
+    "social.discord": "Discord",
     "social.wechat": "WeChat",
     "social.custom": "Custom…",
 

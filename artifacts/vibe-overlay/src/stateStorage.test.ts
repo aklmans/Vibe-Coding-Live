@@ -87,7 +87,7 @@ test("normalizeOverlayState fills missing fields from the provided locale defaul
   assert.equal(state.cover.todayTopic, "Multi-Agent Coding Live");
   assert.equal(state.sidebar.sections[0].title, "Custom Section");
   assert.equal(state.sidebar.sections[1].title, "Current Problem");
-  assert.equal(state.cover.socials[0].label, "Bilibili");
+  assert.equal(state.cover.socials[0].label, "YouTube");
 });
 
 test("normalizeOverlayState migrates v0 flat badges and social strings", () => {
@@ -105,10 +105,12 @@ test("normalizeOverlayState migrates v0 flat badges and social strings", () => {
   assert.equal(state.cover.badges[0].label, "Agent A");
   assert.equal(state.cover.badges[1].label, "Agent B");
   assert.equal(state.cover.badges[2].label, DEFAULT_STATE.cover.badges[2].label);
-  assert.equal(state.cover.socials[0].value, "@video");
-  assert.equal(state.cover.socials[1].value, "blog.example.com");
-  assert.equal(state.cover.socials[2].value, "github.com/example");
-  assert.equal(state.cover.socials[3].value, "987654321");
+  const socialValue = (kind: string) =>
+    state.cover.socials.find((social) => social.kind === kind)?.value;
+  assert.equal(socialValue("bilibili"), "@video");
+  assert.equal(socialValue("blog"), "blog.example.com");
+  assert.equal(socialValue("github"), "github.com/example");
+  assert.equal(socialValue("qq"), "987654321");
 });
 
 test("normalizeOverlayState handles empty arrays and invalid types conservatively", () => {

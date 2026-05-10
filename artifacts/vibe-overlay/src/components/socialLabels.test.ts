@@ -18,11 +18,11 @@ import SocialCard from "./shared/SocialCard";
 ).React = React;
 
 const SOCIALS: SocialConfig[] = [
-  { visible: true, kind: "blog", label: "Website", value: "https://aklman.com", customColor: "" },
-  { visible: true, kind: "github", label: "GitHub", value: "https://github.com/aklmans", customColor: "" },
-  { visible: true, kind: "qq", label: "QQ Group", value: "205359827", customColor: "" },
-  { visible: true, kind: "x", label: "X", value: "https://x.com/Aklman2018", customColor: "" },
   { visible: true, kind: "youtube", label: "YouTube", value: "https://www.youtube.com/@aklman2018", customColor: "" },
+  { visible: true, kind: "blog", label: "Website", value: "https://aklman.com", customColor: "" },
+  { visible: true, kind: "discord", label: "Discord", value: "https://discord.gg/UJjzvHck", customColor: "" },
+  { visible: true, kind: "x", label: "X", value: "https://x.com/Aklman2018", customColor: "" },
+  { visible: true, kind: "github", label: "GitHub", value: "https://github.com/aklmans", customColor: "" },
 ];
 
 function asElement(node: ReactNode): ReactElement<{ children?: ReactNode; style?: CSSProperties }> {

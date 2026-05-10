@@ -260,6 +260,7 @@ function normalizeSocials(
     qq: stringOrDefault(legacy.socialQQ, ""),
     x: "",
     youtube: "",
+    discord: "",
     wechat: "",
     custom: "",
   };
