@@ -44,6 +44,9 @@ const exportStageStyle: React.CSSProperties = {
 export default function App() {
   const { t, locale } = useLocale();
   const [state, setStateRaw] = useState<OverlayState>(() => loadOverlayState(undefined, DEFAULT_STATE_BY_LOCALE[loadLocale()]));
+  const [previewMetrics, setPreviewMetrics] = useState<PreviewMetrics | null>(
+    null,
+  );
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -351,24 +354,55 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
                 </div>
               </div>
 
-              {exportError && (
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: UI_COLORS.danger,
-                    background: UI_COLORS.dangerSurface,
-                    border: UI_BORDERS.danger,
-                    borderRadius: 6,
-                    padding: "4px 12px",
-                  }}
-                >
-                  {exportError}
-                </div>
-              )}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  gap: 12,
+                  minWidth: 0,
+                }}
+              >
+                {previewMetrics && (
+                  <div
+                    data-testid="preview-debug"
+                    style={{
+                      fontSize: 10,
+                      color: UI_COLORS.textSubtle,
+                      fontFamily: "monospace",
+                      lineHeight: 1.6,
+                      pointerEvents: "none",
+                      userSelect: "none",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {formatPreviewMetrics(previewMetrics)}
+                  </div>
+                )}
+
+                {exportError && (
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: UI_COLORS.danger,
+                      background: UI_COLORS.dangerSurface,
+                      border: UI_BORDERS.danger,
+                      borderRadius: 6,
+                      padding: "4px 12px",
+                    }}
+                  >
+                    {exportError}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Scaled Canvas Preview */}
-            <PreviewFrame nativeW={previewW} nativeH={previewH}>
+            <PreviewFrame
+              nativeW={previewW}
+              nativeH={previewH}
+              onMetricsChange={setPreviewMetrics}
+            >
               {state.activeTab === "overlay" ? (
                 <OverlayCanvas ref={previewOverlayRef} state={state} onChange={setState} />
               ) : state.activeTab === "cover" ? (
@@ -426,6 +460,14 @@ setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
   );
 }
 
+interface PreviewMetrics {
+  containerW: number;
+  containerH: number;
+  scale: number;
+  canvasW: number;
+  canvasH: number;
+}
+
 export function calculatePreviewScale(
   containerSize: { w: number; h: number },
   nativeW: number,
@@ -444,13 +486,19 @@ export function calculatePreviewScale(
   return Math.min(containerSize.w / nativeW, containerSize.h / nativeH);
 }
 
+export function formatPreviewMetrics(metrics: PreviewMetrics) {
+  return `container ${metrics.containerW}×${metrics.containerH} · scale ${metrics.scale.toFixed(4)} · canvas ${metrics.canvasW}×${metrics.canvasH}`;
+}
+
 function PreviewFrame({
   nativeW,
   nativeH,
+  onMetricsChange,
   children,
 }: {
   nativeW: number;
   nativeH: number;
+  onMetricsChange?: (metrics: PreviewMetrics) => void;
   children: React.ReactNode;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -475,6 +523,24 @@ function PreviewFrame({
   const scale = calculatePreviewScale(containerSize, nativeW, nativeH);
   const scaledW = Math.round(nativeW * scale);
   const scaledH = Math.round(nativeH * scale);
+
+  useLayoutEffect(() => {
+    if (containerSize.w <= 0 || containerSize.h <= 0) return;
+    onMetricsChange?.({
+      containerW: containerSize.w,
+      containerH: containerSize.h,
+      scale,
+      canvasW: scaledW,
+      canvasH: scaledH,
+    });
+  }, [
+    containerSize.w,
+    containerSize.h,
+    onMetricsChange,
+    scale,
+    scaledW,
+    scaledH,
+  ]);
 
   return (
     <div
@@ -519,25 +585,6 @@ function PreviewFrame({
         >
           {children}
         </div>
-      </div>
-
-      {/* Debug readout */}
-      <div
-        data-testid="preview-debug"
-        style={{
-          position: "absolute",
-          bottom: 8,
-          right: 12,
-          fontSize: 10,
-          color: UI_COLORS.textSubtle,
-          fontFamily: "monospace",
-          lineHeight: 1.6,
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
-      >
-        container {containerSize.w}×{containerSize.h} · scale {scale.toFixed(4)}{" "}
-        · canvas {scaledW}×{scaledH}
       </div>
     </div>
   );
