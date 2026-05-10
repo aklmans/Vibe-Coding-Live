@@ -369,16 +369,16 @@ function HorizontalLayout({
         </div>
       )}
 
-      {/* Bottom band: badges + social card, stacked */}
+      {/* Bottom band: badges + social side by side */}
       <div
         style={{
           position: "absolute",
           left: S(200),
           right: S(200),
-          bottom: S(120),
+          bottom: S(160),
           display: "flex",
-          flexDirection: "column",
-          gap: S(32),
+          alignItems: "flex-end",
+          gap: S(48),
         }}
       >
         {visibleBadges.length > 0 && (
@@ -387,11 +387,10 @@ function HorizontalLayout({
               display: "flex",
               alignItems: "center",
               gap: S(28),
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: S(20),
-              padding: `${S(18)}px ${S(40)}px`,
-              alignSelf: "flex-start",
+              padding: `${S(22)}px ${S(44)}px`,
             }}
           >
             {visibleBadges.map((badge, i) => {
@@ -399,11 +398,11 @@ function HorizontalLayout({
               return (
                 <div
                   key={i}
-                  style={{ display: "flex", alignItems: "center", gap: S(28) }}
+                  style={{ display: "flex", alignItems: "center", gap: S(18) }}
                 >
                   {i > 0 && (
                     <span
-                      style={{ fontSize: S(22), color: "rgba(255,255,255,0.22)" }}
+                      style={{ fontSize: S(22), color: "rgba(255,255,255,0.2)" }}
                     >
                       ×
                     </span>
@@ -426,7 +425,7 @@ function HorizontalLayout({
                     onCommit={(v) => writeBadgeLabel(originalIdx, v)}
                     ariaLabel={`Badge ${i + 1} label`}
                     style={{
-                      fontSize: S(28),
+                      fontSize: S(30),
                       color: E.muted,
                       fontWeight: 500,
                       letterSpacing: "0.04em",
@@ -669,35 +668,35 @@ function SocialCard({ S, socials, colors, fullWidth, t }: SocialCardProps) {
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
-        gap: S(18),
-        padding: `${S(32)}px ${S(44)}px`,
-        background: "rgba(17, 24, 39, 0.78)",
-        border: `1px solid ${E.glassBorder}`,
-        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
-        borderRadius: S(22),
-        minWidth: fullWidth ? undefined : S(560),
+        alignItems: "center",
+        gap: S(28),
+        padding: `${S(22)}px ${S(44)}px`,
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: S(20),
+        minWidth: fullWidth ? undefined : undefined,
         width: fullWidth ? "100%" : undefined,
         boxSizing: "border-box",
+        flexWrap: "wrap",
       }}
     >
       <div
         style={{
-          fontSize: S(20),
+          fontSize: S(18),
           fontWeight: 600,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
           color: E.subtle,
           display: "flex",
           alignItems: "center",
-          gap: S(14),
-          marginBottom: S(4),
+          gap: S(10),
+          flexShrink: 0,
         }}
       >
         <div
           style={{
             width: S(4),
-            height: S(18),
+            height: S(16),
             borderRadius: 2,
             background: E.accent,
             flexShrink: 0,
@@ -710,17 +709,16 @@ function SocialCard({ S, socials, colors, fullWidth, t }: SocialCardProps) {
         return (
           <div
             key={idx}
-            style={{ display: "flex", alignItems: "center", gap: S(20) }}
+            style={{ display: "flex", alignItems: "center", gap: S(10) }}
           >
             <span
               style={{
                 ...style,
-                fontSize: S(24),
+                fontSize: S(20),
                 fontWeight: 600,
                 borderRadius: S(8),
-                padding: `${S(6)}px ${S(18)}px`,
+                padding: `${S(4)}px ${S(14)}px`,
                 flexShrink: 0,
-                minWidth: S(120),
                 textAlign: "center",
                 boxSizing: "border-box",
                 letterSpacing: "0.04em",
@@ -731,8 +729,8 @@ function SocialCard({ S, socials, colors, fullWidth, t }: SocialCardProps) {
             </span>
             <span
               style={{
-                fontSize: S(28),
-                color: colors.textColor,
+                fontSize: S(30),
+                color: E.muted,
                 fontWeight: 500,
                 letterSpacing: "0.01em",
                 overflow: "hidden",

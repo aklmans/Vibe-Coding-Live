@@ -64,14 +64,12 @@ function normalizeBoolGrid(
   });
 }
 
-function normalizeSections(value: unknown): SidebarSection[] {
+function normalizeSections(value: unknown, defaults: SidebarSection[]): SidebarSection[] {
   const items = Array.isArray(value) ? value : [];
-  const length = Math.max(items.length, DEFAULT_STATE.sidebar.sections.length);
+  const length = Math.max(items.length, defaults.length);
 
   return Array.from({ length }, (_, index) => {
-    const fallback =
-      DEFAULT_STATE.sidebar.sections[index] ??
-      DEFAULT_STATE.sidebar.sections[0];
+    const fallback = defaults[index] ?? defaults[0];
     const source = record(items[index]);
 
     return {
@@ -102,10 +100,12 @@ function normalizeSegment(value: unknown, fallback: BottomBarSlot): BottomBarSlo
     case "live":
       return { kind: "live" };
     case "progress": {
-      const max = DEFAULT_STATE.sidebar.sections.length;
-      const raw = typeof source.sectionIndex === "number" ? Math.floor(source.sectionIndex) : 0;
-      const clamped = Number.isFinite(raw) ? Math.min(Math.max(raw, 0), Math.max(0, max - 1)) : 0;
-      return { kind: "progress", sectionIndex: clamped };
+      return {
+        kind: "progress",
+        sectionIndex: typeof source.sectionIndex === "number" && Number.isFinite(Math.floor(source.sectionIndex))
+          ? Math.max(0, Math.floor(source.sectionIndex))
+          : (fallback.kind === "progress" ? (fallback as { kind: "progress"; sectionIndex: number }).sectionIndex : 0),
+      };
     }
     case "stack":
       return { kind: "stack" };
@@ -114,29 +114,23 @@ function normalizeSegment(value: unknown, fallback: BottomBarSlot): BottomBarSlo
     case "text":
       return {
         kind: "text",
-        title: stringOrDefault(source.title, ""),
-        text: stringOrDefault(source.text, ""),
+        title: stringOrDefault(source.title, (fallback as { kind: "text"; title: string }).title),
+        text: stringOrDefault(source.text, (fallback as { kind: "text"; text: string }).text),
       };
   }
 }
 
-function normalizeSegments(value: unknown): BottomBarSlot[] {
+function normalizeSegments(value: unknown, defaults: BottomBarSlot[]): BottomBarSlot[] {
   const items = Array.isArray(value) ? value : [];
-  const length = Math.max(
-    items.length,
-    DEFAULT_STATE.bottomBar.segments.length,
-  );
+  const length = Math.max(items.length, defaults.length);
 
   return Array.from({ length }, (_, index) => {
-    const fallback =
-      DEFAULT_STATE.bottomBar.segments[index] ??
-      DEFAULT_STATE.bottomBar.segments[0];
+    const fallback = defaults[index] ?? defaults[0];
     return normalizeSegment(items[index], fallback);
   });
 }
 
-function normalizeStackItems(value: unknown): string[] {
-  const fallback = DEFAULT_STATE.stack.items;
+function normalizeStackItems(value: unknown, fallback: string[]): string[] {
   if (!Array.isArray(value)) return [...fallback];
   const cleaned = value
     .map((entry) => (typeof entry === "string" ? entry : ""))
@@ -145,40 +139,19 @@ function normalizeStackItems(value: unknown): string[] {
   return cleaned;
 }
 
-function normalizeColors(value: unknown): OverlayColors {
+function normalizeColors(value: unknown, defaults: OverlayColors): OverlayColors {
   const source = record(value);
 
   return {
-    bgDark: colorOrDefault(source?.bgDark, DEFAULT_STATE.colors.bgDark),
-    bgPanel: colorOrDefault(source?.bgPanel, DEFAULT_STATE.colors.bgPanel),
-    borderColor: colorOrDefault(
-      source?.borderColor,
-      DEFAULT_STATE.colors.borderColor,
-    ),
-    textColor: colorOrDefault(
-      source?.textColor,
-      DEFAULT_STATE.colors.textColor,
-    ),
-    mutedText: colorOrDefault(
-      source?.mutedText,
-      DEFAULT_STATE.colors.mutedText,
-    ),
-    subtleText: colorOrDefault(
-      source?.subtleText,
-      DEFAULT_STATE.colors.subtleText,
-    ),
-    cyanAccent: colorOrDefault(
-      source?.cyanAccent,
-      DEFAULT_STATE.colors.cyanAccent,
-    ),
-    pinkAccent: colorOrDefault(
-      source?.pinkAccent,
-      DEFAULT_STATE.colors.pinkAccent,
-    ),
-    warmAccent: colorOrDefault(
-      source?.warmAccent,
-      DEFAULT_STATE.colors.warmAccent,
-    ),
+    bgDark: colorOrDefault(source?.bgDark, defaults.bgDark),
+    bgPanel: colorOrDefault(source?.bgPanel, defaults.bgPanel),
+    borderColor: colorOrDefault(source?.borderColor, defaults.borderColor),
+    textColor: colorOrDefault(source?.textColor, defaults.textColor),
+    mutedText: colorOrDefault(source?.mutedText, defaults.mutedText),
+    subtleText: colorOrDefault(source?.subtleText, defaults.subtleText),
+    cyanAccent: colorOrDefault(source?.cyanAccent, defaults.cyanAccent),
+    pinkAccent: colorOrDefault(source?.pinkAccent, defaults.pinkAccent),
+    warmAccent: colorOrDefault(source?.warmAccent, defaults.warmAccent),
   };
 }
 
@@ -224,10 +197,9 @@ function normalizeBadge(value: unknown, fallback: BadgeConfig): BadgeConfig {
 
 function normalizeBadges(
   value: unknown,
+  defaults: BadgeConfig[],
   legacy: { badge1?: unknown; badge2?: unknown },
 ): BadgeConfig[] {
-  const defaults = DEFAULT_STATE.cover.badges;
-
   if (Array.isArray(value)) {
     return defaults.map((fallback, i) => normalizeBadge(value[i], fallback));
   }
@@ -266,6 +238,7 @@ function normalizeSocial(
 
 function normalizeSocials(
   value: unknown,
+  defaults: SocialConfig[],
   legacy: {
     socialBilibili?: unknown;
     socialBlog?: unknown;
@@ -273,8 +246,6 @@ function normalizeSocials(
     socialQQ?: unknown;
   },
 ): SocialConfig[] {
-  const defaults = DEFAULT_STATE.cover.socials;
-
   if (Array.isArray(value)) {
     return defaults.map((fallback, i) => normalizeSocial(value[i], fallback));
   }
@@ -298,17 +269,17 @@ function normalizeSocials(
   }));
 }
 
-function normalizeWallpaperPresetId(value: unknown): WallpaperPresetId {
+function normalizeWallpaperPresetId(value: unknown, fallback: WallpaperPresetId = DEFAULT_STATE.wallpaper.previewPresetId): WallpaperPresetId {
   return isWallpaperPresetId(value)
     ? value
-    : DEFAULT_STATE.wallpaper.previewPresetId;
+    : fallback;
 }
 
 function browserStorage(): StorageLike | null {
   return typeof localStorage === "undefined" ? null : localStorage;
 }
 
-export function normalizeOverlayState(value: unknown): OverlayState {
+export function normalizeOverlayState(value: unknown, defaultValue: OverlayState = DEFAULT_STATE): OverlayState {
   const source = record(value);
   const sidebar = record(source?.sidebar);
   const bottomBar = record(source?.bottomBar);
@@ -320,118 +291,118 @@ export function normalizeOverlayState(value: unknown): OverlayState {
 
   return {
     sidebar: {
-      visible: boolOrDefault(sidebar?.visible, DEFAULT_STATE.sidebar.visible),
+      visible: boolOrDefault(sidebar?.visible, defaultValue.sidebar.visible),
       socialVisible: boolOrDefault(
         sidebar?.socialVisible,
-        DEFAULT_STATE.sidebar.socialVisible,
+        defaultValue.sidebar.socialVisible,
       ),
       activeSection: normalizeActiveSection(
         sidebar?.activeSection,
-        DEFAULT_STATE.sidebar.sections.length,
+        defaultValue.sidebar.sections.length,
       ),
       sectionsDone: normalizeBoolGrid(
         sidebar?.sectionsDone,
-        DEFAULT_STATE.sidebar.sectionsDone,
+        defaultValue.sidebar.sectionsDone,
       ),
-      sections: normalizeSections(sidebar?.sections),
+      sections: normalizeSections(sidebar?.sections, defaultValue.sidebar.sections),
     },
     bottomBar: {
       visible: boolOrDefault(
         bottomBar?.visible,
-        DEFAULT_STATE.bottomBar.visible,
+        defaultValue.bottomBar.visible,
       ),
-      segments: normalizeSegments(bottomBar?.segments),
+      segments: normalizeSegments(bottomBar?.segments, defaultValue.bottomBar.segments),
     },
     liveSession: {
       startedAt: stringOrDefault(
         liveSession?.startedAt,
-        DEFAULT_STATE.liveSession.startedAt,
+        defaultValue.liveSession.startedAt,
       ),
     },
     stack: {
-      items: normalizeStackItems(stack?.items),
+      items: normalizeStackItems(stack?.items, defaultValue.stack.items),
     },
     mainScreen: {
       visible: boolOrDefault(
         mainScreen?.visible,
-        DEFAULT_STATE.mainScreen.visible,
+        defaultValue.mainScreen.visible,
       ),
       cameraVisible: boolOrDefault(
         mainScreen?.cameraVisible,
-        DEFAULT_STATE.mainScreen.cameraVisible,
+        defaultValue.mainScreen.cameraVisible,
       ),
     },
     cover: {
-      title: stringOrDefault(cover?.title, DEFAULT_STATE.cover.title),
-      badges: normalizeBadges(cover?.badges, {
+      title: stringOrDefault(cover?.title, defaultValue.cover.title),
+      badges: normalizeBadges(cover?.badges, defaultValue.cover.badges, {
         badge1: cover?.badge1,
         badge2: cover?.badge2,
       }),
       avatarUrl: stringOrDefault(
         cover?.avatarUrl,
-        DEFAULT_STATE.cover.avatarUrl,
+        defaultValue.cover.avatarUrl,
       ),
       avatarVisible: boolOrDefault(
         cover?.avatarVisible,
-        DEFAULT_STATE.cover.avatarVisible,
+        defaultValue.cover.avatarVisible,
       ),
       todayLabel: stringOrDefault(
         cover?.todayLabel,
-        DEFAULT_STATE.cover.todayLabel,
+        defaultValue.cover.todayLabel,
       ),
       todayTopic: stringOrDefault(
         cover?.todayTopic,
-        DEFAULT_STATE.cover.todayTopic,
+        defaultValue.cover.todayTopic,
       ),
       manifestoVisible: boolOrDefault(
         cover?.manifestoVisible,
-        DEFAULT_STATE.cover.manifestoVisible,
+        defaultValue.cover.manifestoVisible,
       ),
       manifestoLine1: stringOrDefault(
         cover?.manifestoLine1,
-        DEFAULT_STATE.cover.manifestoLine1,
+        defaultValue.cover.manifestoLine1,
       ),
       manifestoLine2: stringOrDefault(
         cover?.manifestoLine2,
-        DEFAULT_STATE.cover.manifestoLine2,
+        defaultValue.cover.manifestoLine2,
       ),
       manifestoLine3: stringOrDefault(
         cover?.manifestoLine3,
-        DEFAULT_STATE.cover.manifestoLine3,
+        defaultValue.cover.manifestoLine3,
       ),
       hookVisible: boolOrDefault(
         cover?.hookVisible,
-        DEFAULT_STATE.cover.hookVisible,
+        defaultValue.cover.hookVisible,
       ),
       hookText: stringOrDefault(
         cover?.hookText,
-        DEFAULT_STATE.cover.hookText,
+        defaultValue.cover.hookText,
       ),
       closingVisible: boolOrDefault(
         cover?.closingVisible,
-        DEFAULT_STATE.cover.closingVisible,
+        defaultValue.cover.closingVisible,
       ),
       closingPrefix: stringOrDefault(
         cover?.closingPrefix,
-        DEFAULT_STATE.cover.closingPrefix,
+        defaultValue.cover.closingPrefix,
       ),
       closingStruck: stringOrDefault(
         cover?.closingStruck,
-        DEFAULT_STATE.cover.closingStruck,
+        defaultValue.cover.closingStruck,
       ),
       closingHighlight: stringOrDefault(
         cover?.closingHighlight,
-        DEFAULT_STATE.cover.closingHighlight,
+        defaultValue.cover.closingHighlight,
       ),
       closingSuffix: stringOrDefault(
         cover?.closingSuffix,
-        DEFAULT_STATE.cover.closingSuffix,
+        defaultValue.cover.closingSuffix,
       ),
       socialVisible: boolOrDefault(
         cover?.socialVisible,
-        DEFAULT_STATE.cover.socialVisible,
+        defaultValue.cover.socialVisible,
       ),
-      socials: normalizeSocials(cover?.socials, {
+      socials: normalizeSocials(cover?.socials, defaultValue.cover.socials, {
         socialBilibili: cover?.socialBilibili,
         socialBlog: cover?.socialBlog,
         socialGithub: cover?.socialGithub,
@@ -439,37 +410,37 @@ export function normalizeOverlayState(value: unknown): OverlayState {
       }),
     },
     wallpaper: {
-      previewPresetId: normalizeWallpaperPresetId(wallpaper?.previewPresetId),
+      previewPresetId: normalizeWallpaperPresetId(wallpaper?.previewPresetId, defaultValue.wallpaper.previewPresetId),
       brandLabel: stringOrDefault(
         wallpaper?.brandLabel,
-        DEFAULT_STATE.wallpaper.brandLabel,
+        defaultValue.wallpaper.brandLabel,
       ),
       brandLabelVisible: boolOrDefault(
         wallpaper?.brandLabelVisible,
-        DEFAULT_STATE.wallpaper.brandLabelVisible,
+        defaultValue.wallpaper.brandLabelVisible,
       ),
       slogan: stringOrDefault(
         wallpaper?.slogan,
-        DEFAULT_STATE.wallpaper.slogan,
+        defaultValue.wallpaper.slogan,
       ),
       sloganVisible: boolOrDefault(
         wallpaper?.sloganVisible,
-        DEFAULT_STATE.wallpaper.sloganVisible,
+        defaultValue.wallpaper.sloganVisible,
       ),
       avatarVisible: boolOrDefault(
         wallpaper?.avatarVisible,
-        DEFAULT_STATE.wallpaper.avatarVisible,
+        defaultValue.wallpaper.avatarVisible,
       ),
       badgesVisible: boolOrDefault(
         wallpaper?.badgesVisible,
-        DEFAULT_STATE.wallpaper.badgesVisible,
+        defaultValue.wallpaper.badgesVisible,
       ),
       socialVisible: boolOrDefault(
         wallpaper?.socialVisible,
-        DEFAULT_STATE.wallpaper.socialVisible,
+        defaultValue.wallpaper.socialVisible,
       ),
     },
-    colors: normalizeColors(source?.colors),
+    colors: normalizeColors(source?.colors, defaultValue.colors),
     theme: normalizeTheme(source?.theme),
     activeTab:
       source?.activeTab === "cover"
@@ -491,7 +462,7 @@ export function loadOverlayState(
   try {
     const raw = storage.getItem(STORAGE_KEY);
     return raw
-      ? normalizeOverlayState(JSON.parse(raw))
+      ? normalizeOverlayState(JSON.parse(raw), defaultValue)
       : normalizeOverlayState(defaultValue);
   } catch {
     return normalizeOverlayState(defaultValue);
@@ -505,7 +476,7 @@ export function saveOverlayState(
   if (!storage) return;
 
   try {
-    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeOverlayState(state)));
+    storage.setItem(STORAGE_KEY, JSON.stringify(normalizeOverlayState(state, state)));
   } catch {
     // Ignore quota/private-mode failures; the editor can continue in memory.
   }
