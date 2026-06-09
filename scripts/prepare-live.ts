@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { closeSync, openSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -39,12 +39,34 @@ const BILIBILI_APP_NAMES = [
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
+const livePrepareDir = path.join(repoRoot, "tmp/live-prepare");
+const nextPidFile = path.join(livePrepareDir, "next-dev.pid");
 const overlayUrl = buildObsOverlayUrl(PORT, "empty");
+type LiveCommand = "prepare" | "status" | "stop" | "restart";
 
 async function main(): Promise<void> {
-  console.log("Vibe Coding Live prepare");
+  const command = parseCommand(process.argv[2]);
+  console.log(`Vibe Coding Live ${command}`);
   console.log(`Repo: ${repoRoot}`);
 
+  switch (command) {
+    case "prepare":
+      await prepareLive();
+      break;
+    case "status":
+      await printStatus();
+      break;
+    case "stop":
+      await stopLive();
+      break;
+    case "restart":
+      await stopLive();
+      await prepareLive();
+      break;
+  }
+}
+
+async function prepareLive(): Promise<void> {
   await ensureNextDevServer();
   await quitObsIfRunning();
   await updateObsSceneFile();
@@ -61,9 +83,32 @@ async function main(): Promise<void> {
   console.log("3. Check the preview, then click 开始直播 manually.");
 }
 
+async function stopLive(): Promise<void> {
+  await stopObsVirtualCamera();
+  await quitObsIfRunning();
+  await stopNextDevServer();
+  console.log("Stopped local live tooling. Bilibili Livehime is left open intentionally.");
+}
+
+async function printStatus(): Promise<void> {
+  const nextStatus = await probeOverlayRoute();
+  const nextPid = await readPidFile();
+  const obsPids = getObsPids();
+  const livehimeApps = await getRunningBilibiliApps();
+
+  console.log(`Next: ${nextStatus}${nextPid ? ` (pid file ${nextPid})` : ""}`);
+  console.log(`OBS: ${obsPids.length > 0 ? `running (${obsPids.join(", ")})` : "not running"}`);
+  console.log(
+    `Bilibili Livehime: ${
+      livehimeApps.length > 0 ? `running (${livehimeApps.join(", ")})` : "not detected"
+    }`,
+  );
+}
+
 async function ensureNextDevServer(): Promise<void> {
   const status = await probeOverlayRoute();
   if (status === "ready") {
+    await writeNextListenerPidFile();
     console.log(`Next dev server is already ready on ${overlayUrl}`);
     return;
   }
@@ -73,8 +118,8 @@ async function ensureNextDevServer(): Promise<void> {
     );
   }
 
-  const logPath = path.join(repoRoot, "tmp/live-prepare/next-dev.log");
-  await mkdir(path.dirname(logPath), { recursive: true });
+  const logPath = path.join(livePrepareDir, "next-dev.log");
+  await mkdir(livePrepareDir, { recursive: true });
   await writeFile(
     logPath,
     `\n\n=== live prepare ${new Date().toISOString()} ===\n`,
@@ -99,7 +144,49 @@ async function ensureNextDevServer(): Promise<void> {
   if (!ready) {
     throw new Error(`Next dev server did not become ready. See ${logPath}`);
   }
+  await writeNextListenerPidFile();
   console.log(`Next dev server is ready on ${overlayUrl}`);
+}
+
+async function stopNextDevServer(): Promise<void> {
+  const status = await probeOverlayRoute();
+  if (status === "down") {
+    await removeNextPidFile();
+    console.log("Next dev server is not running.");
+    return;
+  }
+  if (status === "occupied") {
+    console.log(
+      `Port ${PORT} is occupied by a non-overlay app. Leaving it untouched.`,
+    );
+    return;
+  }
+
+  const pid = await readPidFile();
+  const portPids = getPortPids(PORT);
+  if (pid && isPidRunning(pid) && portPids.includes(pid)) {
+    console.log(`Stopping Next dev server pid ${pid}...`);
+    await stopPid(pid, "Next dev server");
+    await removeNextPidFile();
+    return;
+  }
+  if (pid && isPidRunning(pid)) {
+    console.log(
+      `Ignoring stale Next pid file ${pid}; it is not listening on port ${PORT}.`,
+    );
+  }
+
+  if (portPids.length === 0) {
+    await removeNextPidFile();
+    console.log("Overlay route is ready but no listener pid was found.");
+    return;
+  }
+
+  console.log(`Stopping Next dev server on port ${PORT}: ${portPids.join(", ")}...`);
+  for (const portPid of portPids) {
+    await stopPid(portPid, `port ${PORT} listener`);
+  }
+  await removeNextPidFile();
 }
 
 async function updateObsSceneFile(): Promise<void> {
@@ -165,18 +252,18 @@ async function quitObsIfRunning(): Promise<void> {
   ]);
   if (!quitResult.ok) {
     console.log(`OBS quit request failed: ${quitResult.message}`);
-  }
-
-  const stopped = await waitFor(async () => !isObsRunning(), {
-    timeoutMs: 15_000,
-    intervalMs: 1_000,
-  });
-  if (stopped) {
-    return;
+  } else {
+    const stopped = await waitFor(async () => !isObsRunning(), {
+      timeoutMs: 15_000,
+      intervalMs: 1_000,
+    });
+    if (stopped) {
+      return;
+    }
   }
 
   console.log(
-    "OBS did not quit after 15s. Force-stopping OBS so the scene file can reload...",
+    "Force-stopping OBS so the scene file can reload...",
   );
   signalObsProcesses("SIGTERM");
   const terminated = await waitFor(async () => !isObsRunning(), {
@@ -259,6 +346,22 @@ async function startObsVirtualCamera(
   );
 }
 
+async function stopObsVirtualCamera(): Promise<void> {
+  const config = await readObsWebSocketConfig();
+  if (!config || !isObsRunning()) {
+    return;
+  }
+
+  try {
+    await stopObsVirtualCameraViaWebSocket(config);
+    console.log("OBS Virtual Camera is stopped.");
+  } catch (error) {
+    console.log(
+      `Could not stop OBS Virtual Camera automatically: ${formatError(error)}`,
+    );
+  }
+}
+
 async function openWebApp(): Promise<void> {
   console.log(`Opening web app: http://localhost:${PORT}`);
   await run("open", [`http://localhost:${PORT}`]);
@@ -317,6 +420,56 @@ function getObsPids(): number[] {
   return [...pids];
 }
 
+function getPortPids(port: number): number[] {
+  const result = spawnSync("lsof", ["-nP", "-ti", `tcp:${port}`, "-sTCP:LISTEN"], {
+    encoding: "utf8",
+  });
+  if (result.status !== 0 || !result.stdout) {
+    return [];
+  }
+  return result.stdout
+    .trim()
+    .split("\n")
+    .map((line) => Number.parseInt(line, 10))
+    .filter((pid) => Number.isInteger(pid) && pid > 0 && pid !== process.pid);
+}
+
+function isPidRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function stopPid(pid: number, label: string): Promise<void> {
+  try {
+    process.kill(pid, "SIGTERM");
+  } catch (error) {
+    if (getErrorCode(error) !== "ESRCH") {
+      console.log(`Could not send SIGTERM to ${label} pid ${pid}: ${String(error)}`);
+    }
+  }
+
+  const stopped = await waitFor(() => !isPidRunning(pid), {
+    timeoutMs: 8_000,
+    intervalMs: 500,
+  });
+  if (stopped) {
+    return;
+  }
+
+  console.log(`${label} pid ${pid} did not stop after SIGTERM. Sending SIGKILL...`);
+  try {
+    process.kill(pid, "SIGKILL");
+  } catch (error) {
+    if (getErrorCode(error) !== "ESRCH") {
+      console.log(`Could not send SIGKILL to ${label} pid ${pid}: ${String(error)}`);
+    }
+  }
+}
+
 function signalObsProcesses(signal: NodeJS.Signals): void {
   for (const pid of getObsPids()) {
     try {
@@ -368,6 +521,32 @@ async function startObsVirtualCameraViaWebSocket(
     }
 
     await sendObsRequest(socket, "StartVirtualCam");
+  } finally {
+    socket.close();
+  }
+}
+
+async function stopObsVirtualCameraViaWebSocket(
+  config: ObsWebSocketConfig,
+): Promise<void> {
+  const port = typeof config.server_port === "number" ? config.server_port : 4455;
+  const authRequired = config.auth_required === true;
+  const password =
+    typeof config.server_password === "string" ? config.server_password : "";
+  const socket = await identifyObsWebSocket({
+    port,
+    password,
+    authRequired,
+  });
+
+  try {
+    const status = await sendObsRequest(socket, "GetVirtualCamStatus");
+    const responseData = toRecord(status.responseData);
+    if (responseData?.outputActive !== true) {
+      return;
+    }
+
+    await sendObsRequest(socket, "StopVirtualCam");
   } finally {
     socket.close();
   }
@@ -576,6 +755,81 @@ async function openFirstAvailableApp(
   );
 }
 
+async function getRunningBilibiliApps(): Promise<string[]> {
+  const running: string[] = [];
+  for (const appName of BILIBILI_APP_NAMES) {
+    const result = spawnSync("osascript", [
+      "-e",
+      `application "${escapeAppleScriptString(appName)}" is running`,
+    ], {
+      encoding: "utf8",
+    });
+    if (result.status !== 0 || result.stdout.trim() !== "true") {
+      continue;
+    }
+    running.push(appName);
+  }
+  return [...new Set(running)];
+}
+
+function escapeAppleScriptString(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+async function readObsWebSocketConfig(): Promise<ObsWebSocketConfig | null> {
+  try {
+    const raw = await readFile(OBS_WEBSOCKET_CONFIG_FILE, "utf8");
+    return JSON.parse(raw) as ObsWebSocketConfig;
+  } catch {
+    return null;
+  }
+}
+
+async function readPidFile(): Promise<number | null> {
+  try {
+    const raw = await readFile(nextPidFile, "utf8");
+    const pid = Number.parseInt(raw.trim(), 10);
+    return Number.isInteger(pid) && pid > 0 ? pid : null;
+  } catch {
+    return null;
+  }
+}
+
+async function removeNextPidFile(): Promise<void> {
+  try {
+    await unlink(nextPidFile);
+  } catch (error) {
+    if (getErrorCode(error) !== "ENOENT") {
+      console.log(`Could not remove ${nextPidFile}: ${String(error)}`);
+    }
+  }
+}
+
+async function writeNextListenerPidFile(): Promise<void> {
+  const [pid] = getPortPids(PORT);
+  if (!pid) {
+    return;
+  }
+  await mkdir(livePrepareDir, { recursive: true });
+  await writeFile(nextPidFile, `${pid}\n`);
+}
+
+function parseCommand(value: string | undefined): LiveCommand {
+  if (
+    value === undefined ||
+    value === "prepare" ||
+    value === "status" ||
+    value === "stop" ||
+    value === "restart"
+  ) {
+    return value ?? "prepare";
+  }
+
+  throw new Error(
+    `Unknown live command "${value}". Use prepare, status, stop, or restart.`,
+  );
+}
+
 async function waitFor(
   predicate: () => Promise<boolean> | boolean,
   options: { timeoutMs: number; intervalMs: number },
@@ -621,6 +875,6 @@ function asString(value: unknown): string | null {
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
   console.error("");
-  console.error(`live:prepare failed: ${message}`);
+  console.error(`live command failed: ${message}`);
   process.exitCode = 1;
 });

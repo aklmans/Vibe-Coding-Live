@@ -54,9 +54,12 @@ pnpm start
 
 ```bash
 pnpm live:prepare
+pnpm live:status
+pnpm live:stop
+pnpm live:restart
 ```
 
-This is a local macOS automation script for the author's streaming setup. It starts or reuses the Next.js app on `http://localhost:3000`, updates the OBS scene collection `Vibe Coding Live Overlay`, opens OBS, starts OBS Virtual Camera, opens the web app, and opens Bilibili Livehime. It does not start the Bilibili livestream.
+This is a local macOS automation script for the author's streaming setup. `pnpm live:prepare` starts or reuses the Next.js app on `http://localhost:3000`, updates the OBS scene collection `Vibe Coding Live Overlay`, opens OBS, starts OBS Virtual Camera, opens the web app, and opens Bilibili Livehime. `pnpm live:status` prints the local Next/OBS/Livehime state. `pnpm live:stop` stops OBS Virtual Camera, quits OBS, and stops the local Next dev server while intentionally leaving Bilibili Livehime open. `pnpm live:restart` runs stop then prepare. These commands do not start or stop the Bilibili livestream.
 
 Important: do not reintroduce OBS's `--startvirtualcam` launch argument. On macOS it can trigger OBS's "The virtual camera is not installed" dialog before the Camera Extension has finished loading. The script intentionally starts OBS first, enables obs-websocket, then starts the virtual camera through WebSocket after OBS is ready.
 

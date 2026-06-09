@@ -89,6 +89,9 @@ pnpm build
 pnpm start
 pnpm db:push
 pnpm live:prepare
+pnpm live:status
+pnpm live:stop
+pnpm live:restart
 ```
 
 Tests use Node.js built-in test runner with `tsx`. Test files are colocated with source as `*.test.ts`.
@@ -107,6 +110,14 @@ Prepare the local live environment with:
 pnpm live:prepare
 ```
 
+Useful lifecycle commands:
+
+```bash
+pnpm live:status    # Show Next/OBS/Livehime status.
+pnpm live:stop      # Stop OBS Virtual Camera, quit OBS, and stop the local Next server.
+pnpm live:restart   # Stop local live tooling, then run live:prepare again.
+```
+
 The script:
 
 1. Ensures the Next.js app is available on `http://localhost:3000`.
@@ -120,6 +131,8 @@ The script:
 7. Opens the web app and Bilibili Livehime.
 
 The script never clicks Bilibili's start-live button. Confirm the title, category, microphone, preview, and final start action manually in Livehime.
+
+`pnpm live:stop` intentionally leaves Bilibili Livehime open because closing it can interrupt an active stream. Close Livehime manually after ending the livestream.
 
 Important OBS note: do not start OBS with `--startvirtualcam`. On macOS this can trigger OBS's "The virtual camera is not installed" dialog before the camera system extension has finished loading. `pnpm live:prepare` intentionally starts OBS first, enables obs-websocket, then calls `StartVirtualCam` through WebSocket after OBS is ready.
 
