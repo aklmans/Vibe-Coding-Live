@@ -1,5 +1,10 @@
 import { DEFAULT_STATE, type OverlayState } from "./types";
-import { type ThemeMode } from "./lib/theme";
+import {
+  THEME_PRESETS,
+  isLegacyThemeMode,
+  migrateThemeMode,
+  type ThemeMode,
+} from "./lib/theme";
 import { BADGE_PRESETS, type BadgeConfig, type BadgeKind } from "./lib/badges";
 import {
   isSocialKind,
@@ -19,6 +24,31 @@ const STORAGE_KEY = "vibe-overlay-state";
 type StorageLike = Pick<Storage, "getItem" | "setItem">;
 type OverlayColors = OverlayState["colors"];
 type SidebarSection = OverlayState["sidebar"]["sections"][number];
+
+const LEGACY_THEME_PRESETS: Record<"neon" | "editorial", OverlayColors> = {
+  neon: {
+    bgDark: "#10111D",
+    bgPanel: "#191A2A",
+    textColor: "#F4F7FF",
+    mutedText: "#C7D2FE",
+    subtleText: "#6B7CA8",
+    borderColor: "#8DA8FF",
+    cyanAccent: "#7DD3FC",
+    pinkAccent: "#FF6FAE",
+    warmAccent: "#FFB86B",
+  },
+  editorial: {
+    bgDark: "#0B1020",
+    bgPanel: "#111827",
+    textColor: "#F5F5F2",
+    mutedText: "#C7C9D1",
+    subtleText: "#5A6178",
+    borderColor: "#5A6178",
+    cyanAccent: "#9CB3D9",
+    pinkAccent: "#DA7756",
+    warmAccent: "#E8B97A",
+  },
+};
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object"
@@ -156,6 +186,31 @@ function normalizeColors(value: unknown, defaults: OverlayColors): OverlayColors
   };
 }
 
+function normalizeLegacyColors(
+  value: unknown,
+  legacyTheme: "neon" | "editorial",
+): OverlayColors {
+  const source = record(value);
+  const nextTheme = migrateThemeMode(legacyTheme);
+  const nextPreset = THEME_PRESETS[nextTheme];
+  const oldPreset = LEGACY_THEME_PRESETS[legacyTheme];
+  const normalized = normalizeColors(source, nextPreset);
+
+  return (Object.keys(nextPreset) as Array<keyof OverlayColors>).reduce(
+    (colors, key) => {
+      const raw = source?.[key];
+      colors[key] =
+        typeof raw === "string" &&
+        /^#[0-9a-fA-F]{6}$/.test(raw) &&
+        raw.toLowerCase() !== oldPreset[key].toLowerCase()
+          ? normalized[key]
+          : nextPreset[key];
+      return colors;
+    },
+    { ...nextPreset },
+  );
+}
+
 function normalizeActiveSection(value: unknown, max: number): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return 0;
   const idx = Math.floor(value);
@@ -165,7 +220,16 @@ function normalizeActiveSection(value: unknown, max: number): number {
 }
 
 function normalizeTheme(value: unknown, fallback: ThemeMode): ThemeMode {
-  if (value === "editorial" || value === "neon") return value;
+  // Accept current values and migrate the legacy neon/editorial system
+  // (neon → dark, editorial → light). Anything unknown keeps the caller's
+  // default so partial/corrupt states stay conservative.
+  if (
+    value === "light" ||
+    value === "dark" ||
+    isLegacyThemeMode(value)
+  ) {
+    return migrateThemeMode(value);
+  }
   return fallback;
 }
 
@@ -444,7 +508,14 @@ export function normalizeOverlayState(value: unknown, defaultValue: OverlayState
         defaultValue.wallpaper.socialVisible,
       ),
     },
-    colors: normalizeColors(source?.colors, defaultValue.colors),
+    // States saved under the removed neon/editorial system adopt the matching
+    // warm preset for untouched legacy values, while preserving explicit custom
+    // colors that differ from the old defaults. States already on light/dark
+    // keep any per-key custom colors.
+    colors:
+      source?.theme === "neon" || source?.theme === "editorial"
+        ? normalizeLegacyColors(source?.colors, source.theme)
+        : normalizeColors(source?.colors, defaultValue.colors),
     theme: normalizeTheme(source?.theme, defaultValue.theme),
     activeTab: isAppTab(activeTab) ? activeTab : "overlay",
   };

@@ -6,7 +6,7 @@ import { fontFamilies, typography } from "../lib/typography";
 import { useLocale } from "../hooks/useLocale";
 import SocialList from "./SocialList";
 import EditableText from "./edit/EditableText";
-import { EDITORIAL_PALETTE as E } from "./lib/editorial-palette";
+import { editorialPalette } from "./lib/editorial-palette";
 import AvatarCircle from "./shared/AvatarCircle";
 import BadgeToolbar from "./shared/BadgeToolbar";
 
@@ -23,6 +23,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
   ({ state, editable = false, onChange }, ref) => {
     const { t } = useLocale();
     const { cover } = state;
+    const E = editorialPalette(state.colors);
 
     const avatarSrc = cover.avatarUrl || AVATAR_PLACEHOLDER;
     const hasOptionalContent =
@@ -62,8 +63,8 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             position: "absolute",
             inset: 0,
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)
+              linear-gradient(${E.glassBorder} 1px, transparent 1px),
+              linear-gradient(90deg, ${E.glassBorder} 1px, transparent 1px)
             `,
             backgroundSize: "128px 128px",
             pointerEvents: "none",
@@ -115,7 +116,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                   height: 6,
                   borderRadius: "50%",
                   background:
-                    i === 0 ? `${E.accent}55` : "rgba(255,255,255,0.10)",
+                    i === 0 ? `${E.accent}55` : E.glassBorder,
                   flexShrink: 0,
                 }}
               />
@@ -123,7 +124,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                 style={{
                   height: 2,
                   width: w,
-                  background: "rgba(255,255,255,0.06)",
+                  background: E.glassBorder,
                   borderRadius: 1,
                 }}
               />
@@ -140,8 +141,8 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             width: 280,
             height: 180,
             borderRadius: 10,
-            border: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.02)",
+            border: `1px solid ${E.glassBorder}`,
+            background: `${E.bg2}99`,
             pointerEvents: "none",
           }}
         >
@@ -152,7 +153,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                 margin: `${i === 0 ? 18 : 14}px ${i % 2 === 0 ? "auto" : "16px"} 0 ${i % 2 === 0 ? "16px" : "auto"}`,
                 height: 14,
                 width: `${w}%`,
-                background: "rgba(255,255,255,0.05)",
+                background: E.glassBorder,
                 borderRadius: 7,
               }}
             />
@@ -191,7 +192,7 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             bottom: 200,
             left: 1120,
             width: 1,
-            background: `linear-gradient(180deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 70%, transparent)`,
+            background: `linear-gradient(180deg, transparent, ${E.glassBorder} 30%, ${E.glassBorder} 50%, ${E.glassBorder} 70%, transparent)`,
           }}
         />
 
@@ -262,9 +263,9 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
             style={{
               width: 720,
               boxSizing: "border-box",
-              background: "rgba(17, 24, 39, 0.85)",
+              background: `${E.bg2}dd`,
               border: `1px solid ${E.glassBorder}`,
-              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
+              boxShadow: `inset 0 0 0 1px ${E.glassBorder}`,
               borderRadius: 14,
               padding: "20px 32px 22px",
               position: "relative",
@@ -458,9 +459,9 @@ const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(
                 gap: 16,
                 alignItems: "stretch",
                 padding: "28px 36px",
-                background: "rgba(17, 24, 39, 0.78)",
+                background: `${E.bg2}cc`,
                 border: `1px solid ${E.glassBorder}`,
-                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
+                boxShadow: `inset 0 0 0 1px ${E.glassBorder}`,
                 borderRadius: 14,
                 minWidth: 340,
               }}

@@ -56,45 +56,48 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 234 31% 9%;
-  --foreground: 224 71% 97%;
-  --border: 229 47% 28%;
-  --card: 233 32% 14%;
-  --card-foreground: 224 71% 97%;
-  --card-border: 229 47% 22%;
-  --sidebar: 233 32% 11%;
-  --sidebar-foreground: 224 71% 97%;
-  --sidebar-border: 229 47% 20%;
-  --sidebar-primary: 224 100% 71%;
-  --sidebar-primary-foreground: 234 31% 9%;
-  --sidebar-accent: 233 32% 18%;
-  --sidebar-accent-foreground: 224 71% 97%;
-  --sidebar-ring: 224 100% 71%;
-  --popover: 233 32% 14%;
-  --popover-foreground: 224 71% 97%;
-  --popover-border: 229 47% 22%;
-  --primary: 224 100% 71%;
-  --primary-foreground: 234 31% 9%;
-  --secondary: 233 32% 18%;
-  --secondary-foreground: 224 71% 97%;
-  --muted: 233 32% 17%;
-  --muted-foreground: 228 48% 82%;
-  --accent: 224 100% 71%;
-  --accent-foreground: 234 31% 9%;
-  --destructive: 340 82% 72%;
-  --destructive-foreground: 234 31% 9%;
-  --input: 229 47% 22%;
-  --ring: 224 100% 71%;
-  --chart-1: 224 100% 71%;
-  --chart-2: 198 93% 73%;
-  --chart-3: 340 100% 72%;
-  --chart-4: 34 100% 70%;
-  --chart-5: 260 80% 70%;
+  /* Warm editorial app shell (see src/lib/design-tokens.ts). These shadcn
+     HSL tokens back any Tailwind-driven surface — primarily the reset
+     AlertDialog — so they track the warm palette instead of the old neon blue. */
+  --background: 36 6% 10%;
+  --foreground: 0 0% 98%;
+  --border: 45 7% 21%;
+  --card: 48 3% 12%;
+  --card-foreground: 0 0% 98%;
+  --card-border: 45 7% 21%;
+  --sidebar: 48 3% 12%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-border: 45 7% 21%;
+  --sidebar-primary: 17 76% 63%;
+  --sidebar-primary-foreground: 36 6% 10%;
+  --sidebar-accent: 45 7% 16%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-ring: 17 76% 63%;
+  --popover: 48 3% 12%;
+  --popover-foreground: 0 0% 98%;
+  --popover-border: 45 7% 21%;
+  --primary: 17 76% 63%;
+  --primary-foreground: 36 6% 10%;
+  --secondary: 45 7% 16%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 45 6% 15%;
+  --muted-foreground: 42 5% 60%;
+  --accent: 45 7% 16%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 64% 66%;
+  --destructive-foreground: 36 6% 10%;
+  --input: 45 7% 21%;
+  --ring: 17 76% 63%;
+  --chart-1: 17 76% 63%;
+  --chart-2: 36 70% 64%;
+  --chart-3: 160 22% 58%;
+  --chart-4: 28 30% 62%;
+  --chart-5: 0 64% 66%;
 
-  --app-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: "SF Mono", Menlo, Monaco, "Cascadia Code", monospace;
-  --radius: 0.5rem;
+  --app-font-sans: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --app-font-serif: "Source Serif 4", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --app-font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Code", monospace;
+  --radius: 0.375rem;
   --shadow-2xs: 0px 2px 4px 0px rgba(0,0,0, 0.4);
   --shadow-xs: 0px 2px 4px 0px rgba(0,0,0, 0.4);
   --shadow-sm: 0px 2px 4px 0px rgba(0,0,0, 0.4), 0px 1px 2px -1px rgba(0,0,0, 0.3);
@@ -163,18 +166,42 @@ html[data-obs-source] ::-webkit-scrollbar {
   background-size: 40px 40px;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling — warm hairline thumb on the shell background */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #10111d;
+  background: #1a1a1a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f2235;
+  background: #3a3832;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a2d4a;
+  background: #4a463d;
+}
+
+/* Keyboard focus — clear but restrained warm-orange outline. Scoped to
+   interactive elements so it never doubles up on canvas hover affordances. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #e8835b;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Motion should stay practical (DESIGN_LANGUAGE.md §8). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

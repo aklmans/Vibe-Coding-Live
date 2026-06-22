@@ -470,7 +470,7 @@ export default function App() {
           display: "flex",
           flexDirection: "column",
           height: "100vh",
-          background: UI_COLORS.appBackground,
+          background: UI_COLORS.shellBg,
           fontFamily:
             '-apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif',
           overflow: "hidden",
@@ -507,7 +507,7 @@ export default function App() {
               flexDirection: "column",
               padding: "20px 24px 24px",
               gap: 12,
-              background: UI_COLORS.appBackground,
+              background: UI_COLORS.shellBg,
             }}
           >
             <div
@@ -521,13 +521,14 @@ export default function App() {
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div
                   style={{
-                    fontSize: 11,
-                    color: UI_COLORS.focus,
+                    fontFamily: "var(--app-font-mono)",
+                    fontSize: 10,
+                    color: UI_COLORS.accentText,
                     background: UI_COLORS.previewBadgeSurface,
-                    padding: "4px 10px",
-                    borderRadius: 6,
+                    padding: "4px 9px",
+                    borderRadius: 5,
                     border: UI_BORDERS.control,
-                    letterSpacing: "0.04em",
+                    letterSpacing: "0.06em",
                   }}
                 >
                   {tabBadge}
@@ -759,8 +760,8 @@ function PreviewFrame({
           position: "relative",
           flexShrink: 0,
           boxShadow:
-            "0 8px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(141,168,255,0.1)",
-          borderRadius: 12,
+            "0 10px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(74,70,61,0.6)",
+          borderRadius: 8,
         }}
       >
         {/* Inner canvas at native resolution, scaled top-left */}
@@ -773,7 +774,7 @@ function PreviewFrame({
             position: "absolute",
             top: 0,
             left: 0,
-            borderRadius: 12,
+            borderRadius: 8,
             overflow: "hidden",
           }}
         >

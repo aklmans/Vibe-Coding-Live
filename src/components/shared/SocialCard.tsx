@@ -1,7 +1,7 @@
 import type { OverlayState } from "../../types";
 import type { TranslationKey } from "../../lib/i18n";
 import { socialStyle } from "../../lib/socials";
-import { EDITORIAL_PALETTE as E } from "../lib/editorial-palette";
+import { editorialPalette } from "../lib/editorial-palette";
 
 interface SocialCardProps {
   S: (n: number) => number;
@@ -21,6 +21,8 @@ export default function SocialCard({
   fullWidth,
   t,
 }: SocialCardProps) {
+  const E = editorialPalette(colors);
+
   return (
     <div
       style={{
@@ -28,8 +30,8 @@ export default function SocialCard({
         alignItems: "center",
         gap: S(28),
         padding: `${S(22)}px ${S(44)}px`,
-        background: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(255,255,255,0.1)",
+        background: `${colors.bgPanel}cc`,
+        border: `1px solid ${E.glassBorder}`,
         borderRadius: S(20),
         minWidth: fullWidth ? undefined : undefined,
         width: fullWidth ? "100%" : undefined,

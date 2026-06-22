@@ -1,12 +1,57 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file provides guidance to agents when working with code in this repository.
 
 ## Project Overview
 
 This repository is a single Next.js App Router application for building livestream graphics for Vibe Coding sessions. The app edits cover screens, posters, full overlays, sidebar panels, bottom status bars, and brand wallpapers, then exports broadcast-ready PNG assets.
 
-The application is intentionally frontend-only. State is stored in `localStorage`; export uses always-mounted off-screen DOM nodes and `html-to-image`.
+The application is primarily a client-rendered builder. State is stored in `localStorage` and can optionally persist live session data to PostgreSQL when `DATABASE_URL` is configured. Export uses always-mounted off-screen DOM nodes and `html-to-image`.
+
+## First Files To Read
+
+Before visual, structural, or workflow changes, read:
+
+- `DESIGN_LANGUAGE.md`
+- `README.md`
+- `src/types.ts`
+- `src/lib/design-tokens.ts`
+- `src/lib/theme.ts`
+- `src/app/globals.css`
+- `src/components/OverlayBuilderApp.tsx`
+- `src/components/topbar/TopBar.tsx`
+- `src/components/inspector/Inspector.tsx`
+- `src/utils/exportImage.ts`
+
+For OBS/live-data behavior, also read:
+
+- `src/components/obs/ObsSourceClient.tsx`
+- `src/lib/live-state.ts`
+- `src/lib/live-data.ts`
+- `scripts/prepare-live.ts`
+
+## Current Branch Goal: `editorial-live`
+
+The `editorial-live` branch is for a deliberate visual redesign. The goal is to move the app from a cool neon livestream-control look toward the warm, editorial, calm, premium live-studio language described in `DESIGN_LANGUAGE.md`.
+
+This is a redesign branch, so canvas visuals are allowed and expected to change. Do not treat the old checked-in screenshots as pixel targets on this branch.
+
+Target direction:
+
+- Warm black / warm paper surfaces rather than blue-purple neon.
+- Text brand, serif display type, mono metadata, thin hairlines, restrained accent marks.
+- Accent color is a small signal, not a large filled background.
+- Fewer gradients, glows, rounded pills, platform-color badges, and decorative UI chrome.
+- The builder should feel like a quiet editorial asset workbench, not a SaaS dashboard.
+- Broadcast assets should still read clearly in OBS and exported PNGs.
+
+Hard contracts that must not change during the redesign:
+
+- Export dimensions and filenames unless explicitly requested.
+- OBS source routes and source names: `/obs/overlay`, `/obs/sidebar`, `/obs/bottom-bar`, plus the current OBS scene/source naming in the live preparation script.
+- The off-screen export architecture: preview and export should keep rendering from the same state and component logic.
+- `OverlayState` semantics, `localStorage` normalization/migration behavior, live-state APIs, database APIs, and existing tests unless a test is intentionally updated to reflect the new visual contract.
+- Core keyboard shortcuts, command palette behavior, language persistence, export behavior, and live-data sync behavior.
 
 ## Commands
 
@@ -99,7 +144,10 @@ Important: do not reintroduce OBS's `--startvirtualcam` launch argument. On macO
 
 - Global styles are in `src/app/globals.css`.
 - Tailwind CSS is wired through `postcss.config.mjs`.
-- The canvas components rely heavily on inline styles to preserve pixel output. Do not replace them with a component framework.
+- The canvas components rely heavily on inline styles because exported PNGs must use the same render tree as the preview.
+- On normal maintenance branches, preserve canvas output unless the task explicitly requests a visual change.
+- On the `editorial-live` redesign branch, visual output may change, but export dimensions, OBS compatibility, state semantics, and export reliability must remain stable.
+- Do not replace the canvas renderers with a component framework.
 
 ## Key Conventions
 
@@ -107,6 +155,24 @@ Important: do not reintroduce OBS's `--startvirtualcam` launch argument. On macO
 - The codebase is ESM and uses strict TypeScript settings.
 - Do not add new shadcn/ui components. Existing local UI files are only kept when imported.
 - Do not introduce a new runtime dependency unless it substantially reduces complexity.
-- Preserve visual output for canvas components: colors, layout, typography, and spacing should remain pixel-equivalent.
 - Preserve the existing export behavior and `localStorage` persistence behavior.
+- Prefer small, reviewable changes. For the redesign, work in phases: shell/tokens first, then overlay assets, then cover/poster/wallpaper, then documentation screenshots.
 - Keep documentation and generated design notes out of the repository unless they are intended as durable project docs.
+
+## Redesign Verification
+
+Before handing off redesign work, run:
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+Also manually smoke-check:
+
+- the main builder at `/`;
+- all tabs: Overlay, Live Data, Cover, Poster, Wallpaper;
+- exports for overlay, cover, poster, wallpaper set, sidebar, and bottom bar;
+- OBS routes: `/obs/overlay?camera=empty`, `/obs/overlay?camera=avatar`, `/obs/sidebar`, `/obs/bottom-bar`;
+- language switching and command palette shortcuts.

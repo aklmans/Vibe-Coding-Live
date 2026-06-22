@@ -116,19 +116,21 @@ export default function CommandPalette({
     <>
       <style>{`
         [cmdk-item=""][data-selected="true"] {
-          background: ${UI_COLORS.panelSurface};
+          background: ${UI_COLORS.hoverSurface};
+          box-shadow: inset 2px 0 0 ${UI_COLORS.accent};
         }
         [cmdk-item=""][data-disabled="true"] {
           opacity: 0.5;
           pointer-events: none;
         }
         [cmdk-group-heading=""] {
+          font-family: var(--app-font-mono);
           font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: ${UI_COLORS.focus};
-          padding: 8px 12px 4px;
+          color: ${UI_COLORS.textMuted};
+          padding: 10px 14px 5px;
         }
       `}</style>
 
@@ -154,8 +156,8 @@ export default function CommandPalette({
           transform: "translateX(-50%)",
           width: "min(640px, 92vw)",
           background: UI_COLORS.appSurface,
-          border: `1px solid ${UI_COLORS.controlBorder}`,
-          borderRadius: 12,
+          border: `1px solid ${UI_COLORS.border}`,
+          borderRadius: 8,
           boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
           zIndex: 110,
           overflow: "hidden",
@@ -174,8 +176,8 @@ export default function CommandPalette({
         >
           <div
             style={{
-              padding: "12px 16px",
-              borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
+              padding: "13px 16px",
+              borderBottom: `1px solid ${UI_COLORS.border}`,
               display: "flex",
               alignItems: "center",
               gap: 10,
@@ -311,20 +313,20 @@ export default function CommandPalette({
 
             <Group heading={t("cmdk.group.theme")}>
               <Item
-                value="theme-neon 主题 neon"
-                onSelect={run(() => applyTheme("neon"))}
-                active={state.theme === "neon"}
-                testId="cmdk-theme-neon"
+                value="theme-light 主题 light 浅色 paper"
+                onSelect={run(() => applyTheme("light"))}
+                active={state.theme === "light"}
+                testId="cmdk-theme-light"
               >
-                {t("cmdk.theme.neon")}
+                {t("cmdk.theme.light")}
               </Item>
               <Item
-                value="theme-editorial 主题 editorial"
-                onSelect={run(() => applyTheme("editorial"))}
-                active={state.theme === "editorial"}
-                testId="cmdk-theme-editorial"
+                value="theme-dark 主题 dark 深色"
+                onSelect={run(() => applyTheme("dark"))}
+                active={state.theme === "dark"}
+                testId="cmdk-theme-dark"
               >
-                {t("cmdk.theme.editorial")}
+                {t("cmdk.theme.dark")}
               </Item>
             </Group>
 
@@ -406,7 +408,7 @@ export default function CommandPalette({
           <div
             style={{
               padding: "8px 14px",
-              borderTop: `1px solid ${UI_COLORS.panelSurface}`,
+              borderTop: `1px solid ${UI_COLORS.border}`,
               display: "flex",
               alignItems: "center",
               gap: 14,
@@ -516,7 +518,7 @@ function Item({
               width: 5,
               height: 5,
               borderRadius: "50%",
-              background: UI_COLORS.cyan,
+              background: UI_COLORS.accent,
               flexShrink: 0,
             }}
           />
@@ -532,13 +534,13 @@ function Kbd({ children }: { children: React.ReactNode }) {
   return (
     <span
       style={{
-        fontFamily: "monospace",
+        fontFamily: "var(--app-font-mono)",
         fontSize: 10,
         padding: "2px 6px",
-        borderRadius: 4,
-        border: `1px solid ${UI_COLORS.controlBorder}`,
+        borderRadius: 3,
+        border: `1px solid ${UI_COLORS.border}`,
         background: UI_COLORS.controlSurface,
-        color: UI_COLORS.focus,
+        color: UI_COLORS.accentText,
         letterSpacing: "0.04em",
       }}
     >

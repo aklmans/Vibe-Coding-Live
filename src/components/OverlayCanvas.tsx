@@ -1,7 +1,6 @@
 import { forwardRef, useId } from "react";
 import { OverlayState } from "../types";
 import { avatarPlaceholder } from "../lib/avatar";
-import { UI_COLORS } from "../lib/design-tokens";
 import { useLocale } from "../hooks/useLocale";
 import SidebarSections from "./SidebarSections";
 import SocialList from "./SocialList";
@@ -201,7 +200,7 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
               top: MAIN_SCREEN_SLOT.top,
               width: MAIN_SCREEN_SLOT.width,
               height: MAIN_SCREEN_SLOT.height,
-              background: UI_COLORS.appBackground,
+              background: bgDark,
               border: `2px solid ${borderColor}50`,
               borderRadius: 0,
               overflow: "hidden",
@@ -274,9 +273,9 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
               }}
             >
               <div style={{ display: "flex", gap: 5 }}>
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: UI_COLORS.macRed, opacity: 0.7 }} />
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: UI_COLORS.macYellow, opacity: 0.7 }} />
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: UI_COLORS.macGreen, opacity: 0.7 }} />
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#FF5F57", opacity: 0.7 }} />
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#FEBC2E", opacity: 0.7 }} />
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#28C840", opacity: 0.7 }} />
               </div>
               <div
                 style={{
@@ -343,11 +342,11 @@ const OverlayCanvas = forwardRef<HTMLDivElement, OverlayCanvasProps>(
                         width: 6,
                         height: 6,
                         borderRadius: "50%",
-                        background: UI_COLORS.macRed,
-                        boxShadow: `0 0 4px ${UI_COLORS.macRed}`,
+                        background: "#FF5F57",
+                        boxShadow: "0 0 4px #FF5F57",
                       }}
                     />
-                    <span style={{ fontSize: 9, color: UI_COLORS.white, fontWeight: 600, letterSpacing: "0.08em" }}>{t("canvas.liveBadge")}</span>
+                    <span style={{ fontSize: 9, color: "#fff", fontWeight: 600, letterSpacing: "0.08em" }}>{t("canvas.liveBadge")}</span>
                   </div>
                 </>
               )}

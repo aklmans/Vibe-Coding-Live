@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { DEFAULT_STATE, DEFAULT_STATE_BY_LOCALE } from "./types";
-import { EDITORIAL_PRESET } from "./lib/theme";
+import { DARK_PRESET, LIGHT_PRESET } from "./lib/theme";
 import {
   loadOverlayState,
   normalizeOverlayState,
@@ -121,8 +121,8 @@ test("normalizeOverlayState migrates v0 flat badges and social strings", () => {
 test("normalizeOverlayState handles empty arrays and invalid types conservatively", () => {
   const defaultValue = {
     ...DEFAULT_STATE_BY_LOCALE.en,
-    theme: "editorial" as const,
-    colors: { ...EDITORIAL_PRESET },
+    theme: "light" as const,
+    colors: { ...LIGHT_PRESET },
   };
 
   const state = normalizeOverlayState(
@@ -174,6 +174,31 @@ test("normalizeOverlayState handles empty arrays and invalid types conservativel
   assert.equal(state.wallpaper.avatarVisible, defaultValue.wallpaper.avatarVisible);
   assert.equal(state.colors.bgDark, defaultValue.colors.bgDark);
   assert.equal(state.colors.textColor, "#123456");
-  assert.equal(state.theme, "editorial");
+  assert.equal(state.theme, "light");
   assert.equal(state.activeTab, "overlay");
+});
+
+test("normalizeOverlayState migrates legacy neon/editorial themes to dark/light", () => {
+  const fromNeon = normalizeOverlayState({ theme: "neon" }, DEFAULT_STATE);
+  assert.equal(fromNeon.theme, "dark");
+  assert.deepEqual(fromNeon.colors, { ...DARK_PRESET });
+
+  const fromEditorial = normalizeOverlayState(
+    { theme: "editorial" },
+    DEFAULT_STATE,
+  );
+  assert.equal(fromEditorial.theme, "light");
+  assert.deepEqual(fromEditorial.colors, { ...LIGHT_PRESET });
+});
+
+test("normalizeOverlayState migrates legacy theme names without dropping custom colors", () => {
+  const state = normalizeOverlayState(
+    { theme: "neon", colors: { bgDark: "#20201e", pinkAccent: "#d86f4b" } },
+    DEFAULT_STATE,
+  );
+
+  assert.equal(state.theme, "dark");
+  assert.equal(state.colors.bgDark, "#20201e");
+  assert.equal(state.colors.pinkAccent, "#d86f4b");
+  assert.equal(state.colors.textColor, DARK_PRESET.textColor);
 });

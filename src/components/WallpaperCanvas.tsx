@@ -4,14 +4,13 @@ import { avatarPlaceholder } from "../lib/avatar";
 import { patchSection } from "../lib/state";
 import { fontFamilies } from "../lib/typography";
 import { useLocale } from "../hooks/useLocale";
-import { UI_COLORS } from "../lib/design-tokens";
 import {
   HORIZONTAL_BASE,
   PORTRAIT_BASE,
   type WallpaperPreset,
 } from "../lib/wallpaper";
 import EditableText from "./edit/EditableText";
-import { EDITORIAL_PALETTE as E } from "./lib/editorial-palette";
+import { editorialPalette, type EditorialPalette } from "./lib/editorial-palette";
 import AvatarCircle from "./shared/AvatarCircle";
 import BadgeToolbar from "./shared/BadgeToolbar";
 import SocialCard from "./shared/SocialCard";
@@ -30,6 +29,7 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
   ({ state, preset, editable = false, onChange }, ref) => {
     const { t } = useLocale();
     const { cover, wallpaper } = state;
+    const E = editorialPalette(state.colors);
     const isPortrait = preset.orientation === "portrait";
     const base = isPortrait ? PORTRAIT_BASE : HORIZONTAL_BASE;
     const scale = preset.width / base.width;
@@ -68,7 +68,7 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
           width: preset.width,
           height: preset.height,
           position: "relative",
-          background: UI_COLORS.appBackground,
+          background: E.bg1,
           fontFamily: fontFamilies.sans,
           overflow: "hidden",
           flexShrink: 0,
@@ -80,8 +80,8 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
             position: "absolute",
             inset: 0,
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)
+              linear-gradient(${E.glassBorder} 1px, transparent 1px),
+              linear-gradient(90deg, ${E.glassBorder} 1px, transparent 1px)
             `,
             backgroundSize: `${S(128)}px ${S(128)}px`,
             pointerEvents: "none",
@@ -147,6 +147,7 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
             visibleSocials={visibleSocials}
             scale={scale}
             colors={state.colors}
+            palette={E}
             readonly={readonly}
             writeCover={writeCover}
             writeWallpaper={writeWallpaper}
@@ -164,6 +165,7 @@ const WallpaperCanvas = forwardRef<HTMLDivElement, WallpaperCanvasProps>(
             visibleSocials={visibleSocials}
             scale={scale}
             colors={state.colors}
+            palette={E}
             readonly={readonly}
             writeCover={writeCover}
             writeWallpaper={writeWallpaper}
@@ -191,6 +193,7 @@ interface LayoutProps {
   visibleSocials: OverlayState["cover"]["socials"];
   scale: number;
   colors: OverlayState["colors"];
+  palette: EditorialPalette;
   readonly: boolean;
   writeCover: (patch: Partial<OverlayState["cover"]>) => void;
   writeWallpaper: (patch: Partial<OverlayState["wallpaper"]>) => void;
@@ -208,6 +211,7 @@ function HorizontalLayout({
   visibleSocials,
   scale,
   colors,
+  palette: E,
   readonly,
   writeCover,
   writeWallpaper,
@@ -226,7 +230,7 @@ function HorizontalLayout({
           bottom: S(360),
           left: preset.width * 0.62,
           width: 1,
-          background: `linear-gradient(180deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 70%, transparent)`,
+          background: `linear-gradient(180deg, transparent, ${E.glassBorder} 30%, ${E.glassBorder} 50%, ${E.glassBorder} 70%, transparent)`,
         }}
       />
 
@@ -354,8 +358,8 @@ function HorizontalLayout({
             readonly={readonly}
             onBadgeLabelChange={writeBadgeLabel}
             labelColor={E.muted}
-            background="rgba(255,255,255,0.05)"
-            border="1px solid rgba(255,255,255,0.1)"
+            background={`${colors.bgPanel}cc`}
+            border={`1px solid ${E.glassBorder}`}
             borderRadius={20}
             paddingY={22}
             paddingX={44}
@@ -364,7 +368,7 @@ function HorizontalLayout({
             iconSize={40}
             labelFontSize={30}
             separatorFontSize={22}
-            separatorColor="rgba(255,255,255,0.2)"
+            separatorColor={`${colors.borderColor}80`}
           />
         )}
 
@@ -388,6 +392,7 @@ function PortraitLayout({
   visibleSocials,
   scale,
   colors,
+  palette: E,
   readonly,
   writeCover,
   writeWallpaper,
@@ -505,8 +510,8 @@ function PortraitLayout({
           readonly={readonly}
           onBadgeLabelChange={writeBadgeLabel}
           labelColor={E.muted}
-          background="rgba(255,255,255,0.04)"
-          border="1px solid rgba(255,255,255,0.08)"
+          background={`${colors.bgPanel}cc`}
+          border={`1px solid ${E.glassBorder}`}
           borderRadius={20}
           paddingY={18}
           paddingX={40}

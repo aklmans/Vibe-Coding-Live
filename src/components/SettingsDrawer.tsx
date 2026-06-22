@@ -88,9 +88,9 @@ export default function SettingsDrawer({
           width: 360,
           height: "100vh",
           background: UI_COLORS.appSurface,
-          borderLeft: `1px solid ${UI_COLORS.panelSurface}`,
+          borderLeft: `1px solid ${UI_COLORS.border}`,
           transform: open ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 0.22s ease",
+          transition: "transform 0.2s ease",
           zIndex: 70,
           display: "flex",
           flexDirection: "column",
@@ -98,8 +98,8 @@ export default function SettingsDrawer({
       >
         <div
           style={{
-            padding: "14px 16px",
-            borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
+            padding: "15px 16px",
+            borderBottom: `1px solid ${UI_COLORS.border}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -109,9 +109,12 @@ export default function SettingsDrawer({
           <div>
             <div
               style={{
-                fontSize: 13,
+                fontFamily: "var(--app-font-mono)",
+                fontSize: 11,
                 fontWeight: 600,
                 color: UI_COLORS.text,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
               }}
             >
               {t("settings.title")}
@@ -133,12 +136,21 @@ export default function SettingsDrawer({
               width: 28,
               height: 28,
               borderRadius: 6,
-              border: `1px solid ${UI_COLORS.controlBorder}`,
+              border: `1px solid ${UI_COLORS.border}`,
               background: "transparent",
-              color: UI_COLORS.textSoft,
+              color: UI_COLORS.textMuted,
               cursor: "pointer",
               fontFamily: "inherit",
-              fontSize: 14,
+              fontSize: 15,
+              transition: "color 0.12s, border-color 0.12s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.color = UI_COLORS.textSoft;
+              (e.currentTarget as HTMLElement).style.borderColor = UI_COLORS.rule;
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.color = UI_COLORS.textMuted;
+              (e.currentTarget as HTMLElement).style.borderColor = UI_COLORS.border;
             }}
             aria-label={t("settings.closeSettings")}
           >
@@ -157,76 +169,25 @@ export default function SettingsDrawer({
           }}
         >
           <Section title={t("language.zh") === "中文" ? "语言 / Language" : "Language / 语言"}>
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                background: UI_COLORS.controlSurface,
-                padding: 3,
-                borderRadius: 8,
-                border: `1px solid ${UI_COLORS.panelSurface}`,
-              }}
-            >
-              {(["zh", "en"] as const).map((loc) => (
-                <button
-                  key={loc}
-                  data-testid={`locale-${loc}`}
-                  onClick={() => setLocale(loc as Locale)}
-                  style={{
-                    flex: 1,
-                    padding: "7px 0",
-                    background: locale === loc ? UI_COLORS.panelSurface : "transparent",
-                    border: "none",
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: locale === loc ? UI_COLORS.text : UI_COLORS.textMuted,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {loc === "zh" ? "中文" : "English"}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              options={[
+                { value: "zh", label: "中文", testId: "locale-zh" },
+                { value: "en", label: "English", testId: "locale-en" },
+              ]}
+              active={locale}
+              onSelect={(loc) => setLocale(loc as Locale)}
+            />
           </Section>
 
           <Section title={t("settings.theme")} hint={t("settings.themeHint")}>
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                background: UI_COLORS.controlSurface,
-                padding: 3,
-                borderRadius: 8,
-                border: `1px solid ${UI_COLORS.panelSurface}`,
-              }}
-            >
-              {(["neon", "editorial"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  data-testid={`theme-${mode}`}
-                  onClick={() => applyTheme(mode)}
-                  style={{
-                    flex: 1,
-                    padding: "7px 0",
-                    background: state.theme === mode ? UI_COLORS.panelSurface : "transparent",
-                    border: "none",
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: state.theme === mode ? UI_COLORS.text : UI_COLORS.textMuted,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    textTransform: "capitalize",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              options={[
+                { value: "light", label: t("theme.light"), testId: "theme-light" },
+                { value: "dark", label: t("theme.dark"), testId: "theme-dark" },
+              ]}
+              active={state.theme}
+              onSelect={(mode) => applyTheme(mode as ThemeMode)}
+            />
           </Section>
 
           <Section title={t("settings.colorsSurface")}>
@@ -310,21 +271,21 @@ export default function SettingsDrawer({
                     width: "100%",
                     padding: "8px 12px",
                     background: "transparent",
-                    border: `1px solid ${UI_COLORS.resetBorder}`,
-                    borderRadius: 7,
+                    border: `1px solid ${UI_COLORS.border}`,
+                    borderRadius: 6,
                     color: UI_COLORS.textMuted,
                     fontSize: 12,
                     cursor: "pointer",
                     fontFamily: "inherit",
-                    transition: "all 0.15s",
+                    transition: "color 0.12s, border-color 0.12s",
                   }}
                   onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.color = UI_COLORS.text;
-                    (e.target as HTMLElement).style.borderColor = UI_COLORS.subtleBorderHover;
+                    (e.target as HTMLElement).style.color = UI_COLORS.danger;
+                    (e.target as HTMLElement).style.borderColor = `${UI_COLORS.danger}55`;
                   }}
                   onMouseLeave={(e) => {
                     (e.target as HTMLElement).style.color = UI_COLORS.textMuted;
-                    (e.target as HTMLElement).style.borderColor = UI_COLORS.resetBorder;
+                    (e.target as HTMLElement).style.borderColor = UI_COLORS.border;
                   }}
                 >
                   {t("reset.button")}
@@ -372,17 +333,18 @@ function Section({ title, hint, children }: SectionProps) {
       <div>
         <div
           style={{
-            fontSize: 11,
+            fontFamily: "var(--app-font-mono)",
+            fontSize: 10,
             fontWeight: 600,
-            color: UI_COLORS.focus,
-            letterSpacing: "0.1em",
+            color: UI_COLORS.textMuted,
+            letterSpacing: "0.12em",
             textTransform: "uppercase",
           }}
         >
           {title}
         </div>
         {hint && (
-          <div style={{ fontSize: 10, color: UI_COLORS.textMuted, marginTop: 2 }}>
+          <div style={{ fontSize: 10, color: UI_COLORS.textSubtle, marginTop: 3 }}>
             {hint}
           </div>
         )}
@@ -390,6 +352,76 @@ function Section({ title, hint, children }: SectionProps) {
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {children}
       </div>
+    </div>
+  );
+}
+
+interface SegmentedOption {
+  value: string;
+  label: string;
+  testId?: string;
+}
+
+/**
+ * Quiet editorial segmented control — a hairline-bordered row where the active
+ * option carries a subtle warm fill instead of a filled pill. Shared by the
+ * language and theme switches so they read as the same calm control.
+ */
+function Segmented({
+  options,
+  active,
+  onSelect,
+}: {
+  options: SegmentedOption[];
+  active: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        border: `1px solid ${UI_COLORS.border}`,
+        borderRadius: 6,
+        overflow: "hidden",
+        background: UI_COLORS.controlSurface,
+      }}
+    >
+      {options.map((opt, i) => {
+        const isActive = opt.value === active;
+        return (
+          <button
+            key={opt.value}
+            data-testid={opt.testId}
+            onClick={() => onSelect(opt.value)}
+            style={{
+              flex: 1,
+              padding: "7px 0",
+              background: isActive ? UI_COLORS.hoverSurface : "transparent",
+              border: "none",
+              borderLeft: i > 0 ? `1px solid ${UI_COLORS.border}` : "none",
+              fontFamily: "var(--app-font-mono)",
+              fontSize: 11,
+              fontWeight: 500,
+              letterSpacing: "0.04em",
+              color: isActive ? UI_COLORS.text : UI_COLORS.textMuted,
+              cursor: "pointer",
+              transition: "color 0.12s, background 0.12s",
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive)
+                (e.currentTarget as HTMLElement).style.color =
+                  UI_COLORS.accentText;
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive)
+                (e.currentTarget as HTMLElement).style.color =
+                  UI_COLORS.textMuted;
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

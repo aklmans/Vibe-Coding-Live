@@ -28,7 +28,7 @@ export default function InspectorGroup({
     <div
       data-testid={testId}
       style={{
-        borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
+        borderBottom: `1px solid ${UI_COLORS.border}`,
       }}
     >
       <button
@@ -47,14 +47,15 @@ export default function InspectorGroup({
         }}
         data-testid={testId ? `${testId}-toggle` : undefined}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-start" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-start" }}>
           <span
             style={{
-              fontSize: 11,
+              fontFamily: "var(--app-font-mono)",
+              fontSize: 10,
               fontWeight: 600,
-              letterSpacing: "0.1em",
+              letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: UI_COLORS.focus,
+              color: UI_COLORS.textMuted,
             }}
           >
             {title}
@@ -63,7 +64,7 @@ export default function InspectorGroup({
             <span
               style={{
                 fontSize: 10,
-                color: UI_COLORS.textMuted,
+                color: UI_COLORS.textSubtle,
                 fontWeight: 400,
                 letterSpacing: "0.02em",
                 textTransform: "none",
@@ -76,8 +77,8 @@ export default function InspectorGroup({
         <span
           aria-hidden
           style={{
-            fontSize: 14,
-            color: UI_COLORS.textMuted,
+            fontSize: 13,
+            color: UI_COLORS.textSubtle,
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.18s",
           }}

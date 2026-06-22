@@ -2,9 +2,17 @@
 
 A Next.js app for building and exporting livestream graphics for Vibe Coding sessions. It edits cover screens, posters, full overlays, sidebar panels, bottom status bars, and brand wallpapers, then exports broadcast-ready PNG assets.
 
+## Editorial Live Redesign
+
+The `editorial-live` branch is a deliberate redesign pass. Its goal is to turn the builder and exported graphics into a quieter editorial live-studio system: warm surfaces, premium typography, mono metadata, thin hairlines, and restrained accent marks.
+
+This branch may change the visual appearance of the canvas exports. The stable contracts are the export dimensions, OBS routes, off-screen export architecture, state persistence, live-data APIs, and keyboard/export workflows.
+
+The branch-local design direction is documented in [`DESIGN_LANGUAGE.md`](DESIGN_LANGUAGE.md).
+
 ## Preview
 
-The preview images below are the latest checked-in exports from the overlay builder, stored in `docs/assets/`.
+The preview images below are checked-in exports from the overlay builder, stored in `docs/assets/`. On the `editorial-live` branch these are legacy reference images until the redesign exports are refreshed.
 
 ### Cover screen
 
@@ -168,7 +176,7 @@ The schema lives in `src/db/schema.ts`, with a checked-in SQL migration at `driz
 ## Export Workflow
 
 1. Open the overlay builder.
-2. Switch between the Overlay, Cover, Poster, and Wallpaper tabs.
+2. Switch between the Overlay, Live Data, Cover, Poster, and Wallpaper tabs.
 3. Adjust copy, sections, badges, social links, live session start time, tool stack, and wallpaper-only fields.
 4. Use the export controls to generate PNGs for the cover, poster, full overlay, sidebar, bottom bar, or wallpaper set.
 5. Keep polished example exports in `docs/assets/` when they should be shown in this README.
@@ -215,3 +223,4 @@ drizzle/            SQL migrations for live data persistence
 - Localization uses the custom `t()` dictionary system in `src/lib/i18n.ts`.
 - `pnpm live:prepare` edits local OBS config files under `~/Library/Application Support/obs-studio/` and writes timestamped backups before changing them.
 - Package management is pnpm only.
+- Redesign work should preserve export dimensions, OBS routes, live-state API behavior, and state normalization even when the visuals change.

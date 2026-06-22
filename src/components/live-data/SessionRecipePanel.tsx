@@ -108,8 +108,7 @@ export default function SessionRecipePanel({
                   width: 3,
                   height: 14,
                   borderRadius: 2,
-                  background: UI_COLORS.purple,
-                  boxShadow: `0 0 14px ${UI_COLORS.purple}66`,
+                  background: UI_COLORS.accent,
                 }}
               />
               {t("recipe.title")}
@@ -132,7 +131,7 @@ export default function SessionRecipePanel({
                 flexShrink: 0,
                 maxWidth: 280,
                 fontSize: 11,
-                color: UI_COLORS.focus,
+                color: UI_COLORS.accentText,
                 background: UI_COLORS.previewBadgeSurface,
                 border: UI_BORDERS.control,
                 borderRadius: 6,
@@ -157,7 +156,7 @@ export default function SessionRecipePanel({
           <RecipeButton onClick={exportCurrentRecipe}>
             {t("recipe.exportCurrent")}
           </RecipeButton>
-          <RecipeButton onClick={applyRecipe} accentColor={UI_COLORS.purple}>
+          <RecipeButton onClick={applyRecipe} accentColor={UI_COLORS.accent}>
             {t("recipe.apply")}
           </RecipeButton>
         </div>

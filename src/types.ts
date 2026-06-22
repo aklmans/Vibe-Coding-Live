@@ -1,4 +1,4 @@
-import { NEON_PRESET, type ColorTokens, type ThemeMode } from "./lib/theme";
+import { DARK_PRESET, type ColorTokens, type ThemeMode } from "./lib/theme";
 import type { BadgeConfig } from "./lib/badges";
 import type { SocialConfig } from "./lib/socials";
 import type { BottomBarSlot } from "./lib/bottomBar";
@@ -154,9 +154,9 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
     socialVisible: true,
   },
   colors: {
-    ...NEON_PRESET,
+    ...DARK_PRESET,
   },
-  theme: "neon",
+  theme: "dark",
     activeTab: "overlay",
   },
   en: {
@@ -245,9 +245,9 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
       socialVisible: true,
     },
     colors: {
-      ...NEON_PRESET,
+      ...DARK_PRESET,
     },
-    theme: "neon",
+    theme: "dark",
     activeTab: "overlay",
   },
 };

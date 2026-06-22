@@ -111,7 +111,9 @@ export const dict = {
     "settings.title": "设置",
     "settings.subtitle": "主题 · 颜色 · 重置",
     "settings.theme": "主题",
-    "settings.themeHint": "预设配色方案",
+    "settings.themeHint": "浅色或深色配色",
+    "theme.light": "浅色",
+    "theme.dark": "深色",
     "settings.colorsSurface": "颜色 — 背景",
     "settings.colorsText": "颜色 — 文字",
     "settings.colorsAccent": "颜色 — 强调",
@@ -165,8 +167,8 @@ export const dict = {
     "cmdk.tab.poster": "跳到 海报 (Poster)",
     "cmdk.tab.wallpaper": "跳到 壁纸 (Wallpaper)",
     "cmdk.export.current": "导出当前标签",
-    "cmdk.theme.neon": "应用 Neon 主题",
-    "cmdk.theme.editorial": "应用 Editorial 主题",
+    "cmdk.theme.light": "应用浅色主题",
+    "cmdk.theme.dark": "应用深色主题",
     "cmdk.settings": "打开设置",
     "cmdk.reset": "恢复默认…",
     "cmdk.locale.en": "Switch to English",
@@ -192,7 +194,7 @@ export const dict = {
     // ─── App ─────────────────────────────────────────────────────────
     "app.previewHint": "缩放预览 — 导出为原始分辨率",
     "app.liveDataHint": "管理侧栏和底栏 — 自动同步到 OBS",
-    "app.brand": "Vibe Overlay",
+    "app.brand": "Vibe Coding Live",
 
     // ─── Live bar / canvas ────────────────────────────────────────────
     "live.onAir": "开播",
@@ -403,7 +405,9 @@ export const dict = {
     "settings.title": "Settings",
     "settings.subtitle": "Theme · colors · reset",
     "settings.theme": "Theme",
-    "settings.themeHint": "Preset color sets",
+    "settings.themeHint": "Light or dark color set",
+    "theme.light": "Light",
+    "theme.dark": "Dark",
     "settings.colorsSurface": "Colors — Surface",
     "settings.colorsText": "Colors — Text",
     "settings.colorsAccent": "Colors — Accent",
@@ -457,8 +461,8 @@ export const dict = {
     "cmdk.tab.poster": "Go to Poster",
     "cmdk.tab.wallpaper": "Go to Wallpaper",
     "cmdk.export.current": "Export current tab",
-    "cmdk.theme.neon": "Apply Neon theme",
-    "cmdk.theme.editorial": "Apply Editorial theme",
+    "cmdk.theme.light": "Apply light theme",
+    "cmdk.theme.dark": "Apply dark theme",
     "cmdk.settings": "Open Settings",
     "cmdk.reset": "Reset to Defaults…",
     "cmdk.locale.en": "Switch to English",
@@ -484,7 +488,7 @@ export const dict = {
     // ─── App ─────────────────────────────────────────────────────────
     "app.previewHint": "Scaled preview — export at full resolution",
     "app.liveDataHint": "Manage sidebar and live bar data — syncs to OBS automatically",
-    "app.brand": "Vibe Overlay",
+    "app.brand": "Vibe Coding Live",
 
     // ─── Live bar / canvas ────────────────────────────────────────────
     "live.onAir": "On Air",

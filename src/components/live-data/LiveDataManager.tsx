@@ -380,7 +380,6 @@ function PanelHeader({
               height: 14,
               borderRadius: 2,
               background: accentColor,
-              boxShadow: `0 0 14px ${accentColor}66`,
             }}
           />
           {title}

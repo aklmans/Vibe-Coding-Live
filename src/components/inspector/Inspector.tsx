@@ -25,7 +25,7 @@ export default function Inspector({ state, onChange }: InspectorProps) {
         width: 320,
         minWidth: 320,
         background: UI_COLORS.appSurface,
-        borderLeft: `1px solid ${UI_COLORS.panelSurface}`,
+        borderLeft: `1px solid ${UI_COLORS.border}`,
         height: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -34,17 +34,19 @@ export default function Inspector({ state, onChange }: InspectorProps) {
     >
       <div
         style={{
-          padding: "14px 16px",
-          borderBottom: `1px solid ${UI_COLORS.panelSurface}`,
+          padding: "15px 16px",
+          borderBottom: `1px solid ${UI_COLORS.border}`,
           flexShrink: 0,
         }}
       >
         <div
           style={{
-            fontSize: 13,
+            fontFamily: "var(--app-font-mono)",
+            fontSize: 11,
             fontWeight: 600,
             color: UI_COLORS.text,
-            letterSpacing: "0.02em",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
           }}
         >
           {t(`tab.${state.activeTab}`)}
@@ -53,7 +55,8 @@ export default function Inspector({ state, onChange }: InspectorProps) {
           style={{
             fontSize: 11,
             color: UI_COLORS.textMuted,
-            marginTop: 2,
+            marginTop: 4,
+            lineHeight: 1.4,
           }}
         >
           {t(`inspector.${state.activeTab}.hint`)}
