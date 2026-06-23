@@ -43,6 +43,64 @@ test("CoverCanvas renders an editorial typographic stack", () => {
   // the title wraps within the fixed canvas bounds instead of forcing one line.
   assert.match(html, /aria-label="Cover eyebrow"/);
   assert.match(html, /font-family:ui-serif[^"]*" aria-label="Cover title"/);
-  assert.doesNotMatch(html, /white-space:nowrap[^"]*" aria-label="Cover title"/);
+  assert.doesNotMatch(
+    html,
+    /white-space:nowrap[^"]*" aria-label="Cover title"/,
+  );
   assert.match(html, /overflow-wrap:break-word[^"]*" aria-label="Cover title"/);
+});
+
+
+test("CoverCanvas uses the default studio subject image as a background subject layer", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(CoverCanvas, { state: DEFAULT_STATE }),
+  );
+
+  assert.match(html, /data-testid="cover-avatar-image"/);
+  assert.match(html, /src="\/vibe-studio-bg\.png"/);
+  assert.match(html, /object-fit:contain/);
+  assert.match(html, /position:absolute/);
+  assert.match(html, /left:-82px/);
+  assert.match(html, /bottom:-112px/);
+  assert.match(html, /height:700px/);
+  assert.match(html, /pointer-events:none/);
+  assert.doesNotMatch(html, /src="\/avatar\.jpg"/);
+});
+
+test("CoverCanvas respects the shared avatar visibility toggle", () => {
+  const visibleHtml = renderToStaticMarkup(
+    React.createElement(CoverCanvas, {
+      state: {
+        ...DEFAULT_STATE,
+        cover: {
+          ...DEFAULT_STATE.cover,
+          avatarVisible: true,
+          avatarUrl: "/avatar-visible.jpg",
+        },
+      },
+    }),
+  );
+  assert.match(visibleHtml, /data-testid="cover-identity-lockup"/);
+  assert.match(visibleHtml, /data-testid="cover-avatar-lockup"/);
+  assert.match(visibleHtml, /data-testid="cover-avatar-image"/);
+  assert.match(visibleHtml, /src="\/avatar-visible\.jpg"/);
+  assert.match(visibleHtml, /alt=""/);
+  assert.match(visibleHtml, /object-fit:contain/);
+  assert.match(visibleHtml, /position:absolute/);
+  assert.doesNotMatch(visibleHtml, /right:112px/);
+  assert.doesNotMatch(visibleHtml, /border-radius:50%/);
+
+  const hiddenHtml = renderToStaticMarkup(
+    React.createElement(CoverCanvas, {
+      state: {
+        ...DEFAULT_STATE,
+        cover: {
+          ...DEFAULT_STATE.cover,
+          avatarVisible: false,
+          avatarUrl: "/avatar-hidden.jpg",
+        },
+      },
+    }),
+  );
+  assert.doesNotMatch(hiddenHtml, /avatar-hidden\.jpg/);
 });

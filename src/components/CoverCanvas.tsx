@@ -4,6 +4,7 @@ import { patchSection } from "../lib/state";
 import { fontFamilies, wrapProse, wrapAnywhere } from "../lib/typography";
 import { COVER_CANVAS_DIMENSIONS } from "../lib/canvas-dimensions";
 import { editorialPalette } from "./lib/editorial-palette";
+import { avatarPlaceholder } from "../lib/avatar";
 import EditableText from "./edit/EditableText";
 import BadgeToolbar from "./shared/BadgeToolbar";
 
@@ -13,6 +14,8 @@ import BadgeToolbar from "./shared/BadgeToolbar";
 // Wallpaper. The legacy Bilibili photo template still ships at
 // /public/cover-bg.png and could return later as an opt-in background preset,
 // but it is no longer the default export surface.
+
+const AVATAR_PLACEHOLDER = avatarPlaceholder("rgba(245,245,242,0.5)", "VC", 56);
 
 interface CoverCanvasProps {
   state: OverlayState;
@@ -26,6 +29,7 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
     const { cover } = state;
     const E = editorialPalette(state.colors);
     const readonly = !editable || !onChange;
+    const avatarSrc = cover.avatarUrl || AVATAR_PLACEHOLDER;
 
     const writeCover = (patch: Partial<OverlayState["cover"]>) => {
       if (!onChange) return;
@@ -59,123 +63,162 @@ const CoverCanvas = forwardRef<HTMLDivElement, CoverCanvasProps>(
           boxSizing: "border-box",
         }}
       >
-        {/* Editorial title stack — eyebrow → serif title → rule → subtitle. */}
+        {cover.avatarVisible && (
+          <div
+            data-testid="cover-avatar-lockup"
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: -82,
+              bottom: -112,
+              width: 1240,
+              height: 700,
+              overflow: "visible",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          >
+            <img
+              data-testid="cover-avatar-image"
+              src={avatarSrc}
+              alt=""
+              style={{
+                display: "block",
+                width: "auto",
+                height: "100%",
+                maxWidth: "none",
+                objectFit: "contain",
+                objectPosition: "left bottom",
+              }}
+            />
+          </div>
+        )}
+
         <div
-          data-testid="cover-title-stage"
+          data-testid="cover-identity-lockup"
           style={{
+            position: "relative",
+            zIndex: 1,
             display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            maxWidth: 1000,
+            justifyContent: cover.avatarVisible ? "flex-end" : "center",
+            width: "100%",
+            maxWidth: cover.avatarVisible ? 1056 : 1000,
           }}
         >
-          {cover.todayLabel && (
-            <EditableText
-              readonly={readonly}
-              value={cover.todayLabel}
-              onCommit={(v) => writeCover({ todayLabel: v })}
-              as="div"
-              ariaLabel="Cover eyebrow"
-              style={{
-                fontFamily: fontFamilies.mono,
-                fontSize: 15,
-                fontWeight: 500,
-                color: E.accent,
-                letterSpacing: "0.24em",
-                textTransform: "uppercase",
-                marginBottom: 20,
-              }}
-            />
-          )}
-
-          <EditableText
-            readonly={readonly}
-            value={cover.title}
-            onCommit={(v) => writeCover({ title: v })}
-            as="h1"
-            ariaLabel="Cover title"
-            style={{
-              fontFamily: fontFamilies.serif,
-              fontSize: 74,
-              fontWeight: 600,
-              color: E.text,
-              letterSpacing: "-0.01em",
-              lineHeight: 1.04,
-              margin: 0,
-              maxWidth: 1000,
-              whiteSpace: "normal",
-              ...wrapProse,
-            }}
-          />
-
+          {/* Editorial title stack — eyebrow → serif title → rule → subtitle. */}
           <div
+            data-testid="cover-title-stage"
             style={{
-              width: 72,
-              height: 2,
-              background: E.accent,
-              marginTop: 28,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              maxWidth: cover.avatarVisible ? 560 : 1000,
+              minWidth: 0,
             }}
-          />
-
-          <EditableText
-            readonly={readonly}
-            value={cover.todayTopic}
-            onCommit={(v) => writeCover({ todayTopic: v })}
-            as="div"
-            ariaLabel="Cover subtitle"
-            style={{
-              ...wrapProse,
-              marginTop: 26,
-              maxWidth: 820,
-              fontFamily: fontFamilies.serif,
-              fontSize: 30,
-              fontWeight: 500,
-              color: E.muted,
-              lineHeight: 1.32,
-              letterSpacing: 0,
-            }}
-          />
-
-          {cover.hookVisible && cover.hookText && (
+          >
+            {cover.todayLabel && (
+              <EditableText
+                readonly={readonly}
+                value={cover.todayLabel}
+                onCommit={(v) => writeCover({ todayLabel: v })}
+                as="div"
+                ariaLabel="Cover eyebrow"
+                style={{
+                  fontFamily: fontFamilies.mono,
+                  fontSize: 15,
+                  fontWeight: 500,
+                  color: E.accent,
+                  letterSpacing: "0.24em",
+                  textTransform: "uppercase",
+                  marginBottom: 20,
+                }}
+              />
+            )}
             <EditableText
               readonly={readonly}
-              value={cover.hookText}
-              onCommit={(v) => writeCover({ hookText: v })}
-              as="div"
-              ariaLabel="Hook text"
+              value={cover.title}
+              onCommit={(v) => writeCover({ title: v })}
+              as="h1"
+              ariaLabel="Cover title"
               style={{
-                ...wrapAnywhere,
-                marginTop: 16,
-                fontFamily: fontFamilies.mono,
-                fontSize: 15,
-                fontWeight: 500,
-                color: E.subtle,
-                lineHeight: 1.4,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
+                fontFamily: fontFamilies.serif,
+                fontSize: 74,
+                fontWeight: 600,
+                color: E.text,
+                letterSpacing: "-0.01em",
+                lineHeight: 1.04,
+                margin: 0,
+                maxWidth: cover.avatarVisible ? 560 : 1000,
+                whiteSpace: "normal",
+                ...wrapProse,
               }}
             />
-          )}
-
-          <BadgeToolbar
-            badges={cover.badges}
-            readonly={readonly}
-            onBadgeLabelChange={writeBadgeLabel}
-            labelColor={E.muted}
-            background="transparent"
-            border={`1px solid ${E.line}`}
-            borderRadius={3}
-            paddingY={8}
-            paddingX={14}
-            outerGap={14}
-            itemGap={9}
-            iconSize={22}
-            iconOpacity={0.9}
-            labelFontSize={16}
-            separatorFontSize={13}
-            separatorColor={E.subtle}
-            style={{ marginTop: 34 }}
-          />
+            <div
+              style={{
+                width: 72,
+                height: 2,
+                background: E.accent,
+                marginTop: 28,
+              }}
+            />
+            <EditableText
+              readonly={readonly}
+              value={cover.todayTopic}
+              onCommit={(v) => writeCover({ todayTopic: v })}
+              as="div"
+              ariaLabel="Cover subtitle"
+              style={{
+                ...wrapProse,
+                marginTop: 26,
+                maxWidth: cover.avatarVisible ? 540 : 820,
+                fontFamily: fontFamilies.serif,
+                fontSize: 30,
+                fontWeight: 500,
+                color: E.muted,
+                lineHeight: 1.32,
+                letterSpacing: 0,
+              }}
+            />
+            {cover.hookVisible && cover.hookText && (
+              <EditableText
+                readonly={readonly}
+                value={cover.hookText}
+                onCommit={(v) => writeCover({ hookText: v })}
+                as="div"
+                ariaLabel="Hook text"
+                style={{
+                  ...wrapAnywhere,
+                  marginTop: 16,
+                  fontFamily: fontFamilies.mono,
+                  fontSize: 15,
+                  fontWeight: 500,
+                  color: E.subtle,
+                  lineHeight: 1.4,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                }}
+              />
+            )}
+            <BadgeToolbar
+              badges={cover.badges}
+              readonly={readonly}
+              onBadgeLabelChange={writeBadgeLabel}
+              labelColor={E.muted}
+              background="transparent"
+              border={`1px solid ${E.line}`}
+              borderRadius={3}
+              paddingY={8}
+              paddingX={14}
+              outerGap={14}
+              itemGap={9}
+              iconSize={22}
+              iconOpacity={0.9}
+              labelFontSize={16}
+              separatorFontSize={13}
+              separatorColor={E.subtle}
+              style={{ marginTop: 34 }}
+            />
+          </div>
         </div>
       </div>
     );

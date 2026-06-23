@@ -32,6 +32,8 @@ type StorageLike = Pick<Storage, "getItem" | "setItem">;
 type OverlayColors = OverlayState["colors"];
 type SidebarSection = OverlayState["sidebar"]["sections"][number];
 
+const LEGACY_DEFAULT_COVER_AVATAR_URL = "/avatar.jpg";
+
 const LEGACY_THEME_PRESETS: Record<"neon" | "editorial", OverlayColors> = {
   neon: {
     bgDark: "#10111D",
@@ -69,6 +71,11 @@ function boolOrDefault(value: unknown, fallback: boolean): boolean {
 
 function stringOrDefault(value: unknown, fallback: string): string {
   return typeof value === "string" ? value : fallback;
+}
+
+function normalizeCoverAvatarUrl(value: unknown, fallback: string): string {
+  const url = stringOrDefault(value, fallback);
+  return url === LEGACY_DEFAULT_COVER_AVATAR_URL ? fallback : url;
 }
 
 function colorOrDefault(value: unknown, fallback: string): string {
@@ -407,7 +414,7 @@ export function normalizeOverlayState(value: unknown, defaultValue: OverlayState
         badge1: cover?.badge1,
         badge2: cover?.badge2,
       }),
-      avatarUrl: stringOrDefault(
+      avatarUrl: normalizeCoverAvatarUrl(
         cover?.avatarUrl,
         defaultValue.cover.avatarUrl,
       ),

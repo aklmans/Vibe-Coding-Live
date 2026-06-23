@@ -195,6 +195,25 @@ test("normalizeOverlayState handles empty arrays and invalid types conservativel
   assert.equal(state.activeTab, "overlay");
 });
 
+
+test("normalizeOverlayState migrates the old built-in cover avatar to the studio subject", () => {
+  const migrated = normalizeOverlayState({
+    cover: {
+      avatarUrl: "/avatar.jpg",
+    },
+  });
+
+  assert.equal(migrated.cover.avatarUrl, "/vibe-studio-bg.png");
+
+  const custom = normalizeOverlayState({
+    cover: {
+      avatarUrl: "/custom-subject.png",
+    },
+  });
+
+  assert.equal(custom.cover.avatarUrl, "/custom-subject.png");
+});
+
 test("normalizeOverlayState migrates legacy neon/editorial themes to dark/light", () => {
   const fromNeon = normalizeOverlayState({ theme: "neon" }, DEFAULT_STATE);
   assert.equal(fromNeon.theme, "dark");
