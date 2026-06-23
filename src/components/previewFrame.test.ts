@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { calculatePreviewScale, formatPreviewMetrics } from "./OverlayBuilderApp";
+import { DEFAULT_STATE_BY_LOCALE } from "../types";
+import { LIGHT_PRESET } from "../lib/theme";
+import {
+  calculatePreviewScale,
+  formatPreviewMetrics,
+  stateForLocaleChange,
+} from "./OverlayBuilderApp";
 import * as previewFrameModule from "./OverlayBuilderApp";
 
 test("preview scale is derived from current native dimensions", () => {
@@ -44,4 +50,20 @@ test("preview header layout allows metadata to wrap instead of overlapping", () 
   assert.equal(styles.rightGroup?.flexWrap, "wrap");
   assert.notEqual(styles.metrics?.whiteSpace, "nowrap");
   assert.equal(styles.metrics?.textAlign, "right");
+});
+
+test("locale changes keep appearance and asset palette", () => {
+  const current = {
+    ...DEFAULT_STATE_BY_LOCALE.zh,
+    theme: "light" as const,
+    colors: { ...LIGHT_PRESET },
+    activeTab: "wallpaper" as const,
+  };
+
+  const next = stateForLocaleChange(current, "en");
+
+  assert.equal(next.theme, "light");
+  assert.deepEqual(next.colors, LIGHT_PRESET);
+  assert.equal(next.activeTab, "wallpaper");
+  assert.equal(next.cover.todayLabel, "TODAY'S BUILD");
 });

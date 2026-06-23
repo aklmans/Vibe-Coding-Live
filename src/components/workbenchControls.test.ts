@@ -11,6 +11,7 @@ import { LocaleProvider } from "../hooks/useLocale";
 import { DEFAULT_STATE } from "../types";
 import CommandPalette from "./CommandPalette";
 import SettingsDrawer from "./SettingsDrawer";
+import TopBar from "./topbar/TopBar";
 import { SectionInput, ToggleButton } from "./shared/Field";
 
 test("shared text inputs use the editorial inset control surface", () => {
@@ -124,6 +125,74 @@ test("settings drawer renders semantic ruled controls for selectors and colors",
   assert.match(html, /data-testid="color-bg-dark"[^>]*type="color"/);
   assert.match(html, /#1a1a1a/i);
   assert.doesNotMatch(html, /role="switch"[^>]*data-testid="locale-/);
+});
+
+test("topbar search language and theme share the editorial website tool style", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "zh",
+      persist: false,
+      children: React.createElement(TopBar, {
+        state: DEFAULT_STATE,
+        onChange: () => {},
+        exporting: null,
+        onExportOverlay: () => {},
+        onExportSidebar: () => {},
+        onExportBottomBar: () => {},
+        onExportCover: () => {},
+        onExportPoster: () => {},
+        onExportWallpaper: () => {},
+        onOpenSettings: () => {},
+        onOpenCommandPalette: () => {},
+      }),
+    }),
+  );
+
+  assert.match(html, /data-testid="topbar-tools"/);
+  assert.match(html, /data-testid="btn-open-cmdk"[^>]*border:0/);
+  assert.match(html, /data-testid="btn-toggle-locale"[^>]*border:0/);
+  assert.match(html, /data-testid="btn-toggle-locale"[^>]*width:42px/);
+  assert.match(html, /data-testid="btn-toggle-theme"[^>]*border:0/);
+  assert.match(html, /data-testid="btn-toggle-theme"[^>]*data-theme="dark"/);
+  assert.match(html, /data-testid="btn-open-settings"[^>]*border:0/);
+  assert.match(html, /data-testid="tab-overlay"[^>]*width:88px/);
+  assert.match(html, /data-testid="tab-wallpaper"[^>]*width:104px/);
+  assert.match(html, /aria-keyshortcuts="Meta\+K Control\+K"/);
+  assert.match(html, />EN<\/button>/);
+  assert.match(html, /btn-open-settings[\s\S]*?<svg/);
+  assert.match(html, /btn-open-settings[\s\S]*?M9\.671 4\.136/);
+  assert.doesNotMatch(html, /data-testid="btn-open-cmdk"[^>]*border:1px solid/);
+  assert.doesNotMatch(html, /data-testid="btn-open-settings"[^>]*>⚙<\/button>/);
+});
+
+
+test("export control aligns with the topbar tool language", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "en",
+      persist: false,
+      children: React.createElement(TopBar, {
+        state: { ...DEFAULT_STATE, activeTab: "poster" },
+        onChange: () => {},
+        exporting: null,
+        onExportOverlay: () => {},
+        onExportSidebar: () => {},
+        onExportBottomBar: () => {},
+        onExportCover: () => {},
+        onExportPoster: () => {},
+        onExportWallpaper: () => {},
+        onOpenSettings: () => {},
+        onOpenCommandPalette: () => {},
+      }),
+    }),
+  );
+
+  assert.match(html, /data-testid="btn-export-primary"[^>]*width:186px/);
+  assert.match(html, /data-testid="btn-export-primary"[^>]*border:none/);
+  assert.match(html, /data-testid="btn-export-menu-toggle"[^>]*border:none/);
+  assert.match(html, /data-testid="btn-export-menu-toggle"[\s\S]*?<svg/);
+  assert.match(html, />Export Poster<\/button>/);
+  assert.doesNotMatch(html, /data-testid="btn-export-primary"[^>]*padding:7px 15px/);
 });
 
 test("command palette follows the website search overlay structure", () => {

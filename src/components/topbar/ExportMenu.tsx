@@ -32,14 +32,16 @@ const PRIMARY_KIND: Record<OverlayState["activeTab"], ExportKind> = {
   wallpaper: "wallpaper",
 };
 
+const PRIMARY_ACTION_WIDTH = 186;
+
 /**
  * Single-button + dropdown export control. Main button always exports the
  * artifact for the current tab; the chevron opens a menu of every other
- * supported export. Editorial language: a quiet bordered button group with mono
- * export names and thin separators — no colored dots or filled accent rows.
+ * supported export. Editorial language: a quiet topbar text action with a small
+ * line icon — no boxed button group, colored dots, or filled accent rows.
  *
- * The dropdown is rendered in a body portal so it escapes the button group's
- * `overflow: hidden` clip and any sibling stacking context (the inspector rail
+ * The dropdown is rendered in a body portal so it escapes ancestor clipping
+ * and any sibling stacking context (the inspector rail
  * used to paint over it). It is positioned against the trigger via fixed
  * coordinates and recomputed on open/scroll/resize.
  */
@@ -175,12 +177,16 @@ export default function ExportMenu({
       ref={wrapRef}
       style={{
         position: "relative",
-        display: "flex",
-        alignItems: "stretch",
-        background: UI_COLORS.controlSurface,
-        border: `1px solid ${UI_COLORS.controlBorder}`,
-        borderRadius: 4,
-        overflow: "hidden",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 9,
+        color: UI_COLORS.textSubtle,
+        fontFamily: "var(--app-font-mono)",
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: "0.18em",
+        textTransform: "uppercase",
+        whiteSpace: "nowrap",
       }}
     >
       <button
@@ -188,24 +194,30 @@ export default function ExportMenu({
         onClick={handlePrimary}
         disabled={isLoading}
         style={{
-          padding: "7px 15px",
+          width: PRIMARY_ACTION_WIDTH,
+          flex: `0 0 ${PRIMARY_ACTION_WIDTH}px`,
+          minHeight: 28,
+          padding: 0,
           background: "transparent",
           border: "none",
-          color: isCurrentLoading ? UI_COLORS.textMuted : UI_COLORS.text,
+          color: isCurrentLoading ? UI_COLORS.textMuted : "inherit",
           fontFamily: "var(--app-font-mono)",
           fontSize: 11,
-          fontWeight: 500,
+          fontWeight: 600,
           cursor: isLoading ? "wait" : "pointer",
-          letterSpacing: "0.04em",
-          transition: "background 0.12s",
+          letterSpacing: "0.18em",
+          textAlign: "right",
+          textTransform: "uppercase",
+          transition: "color 0.2s ease, transform 0.2s ease",
         }}
         onMouseEnter={(e) => {
           if (!isLoading)
-            (e.currentTarget as HTMLElement).style.background =
-              UI_COLORS.hoverSurface;
+            (e.currentTarget as HTMLElement).style.color =
+              UI_COLORS.accentText;
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.background = "transparent";
+          if (!isCurrentLoading)
+            (e.currentTarget as HTMLElement).style.color = "inherit";
         }}
       >
         {isCurrentLoading
@@ -216,29 +228,33 @@ export default function ExportMenu({
                 : `export.${state.activeTab}`,
             )}
       </button>
-      <div style={{ width: 1, background: UI_COLORS.border, flexShrink: 0 }} />
       <button
         data-testid="btn-export-menu-toggle"
         onClick={() => setOpen((v) => !v)}
         style={{
-          padding: "7px 10px",
+          minWidth: 22,
+          minHeight: 28,
+          padding: 0,
           background: "transparent",
           border: "none",
-          color: UI_COLORS.textMuted,
-          fontSize: 11,
+          color: "inherit",
+          fontSize: 12,
           cursor: "pointer",
-          fontFamily: "inherit",
-          transition: "color 0.12s",
+          fontFamily: "var(--app-font-mono)",
+          lineHeight: 1,
+          transition: "color 0.2s ease, transform 0.2s ease",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.color = UI_COLORS.textSoft;
+          (e.currentTarget as HTMLElement).style.color = UI_COLORS.accentText;
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.color = UI_COLORS.textMuted;
+          (e.currentTarget as HTMLElement).style.color = "inherit";
         }}
         aria-label={t("export.moreOptions")}
       >
-        ▾
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </button>
       {open &&
         menuPos &&

@@ -65,6 +65,18 @@ const exportStageStyle: React.CSSProperties = {
   zIndex: -1,
 };
 
+export function stateForLocaleChange(
+  current: OverlayState,
+  locale: keyof typeof DEFAULT_STATE_BY_LOCALE,
+): OverlayState {
+  return {
+    ...DEFAULT_STATE_BY_LOCALE[locale],
+    theme: current.theme,
+    colors: { ...current.colors },
+    activeTab: current.activeTab,
+  };
+}
+
 export const PREVIEW_HEADER_STYLES = {
   header: {
     display: "flex",
@@ -189,7 +201,7 @@ export default function App() {
   useEffect(() => {
     if (prevLocaleRef.current !== locale) {
       prevLocaleRef.current = locale;
-      setState({ ...DEFAULT_STATE_BY_LOCALE[locale], activeTab: state.activeTab });
+      setStateRaw((current) => stateForLocaleChange(current, locale));
     }
   }, [locale]);
 

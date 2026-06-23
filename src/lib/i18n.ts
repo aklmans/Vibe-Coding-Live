@@ -6,6 +6,8 @@ export const dict = {
     "topbar.search": "搜索…",
     "topbar.commandPalette": "命令面板",
     "topbar.settings": "设置",
+    "topbar.quickTools": "快速工具",
+    "topbar.themeToggle": "切换主题",
 
     // ─── Tabs / tab badges ────────────────────────────────────────────
     "tab.overlay": "合成画面",
@@ -303,6 +305,8 @@ export const dict = {
     "topbar.search": "Search…",
     "topbar.commandPalette": "Command palette",
     "topbar.settings": "Settings",
+    "topbar.quickTools": "Quick tools",
+    "topbar.themeToggle": "Toggle theme",
 
     // ─── Tabs / tab badges ────────────────────────────────────────────
     "tab.overlay": "Overlay",
