@@ -794,6 +794,14 @@ function PreviewFrame({
         justifyContent: "center",
         overflow: "hidden",
         position: "relative",
+        // Complete editorial frame around the preview stage so the canvas reads
+        // as bounded (not floating) — especially in Light where the warm-paper
+        // canvas matches the shell surface. A hairline only: no fill, no shadow.
+        // Shared by every canvas tab (Overlay / Cover / Poster / Wallpaper) and
+        // never part of the exported PNG, which renders from offscreen nodes.
+        border: `1px solid ${UI_COLORS.border}`,
+        borderRadius: 2,
+        boxSizing: "border-box",
       }}
     >
       {/* Outer wrapper sized to scaled dimensions */}
