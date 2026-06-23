@@ -99,3 +99,41 @@ test("reset dialog typography uses the actual app mono family without Chinese-ho
   assert.doesNotMatch(alertSource, /\buppercase\b/);
   assert.doesNotMatch(alertSource, /tracking-\[0\.12em\]/);
 });
+
+test("badge rows use display-label wording, not social-label wording", () => {
+  const source = readFileSync(resolve("src/components/BadgesEditor.tsx"), "utf8");
+
+  assert.match(source, /FieldLine label=\{t\("label\.displayLabel"\)\}/);
+  assert.doesNotMatch(source, /FieldLine label=\{t\("label\.socialLabel"\)\}/);
+});
+
+test("right inspector editors use the inspector line segmented control", () => {
+  const files = [
+    "src/components/BadgesEditor.tsx",
+    "src/components/SocialsEditor.tsx",
+    "src/components/BottomBarSegmentEditor.tsx",
+    "src/components/inspector/groups/OverlayInspector.tsx",
+    "src/components/inspector/groups/WallpaperInspector.tsx",
+  ];
+
+  for (const file of files) {
+    const source = readFileSync(resolve(file), "utf8");
+    assert.doesNotMatch(source, /WorkbenchSegmented/);
+    assert.match(source, /LineSegmented/);
+  }
+});
+
+test("bottom bar helper notes are ruled, not filled inset boxes", () => {
+  const source = readFileSync(resolve("src/components/BottomBarSegmentEditor.tsx"), "utf8");
+
+  assert.doesNotMatch(source, /workbenchNoteStyle/);
+  assert.match(source, /RuleNote/);
+});
+
+test("stack bare tool glyphs keep a generous hit target", () => {
+  const source = readFileSync(resolve("src/components/StackEditor.tsx"), "utf8");
+
+  assert.match(source, /minWidth:\s*30/);
+  assert.match(source, /minHeight:\s*30/);
+  assert.match(source, /border:\s*"none"/);
+});

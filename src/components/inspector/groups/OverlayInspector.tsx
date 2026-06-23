@@ -5,8 +5,8 @@ import InspectorGroup from "../InspectorGroup";
 import {
   ToggleButton,
   WorkbenchLabel,
-  WorkbenchSegmented,
 } from "../../shared/Field";
+import { LineSegmented } from "../EditorRow";
 import SidebarSectionEditor from "../../SidebarSectionEditor";
 import LiveSessionEditor from "../../LiveSessionEditor";
 import StackEditor from "../../StackEditor";
@@ -17,12 +17,6 @@ interface OverlayInspectorProps {
   state: OverlayState;
   onChange: (state: OverlayState) => void;
 }
-
-const SECTION_ACCENTS = [
-  UI_COLORS.sectionAccent,
-  UI_COLORS.danger,
-  UI_COLORS.sectionAccentWarm,
-] as const;
 
 export default function OverlayInspector({
   state,
@@ -85,7 +79,7 @@ export default function OverlayInspector({
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <WorkbenchLabel>{t("label.activeSection")}</WorkbenchLabel>
-          <WorkbenchSegmented
+          <LineSegmented
             active={String(state.sidebar.activeSection)}
             onSelect={(value) =>
               onChange(
@@ -100,28 +94,50 @@ export default function OverlayInspector({
           />
         </div>
 
-        {state.sidebar.sections.map((_, idx) => (
-          <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: SECTION_ACCENTS[idx],
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                marginTop: 4,
-              }}
-            >
-              {`${t("label.section")} ${idx + 1}`}
-            </span>
-            <SidebarSectionEditor
-              state={state}
-              onChange={onChange}
-              index={idx}
-              accentColor={SECTION_ACCENTS[idx]}
-            />
-          </div>
-        ))}
+        {state.sidebar.sections.map((_, idx) => {
+          // One primary accent across all sections; only the active section is
+          // marked — no per-section rainbow.
+          const isActive = idx === state.sidebar.activeSection;
+          return (
+            <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginTop: idx === 0 ? 2 : 6,
+                }}
+              >
+                <div
+                  style={{
+                    width: 2,
+                    height: 11,
+                    background: isActive ? UI_COLORS.accent : UI_COLORS.rule,
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: "var(--app-font-mono)",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: isActive ? UI_COLORS.text : UI_COLORS.textMuted,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {`${t("label.section")} ${idx + 1}`}
+                </span>
+              </div>
+              <SidebarSectionEditor
+                state={state}
+                onChange={onChange}
+                index={idx}
+                accentColor={UI_COLORS.accent}
+              />
+            </div>
+          );
+        })}
       </InspectorGroup>
 
       <InspectorGroup

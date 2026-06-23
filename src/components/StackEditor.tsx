@@ -1,9 +1,9 @@
 import { useState } from "react";
 import type { OverlayState } from "../types";
-import { UI_COLORS, cssAlpha } from "../lib/design-tokens";
+import { UI_COLORS } from "../lib/design-tokens";
 import { patchSection } from "../lib/state";
 import { useLocale } from "../hooks/useLocale";
-import { TextInput, WorkbenchButton } from "./shared/Field";
+import { TextInput } from "./shared/Field";
 
 interface StackEditorProps {
   state: OverlayState;
@@ -52,31 +52,31 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
             data-testid={`stack-remove-${idx}`}
             onClick={() => removeItem(idx)}
             title={t("btn.remove")}
+            aria-label={t("btn.remove")}
             style={{
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              border: `1px solid ${UI_COLORS.controlBorder}`,
-              background: UI_COLORS.controlSurface,
-              color: UI_COLORS.textMuted,
+              // A bare tool glyph, not a boxed button — hairline editing rhythm.
+              width: 30,
+              minWidth: 30,
+              height: 30,
+              minHeight: 30,
+              border: "none",
+              background: "transparent",
+              color: UI_COLORS.textSubtle,
               cursor: "pointer",
               fontFamily: "inherit",
-              fontSize: 14,
+              fontSize: 16,
+              lineHeight: 1,
               flexShrink: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              transition: "color 0.12s",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.color = UI_COLORS.danger;
-              (e.currentTarget as HTMLElement).style.borderColor = cssAlpha(
-                UI_COLORS.danger,
-                38,
-              );
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.color = UI_COLORS.textMuted;
-              (e.currentTarget as HTMLElement).style.borderColor = UI_COLORS.controlBorder;
+              (e.currentTarget as HTMLElement).style.color = UI_COLORS.textSubtle;
             }}
           >
             ×
@@ -98,24 +98,34 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
           placeholder={t("stackEditor.placeholder")}
           style={{ flex: 1, borderStyle: "dashed" }}
         />
-        <WorkbenchButton
-          testId="stack-add"
+        <button
+          data-testid="stack-add"
           onClick={addItem}
           disabled={!draft.trim()}
-          accentColor={UI_COLORS.sectionAccent}
-          tone="accent"
+          title={t("btn.add")}
+          aria-label={t("btn.add")}
           style={{
-            width: 28,
-            height: 28,
-            fontSize: 16,
+            // Matching bare "+" tool glyph: the single accent only when armed.
+            width: 30,
+            minWidth: 30,
+            height: 30,
+            minHeight: 30,
+            border: "none",
+            background: "transparent",
+            color: draft.trim() ? UI_COLORS.accentText : UI_COLORS.textSubtle,
+            cursor: draft.trim() ? "pointer" : "not-allowed",
+            fontFamily: "inherit",
+            fontSize: 18,
+            lineHeight: 1,
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            transition: "color 0.12s",
           }}
         >
           +
-        </WorkbenchButton>
+        </button>
       </div>
     </div>
   );

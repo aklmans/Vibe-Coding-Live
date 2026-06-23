@@ -10,9 +10,8 @@ import { useLocale } from "../hooks/useLocale";
 import {
   TextInput,
   WorkbenchLabel,
-  WorkbenchSegmented,
-  workbenchNoteStyle,
 } from "./shared/Field";
+import { LineSegmented, RuleNote } from "./inspector/EditorRow";
 
 interface BottomBarSegmentEditorProps {
   state: OverlayState;
@@ -48,7 +47,7 @@ export default function BottomBarSegmentEditor({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {/* Kind picker */}
-      <WorkbenchSegmented
+      <LineSegmented
         active={slot.kind}
         onSelect={(value) => setKind(value as BottomBarKind)}
         options={getBottomBarKindOptions(locale).map((opt) => ({
@@ -60,13 +59,13 @@ export default function BottomBarSegmentEditor({
 
       {/* Kind-specific fields */}
       {slot.kind === "live" && (
-        <div style={workbenchNoteStyle}>
+        <RuleNote>
           {t("segmentEditor.liveDesc")}
-        </div>
+        </RuleNote>
       )}
 
       {slot.kind === "progress" && (
-        <WorkbenchSegmented
+        <LineSegmented
           active={String(slot.sectionIndex)}
           onSelect={(value) => writeSlot({ ...slot, sectionIndex: Number(value) })}
           options={state.sidebar.sections.map((section, sIdx) => ({
@@ -78,15 +77,15 @@ export default function BottomBarSegmentEditor({
       )}
 
       {slot.kind === "stack" && (
-        <div style={workbenchNoteStyle}>
+        <RuleNote>
           {t("segmentEditor.stackDesc")}
-        </div>
+        </RuleNote>
       )}
 
       {slot.kind === "topic" && (
-        <div style={workbenchNoteStyle}>
+        <RuleNote>
           {t("segmentEditor.mirrorDesc")}
-        </div>
+        </RuleNote>
       )}
 
       {slot.kind === "text" && (

@@ -2,7 +2,7 @@ import type { OverlayState } from "../../types";
 import { UI_COLORS } from "../../lib/design-tokens";
 import { patchSection } from "../../lib/state";
 import AvatarUploader from "../shared/AvatarUploader";
-import { SectionInput, WorkbenchLabel, workbenchNoteStyle } from "../shared/Field";
+import { SectionInput, WorkbenchLabel } from "../shared/Field";
 import BadgesEditor from "../BadgesEditor";
 import { useLocale } from "../../hooks/useLocale";
 
@@ -69,7 +69,12 @@ export default function BrandIdentityEditor({
 
       <div
         style={{
-          ...workbenchNoteStyle,
+          // A left-ruled editorial aside instead of a filled note box.
+          fontSize: 11,
+          color: UI_COLORS.textMuted,
+          lineHeight: 1.5,
+          paddingLeft: 10,
+          borderLeft: `2px solid ${UI_COLORS.rule}`,
         }}
       >
         {t("brandIdentity.note")}

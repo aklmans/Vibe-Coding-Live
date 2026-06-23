@@ -9,7 +9,13 @@ import {
 import { UI_COLORS } from "../lib/design-tokens";
 import { useLocale } from "../hooks/useLocale";
 import { editorialPalette } from "./lib/editorial-palette";
-import { TextInput, ToggleButton, WorkbenchSegmented } from "./shared/Field";
+import { TextInput, ToggleButton } from "./shared/Field";
+import {
+  EditorRow,
+  FieldLine,
+  FIELD_CONTENT_INSET,
+  LineSegmented,
+} from "./inspector/EditorRow";
 
 interface SocialsEditorProps {
   state: OverlayState;
@@ -19,8 +25,9 @@ interface SocialsEditorProps {
 
 /**
  * Editor for the social-link list shown in Sidebar / Overlay sidebar / Poster
- * footer. Each row: visibility toggle + kind picker + label + value (URL or
- * handle), plus a custom color field when kind === "custom".
+ * footer. A ruled spec-sheet list: index gutter + live label identity +
+ * visibility on the right, with the kind picker and label / value (and a custom
+ * colour when kind === "custom") aligned into stable columns below. No cards.
  */
 export default function SocialsEditor({
   state,
@@ -37,60 +44,30 @@ export default function SocialsEditor({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       {state.cover.socials.map((social, idx) => (
-        <div
+        <EditorRow
           key={idx}
-          style={{
-            background: UI_COLORS.inputInset,
-            border: `1px solid ${UI_COLORS.controlBorder}`,
-            borderRadius: 6,
-            padding: 10,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            opacity: social.visible ? 1 : 0.55,
-          }}
+          index={idx + 1}
+          dimmed={!social.visible}
+          title={social.label || `${t("label.social")} ${idx + 1}`}
+          action={
+            <ToggleButton
+              label=""
+              checked={social.visible}
+              onChange={(visible) => updateSocial(idx, { visible })}
+              testId={`${testIdPrefix}-${idx}-visible`}
+            />
+          }
         >
-          {/* Row 1: kind summary + visibility toggle */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <span
-              style={{
-                flex: 1,
-                fontSize: 12,
-                fontWeight: 600,
-                color: UI_COLORS.textSoft,
-                letterSpacing: "0.04em",
-              }}
-            >
-              {social.label || `${t("label.social")} ${idx + 1}`}
-            </span>
-            <div style={{ width: 38, flexShrink: 0 }}>
-              <ToggleButton
-                label=""
-                checked={social.visible}
-                onChange={(visible) => updateSocial(idx, { visible })}
-                testId={`${testIdPrefix}-${idx}-visible`}
-              />
-            </div>
-          </div>
-
-          {/* Row 2: kind picker (wraps onto two rows when narrow) */}
-          <WorkbenchSegmented
+          <LineSegmented
             active={social.kind}
             columns={4}
             onSelect={(value) => {
               const kind = value as SocialKind;
               const patch: Partial<SocialConfig> = { kind };
-              // Only refresh the label when the user is rotating between
-              // presets. Keep custom labels intact when they switch *to*
-              // custom from a preset.
+              // Only refresh the label when rotating between presets. Keep a
+              // custom label intact when switching *to* custom from a preset.
               if (kind !== "custom") {
                 patch.label = defaultSocialLabel(kind, locale);
               } else if (!social.label.trim()) {
@@ -105,39 +82,36 @@ export default function SocialsEditor({
             }))}
           />
 
-          {/* Row 3: label */}
-          <TextInput
-            testId={`${testIdPrefix}-${idx}-label`}
-            value={social.label}
-            onChange={(label) => updateSocial(idx, { label })}
-            placeholder={t("label.socialLabel")}
-          />
+          <FieldLine label={t("label.socialLabel")}>
+            <TextInput
+              testId={`${testIdPrefix}-${idx}-label`}
+              value={social.label}
+              onChange={(label) => updateSocial(idx, { label })}
+              placeholder={t("label.socialLabel")}
+            />
+          </FieldLine>
 
-          {/* Row 4: value (URL / handle / id) */}
-          <TextInput
-            testId={`${testIdPrefix}-${idx}-value`}
-            value={social.value}
-            onChange={(value) => updateSocial(idx, { value })}
-            placeholder={t("label.socialValue")}
-            mono
-          />
+          <FieldLine label={t("label.socialValue")}>
+            <TextInput
+              testId={`${testIdPrefix}-${idx}-value`}
+              value={social.value}
+              onChange={(value) => updateSocial(idx, { value })}
+              placeholder={t("label.socialValue")}
+              mono
+            />
+          </FieldLine>
 
-          {/* Row 5: custom color (only when kind === custom) */}
+          {/* Custom colour: a compact inline control aligned to the field
+              column — swatch + label + hex, no boxed card. */}
           {social.kind === "custom" && (
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                paddingTop: 4,
+                paddingLeft: FIELD_CONTENT_INSET,
               }}
             >
-              <span
-                style={{ flex: 1, fontSize: 11, color: UI_COLORS.accent }}
-                title="Drives chip text/border/fill colors"
-              >
-                {t("label.customColor")}
-              </span>
               <input
                 data-testid={`${testIdPrefix}-${idx}-color`}
                 type="color"
@@ -146,21 +120,40 @@ export default function SocialsEditor({
                   updateSocial(idx, { customColor: e.target.value })
                 }
                 style={{
-                  width: 28,
-                  height: 24,
+                  width: 22,
+                  height: 18,
                   border: `1px solid ${UI_COLORS.controlBorder}`,
-                  borderRadius: 4,
+                  borderRadius: 3,
                   padding: 1,
-                  background: UI_COLORS.inputInset,
+                  background: "transparent",
                   cursor: "pointer",
+                  flexShrink: 0,
                 }}
               />
-              <span style={{ fontSize: 11, color: UI_COLORS.accent, fontFamily: "monospace" }}>
+              <span
+                style={{
+                  fontFamily: "var(--app-font-mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: UI_COLORS.textMuted,
+                }}
+              >
+                {t("label.customColor")}
+              </span>
+              <span
+                style={{
+                  marginLeft: "auto",
+                  fontSize: 11,
+                  fontFamily: "var(--app-font-mono)",
+                  color: UI_COLORS.textSubtle,
+                }}
+              >
                 {social.customColor || "—"}
               </span>
             </div>
           )}
-        </div>
+        </EditorRow>
       ))}
     </div>
   );

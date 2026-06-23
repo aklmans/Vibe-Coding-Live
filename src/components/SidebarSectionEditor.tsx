@@ -75,18 +75,22 @@ export default function SidebarSectionEditor({
             <button
               onClick={() => toggleBulletDone(i)}
               title={done ? t("btn.markUndone") : t("btn.markDone")}
+              aria-pressed={done}
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 6,
-                border: `1px solid ${done ? cssAlpha(accentColor, 38) : UI_COLORS.controlBorder}`,
-                background: done ? cssAlpha(accentColor, 14) : UI_COLORS.controlSurface,
+                // A quiet hairline checkbox, not a filled app button: the single
+                // accent only tints it once the bullet is marked done.
+                width: 22,
+                height: 22,
+                borderRadius: 3,
+                border: `1px solid ${done ? cssAlpha(accentColor, 50) : UI_COLORS.controlBorder}`,
+                background: done ? cssAlpha(accentColor, 12) : "transparent",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
-                marginBottom: 1,
+                marginBottom: 3,
+                transition: "border-color 0.12s, background 0.12s",
               }}
             >
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none">

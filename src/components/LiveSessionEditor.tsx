@@ -64,7 +64,7 @@ export default function LiveSessionEditor({
         <WorkbenchButton
           testId="live-start-now"
           onClick={() => writeStart(new Date().toISOString())}
-          accentColor={UI_COLORS.sectionAccent}
+          accentColor={UI_COLORS.accent}
           tone="accent"
           style={{ flex: 1, padding: "0 10px" }}
         >

@@ -2,7 +2,8 @@ import type { OverlayState } from "../../../types";
 import { patchSection } from "../../../lib/state";
 import InspectorGroup from "../InspectorGroup";
 import BrandIdentityEditor from "../BrandIdentityEditor";
-import { SectionInput, ToggleButton, WorkbenchSegmented } from "../../shared/Field";
+import { SectionInput, ToggleButton } from "../../shared/Field";
+import { LineSegmented } from "../EditorRow";
 import { WALLPAPER_PRESETS, getPresetLabels, type WallpaperPresetId } from "../../../lib/wallpaper";
 import { useLocale } from "../../../hooks/useLocale";
 
@@ -50,7 +51,7 @@ export default function WallpaperInspector({
         hint={t("group.previewSize.hint")}
         testId="group-wallpaper-size"
       >
-        <WorkbenchSegmented
+        <LineSegmented
           active={wallpaper.previewPresetId}
           columns={3}
           onSelect={(value) => setPreset(value as WallpaperPresetId)}

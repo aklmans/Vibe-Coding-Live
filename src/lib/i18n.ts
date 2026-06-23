@@ -106,6 +106,7 @@ export const dict = {
     "btn.markDone": "标记完成",
     "btn.markUndone": "标记未完成",
     "btn.remove": "移除",
+    "btn.add": "添加",
 
     // ─── Settings ────────────────────────────────────────────────────
     "settings.title": "设置",
@@ -402,6 +403,7 @@ export const dict = {
     "btn.markDone": "Mark done",
     "btn.markUndone": "Mark undone",
     "btn.remove": "Remove",
+    "btn.add": "Add",
 
     // ─── Settings ────────────────────────────────────────────────────
     "settings.title": "Settings",

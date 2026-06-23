@@ -81,17 +81,27 @@ export default function InspectorGroup({
             </span>
           )}
         </div>
-        <span
+        <svg
           aria-hidden
+          width="9"
+          height="9"
+          viewBox="0 0 9 9"
+          fill="none"
           style={{
-            fontSize: 13,
-            color: UI_COLORS.textSubtle,
+            flexShrink: 0,
+            color: hover ? UI_COLORS.accentText : UI_COLORS.textSubtle,
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.18s",
+            transition: "transform 0.18s, color 0.12s",
           }}
         >
-          ⌄
-        </span>
+          <path
+            d="M1.5 3L4.5 6L7.5 3"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </button>
       {open && (
         <div
