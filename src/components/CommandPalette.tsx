@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Command } from "cmdk";
 import type { OverlayState } from "../types";
-import { UI_COLORS } from "../lib/design-tokens";
+import { cssAlpha, UI_COLORS } from "../lib/design-tokens";
 import { patchSection, produceState } from "../lib/state";
 import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
 import { useLocale } from "../hooks/useLocale";
@@ -115,22 +115,29 @@ export default function CommandPalette({
   return (
     <>
       <style>{`
-        [cmdk-item=""][data-selected="true"] {
+        [cmdk-item=""][data-selected="true"] [data-item-shell] {
           background: ${UI_COLORS.hoverSurface};
-          box-shadow: inset 2px 0 0 ${UI_COLORS.accent};
+          box-shadow: inset 1.5px 0 0 ${UI_COLORS.accent};
+          color: ${UI_COLORS.text};
         }
         [cmdk-item=""][data-disabled="true"] {
           opacity: 0.5;
           pointer-events: none;
         }
+        [cmdk-group=""] + [cmdk-group=""] {
+          border-top: 0.5px solid ${UI_COLORS.border};
+        }
         [cmdk-group-heading=""] {
           font-family: var(--app-font-mono);
           font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: ${UI_COLORS.textMuted};
-          padding: 10px 14px 5px;
+          color: ${UI_COLORS.textSubtle};
+          padding: 12px 20px 6px;
+        }
+        [cmdk-group-heading=""]::before {
+          content: "— ";
         }
       `}</style>
 
@@ -140,7 +147,8 @@ export default function CommandPalette({
         style={{
           position: "fixed",
           inset: 0,
-          background: UI_COLORS.overlayScrim,
+          background: cssAlpha(UI_COLORS.shellBg, 72),
+          backdropFilter: "blur(10px) saturate(1.08)",
           zIndex: 100,
         }}
       />
@@ -148,16 +156,17 @@ export default function CommandPalette({
       <div
         data-testid="cmdk-dialog"
         role="dialog"
-        aria-label={t("topbar.commandPalette")}
+        aria-label={t("cmdk.label")}
         style={{
           position: "fixed",
-          top: "18vh",
+          top: 80,
           left: "50%",
           transform: "translateX(-50%)",
           width: "min(640px, 92vw)",
+          maxHeight: "min(720px, 82vh)",
           background: UI_COLORS.appSurface,
-          border: `1px solid ${UI_COLORS.border}`,
-          borderRadius: 8,
+          border: `0.5px solid ${UI_COLORS.text}`,
+          borderRadius: 0,
           boxShadow: UI_COLORS.commandShadow,
           zIndex: 110,
           overflow: "hidden",
@@ -176,14 +185,29 @@ export default function CommandPalette({
         >
           <div
             style={{
-              padding: "13px 16px",
-              borderBottom: `1px solid ${UI_COLORS.border}`,
-              display: "flex",
+              display: "grid",
+              gridTemplateColumns: "34px minmax(0, 1fr) auto",
               alignItems: "center",
-              gap: 10,
+              gap: 12,
+              padding: "18px 22px",
+              borderBottom: `1px solid ${UI_COLORS.border}`,
             }}
           >
-            <span style={{ fontSize: 14, color: UI_COLORS.textMuted }}>⌕</span>
+            <span
+              aria-hidden
+              style={{
+                display: "grid",
+                placeItems: "center",
+                width: 34,
+                height: 34,
+                color: UI_COLORS.textSubtle,
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" style={{ width: 25, height: 25 }}>
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" />
+              </svg>
+            </span>
             <Command.Input
               ref={inputRef}
               data-testid="cmdk-input"
@@ -197,8 +221,9 @@ export default function CommandPalette({
                 border: "none",
                 outline: "none",
                 color: UI_COLORS.text,
-                fontSize: 14,
-                fontFamily: "inherit",
+                fontSize: "1.28rem",
+                lineHeight: 1.2,
+                fontFamily: "var(--app-font-serif)",
               }}
             />
             <Kbd>esc</Kbd>
@@ -206,15 +231,17 @@ export default function CommandPalette({
 
           <Command.List
             style={{
-              maxHeight: "60vh",
+              flex: 1,
+              maxHeight: "54vh",
               overflowY: "auto",
-              padding: "6px 6px 8px",
+              padding: "10px 0",
             }}
           >
             <Command.Empty
               style={{
                 padding: "20px 16px",
-                fontSize: 13,
+                fontSize: "1.2rem",
+                fontFamily: "var(--app-font-serif)",
                 color: UI_COLORS.textMuted,
                 textAlign: "center",
               }}
@@ -407,13 +434,20 @@ export default function CommandPalette({
 
           <div
             style={{
-              padding: "8px 14px",
+              justifyContent: "space-between",
+              padding: "14px 22px",
               borderTop: `1px solid ${UI_COLORS.border}`,
               display: "flex",
               alignItems: "center",
-              gap: 14,
-              fontSize: 11,
-              color: UI_COLORS.textMuted,
+              flexWrap: "wrap",
+              gap: 16,
+              color: UI_COLORS.textSubtle,
+              fontFamily: "var(--app-font-mono)",
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              lineHeight: 1.5,
             }}
           >
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -425,7 +459,7 @@ export default function CommandPalette({
               <Kbd>↵</Kbd>
               <span>{t("cmdk.select")}</span>
             </span>
-            <span style={{ marginLeft: "auto" }}>
+            <span>
               {Mod}K {t("cmdk.toggleHint")}
             </span>
           </div>
@@ -466,7 +500,7 @@ function Group({ heading, children }: GroupProps) {
   return (
     <Command.Group
       heading={heading}
-      style={{ padding: "6px 0" }}
+      style={{ padding: "4px 0" }}
     >
       {children}
     </Command.Group>
@@ -495,39 +529,52 @@ function Item({
   return (
     <Command.Item
       data-testid={testId}
+      data-current={active ? "true" : undefined}
       value={value}
       onSelect={onSelect}
       style={{
-          padding: "8px 12px",
-          margin: "0 6px",
-          borderRadius: 6,
-          cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 10,
-        fontSize: 13,
+        display: "block",
+        padding: 0,
+        margin: 0,
+        borderRadius: 0,
+        cursor: "pointer",
         color: tone === "danger" ? UI_COLORS.danger : UI_COLORS.text,
-        border: "1px solid transparent",
-        transition: "background 0.12s, border-color 0.12s, color 0.12s",
+        border: "none",
+        transition: "background 0.12s, box-shadow 0.12s, color 0.12s",
       }}
     >
-      <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {active && (
-          <span
-            aria-hidden
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: "50%",
-              background: UI_COLORS.accent,
-              flexShrink: 0,
-            }}
-          />
-        )}
-        {children}
+      <span
+        data-item-shell
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) auto",
+          alignItems: "center",
+          gap: 12,
+          padding: "14px 22px",
+          borderLeft: "1.5px solid transparent",
+          color: "inherit",
+          transition: "background 0.12s, box-shadow 0.12s, color 0.12s",
+        }}
+      >
+        <span
+          data-item-title
+          style={{
+            minWidth: 0,
+            fontFamily: "var(--app-font-serif)",
+            fontSize: "1.02rem",
+            fontStyle: "normal",
+            lineHeight: 1.25,
+          }}
+        >
+          {children}
+          {active && (
+            <span aria-hidden style={{ color: UI_COLORS.accent, marginLeft: 8 }}>
+              •
+            </span>
+          )}
+        </span>
+        {shortcut && <Kbd>{shortcut}</Kbd>}
       </span>
-      {shortcut && <Kbd>{shortcut}</Kbd>}
     </Command.Item>
   );
 }
@@ -539,11 +586,13 @@ function Kbd({ children }: { children: React.ReactNode }) {
         fontFamily: "var(--app-font-mono)",
         fontSize: 10,
         padding: "2px 6px",
-        borderRadius: 3,
+        borderRadius: 2,
         border: `1px solid ${UI_COLORS.controlBorder}`,
         background: UI_COLORS.inputInset,
-        color: UI_COLORS.accentText,
-        letterSpacing: "0.04em",
+        color: UI_COLORS.text,
+        fontWeight: 600,
+        letterSpacing: "0.06em",
+        lineHeight: 1,
       }}
     >
       {children}

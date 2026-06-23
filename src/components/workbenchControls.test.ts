@@ -7,6 +7,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { cssAlpha, UI_COLORS } from "../lib/design-tokens";
 import { dict } from "../lib/i18n";
+import { LocaleProvider } from "../hooks/useLocale";
+import { DEFAULT_STATE } from "../types";
+import CommandPalette from "./CommandPalette";
+import SettingsDrawer from "./SettingsDrawer";
 import { SectionInput, ToggleButton } from "./shared/Field";
 
 test("shared text inputs use the editorial inset control surface", () => {
@@ -86,6 +90,86 @@ test("command palette uses the localized Vibe Coding Live label", () => {
   assert.equal(en["cmdk.label"], "Vibe Coding Live command palette");
   assert.match(source, /label=\{t\("cmdk\.label"\)\}/);
   assert.doesNotMatch(source, /Vibe Overlay command palette/);
+});
+
+test("settings drawer uses ruled selectors and color rows instead of shared pills", () => {
+  const source = readFileSync(resolve("src/components/SettingsDrawer.tsx"), "utf8");
+
+  assert.doesNotMatch(source, /WorkbenchSegmented/);
+  assert.doesNotMatch(source, /ColorInput/);
+  assert.match(source, /function SettingsSelector/);
+  assert.match(source, /function ColorRow/);
+  assert.match(source, /boxShadow:\s*isActive\s*\?\s*`inset 0 -2px 0 \$\{UI_COLORS\.accent\}`/);
+  assert.match(source, /gridTemplateColumns:\s*"minmax\(0, 1fr\) auto auto"/);
+});
+
+test("settings drawer renders semantic ruled controls for selectors and colors", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "zh",
+      persist: false,
+      children: React.createElement(SettingsDrawer, {
+        open: true,
+        state: DEFAULT_STATE,
+        onClose: () => {},
+        onChange: () => {},
+        onReset: () => {},
+      }),
+    }),
+  );
+
+  assert.match(html, /data-testid="locale-zh"[^>]*aria-pressed="true"/);
+  assert.match(html, /data-testid="locale-en"[^>]*aria-pressed="false"/);
+  assert.match(html, /data-testid="theme-dark"[^>]*aria-pressed="true"/);
+  assert.match(html, /data-testid="color-bg-dark"[^>]*type="color"/);
+  assert.match(html, /#1a1a1a/i);
+  assert.doesNotMatch(html, /role="switch"[^>]*data-testid="locale-/);
+});
+
+test("command palette follows the website search overlay structure", () => {
+  const source = readFileSync(resolve("src/components/CommandPalette.tsx"), "utf8");
+
+  assert.doesNotMatch(source, /borderRadius:\s*6/);
+  assert.match(source, /top:\s*80/);
+  assert.match(source, /border:\s*`0\.5px solid \$\{UI_COLORS\.text\}`/);
+  assert.match(source, /gridTemplateColumns:\s*"34px minmax\(0, 1fr\) auto"/);
+  assert.match(source, /fontFamily:\s*"var\(--app-font-serif\)"/);
+  assert.match(source, /box-shadow: inset 1\.5px 0 0 \$\{UI_COLORS\.accent\};/);
+  assert.match(source, /borderLeft:\s*"1\.5px solid transparent"/);
+  assert.match(source, /background:\s*UI_COLORS\.inputInset/);
+});
+
+test("command palette renders like an editorial search popup", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "en",
+      persist: false,
+      children: React.createElement(CommandPalette, {
+        open: true,
+        state: { ...DEFAULT_STATE, theme: "light", activeTab: "poster" },
+        onClose: () => {},
+        onChange: () => {},
+        onExportOverlay: () => {},
+        onExportCover: () => {},
+        onExportPoster: () => {},
+        onExportWallpaper: () => {},
+        onExportSidebar: () => {},
+        onExportBottomBar: () => {},
+        onOpenSettings: () => {},
+        onReset: () => {},
+      }),
+    }),
+  );
+
+  assert.match(html, /data-testid="cmdk-dialog"[^>]*top:80px/);
+  assert.match(html, /data-testid="cmdk-dialog"[^>]*border:0\.5px solid var\(--live-text\)/);
+  assert.match(html, /data-testid="cmdk-dialog"[^>]*border-radius:0/);
+  assert.match(html, /data-testid="cmdk-input"[^>]*font-family:var\(--app-font-serif\)/);
+  assert.match(html, /data-testid="cmdk-tab-poster"/);
+  assert.match(html, /data-current="true"/);
+  assert.match(html, /border-left:1\.5px solid transparent/);
+  assert.match(html, /background:var\(--live-input-inset\)/);
+  assert.doesNotMatch(html, /border-radius:6px/);
 });
 
 test("reset dialog typography uses the actual app mono family without Chinese-hostile title casing", () => {
