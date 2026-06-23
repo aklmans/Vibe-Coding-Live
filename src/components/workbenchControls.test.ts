@@ -260,6 +260,15 @@ test("badge rows use display-label wording, not social-label wording", () => {
   assert.doesNotMatch(source, /FieldLine label=\{t\("label\.socialLabel"\)\}/);
 });
 
+test("badge editor selects registry icons instead of asking for icon URLs", () => {
+  const source = readFileSync(resolve("src/components/BadgesEditor.tsx"), "utf8");
+
+  assert.match(source, /icon-search/);
+  assert.match(source, /BadgeIconChooser/);
+  assert.doesNotMatch(source, /icon-url/);
+  assert.doesNotMatch(source, /label\.iconUrl/);
+});
+
 test("right inspector editors use the inspector line segmented control", () => {
   const files = [
     "src/components/BadgesEditor.tsx",

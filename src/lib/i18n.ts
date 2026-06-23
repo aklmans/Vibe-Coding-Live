@@ -93,11 +93,11 @@ export const dict = {
     "label.badge": "徽标",
     "label.social": "社交",
     "label.displayLabel": "显示名称",
-    "label.iconUrl": "图标 URL",
     "label.socialLabel": "标签",
     "label.socialValue": "值",
     "label.customColor": "自定义颜色",
     "label.custom": "自定义…",
+    "label.search": "搜索",
 
     // ─── Buttons ──────────────────────────────────────────────────────
     "btn.upload": "上传照片",
@@ -270,6 +270,14 @@ export const dict = {
     "badge.gemini": "Gemini",
     "badge.grok": "Grok",
     "badge.custom": "自定义…",
+    "badge.searchPlaceholder": "搜索模型 / 工具…",
+    "badge.mode.mono": "跟随主题",
+    "badge.mode.brand": "品牌色",
+    "badge.category.recommended": "推荐",
+    "badge.category.model": "模型",
+    "badge.category.coding": "编码",
+    "badge.category.provider": "提供方",
+    "badge.category.custom": "自定义",
 
     // ─── Avatar uploader ─────────────────────────────────────────────
     "avatar.showAvatar": "显示头像",
@@ -392,11 +400,11 @@ export const dict = {
     "label.badge": "Badge",
     "label.social": "Social",
     "label.displayLabel": "Display label",
-    "label.iconUrl": "Icon URL",
     "label.socialLabel": "Label",
     "label.socialValue": "Value",
     "label.customColor": "Custom color",
     "label.custom": "Custom…",
+    "label.search": "Search",
 
     // ─── Buttons ──────────────────────────────────────────────────────
     "btn.upload": "Upload Photo",
@@ -569,6 +577,14 @@ export const dict = {
     "badge.gemini": "Gemini",
     "badge.grok": "Grok",
     "badge.custom": "Custom…",
+    "badge.searchPlaceholder": "Search models / tools…",
+    "badge.mode.mono": "Theme",
+    "badge.mode.brand": "Brand",
+    "badge.category.recommended": "Recommended",
+    "badge.category.model": "Model",
+    "badge.category.coding": "Coding",
+    "badge.category.provider": "Provider",
+    "badge.category.custom": "Custom",
 
     // ─── Avatar uploader ─────────────────────────────────────────────
     "avatar.showAvatar": "Show Avatar",

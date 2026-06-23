@@ -6,7 +6,15 @@ import {
   type ThemeMode,
 } from "./lib/theme";
 import { OVERLAY_STATE_STORAGE_KEY } from "./lib/storage-keys";
-import { BADGE_PRESETS, type BadgeConfig, type BadgeKind } from "./lib/badges";
+import {
+  LEGACY_BADGE_KIND_TO_ICON_KEY,
+  badgeLabelForIconKey,
+  isBadgeIconKey,
+  isBadgeIconMode,
+  isLegacyBadgeKind,
+  type BadgeConfig,
+  type BadgeIconKey,
+} from "./lib/badges";
 import {
   isSocialKind,
   type SocialConfig,
@@ -232,30 +240,24 @@ function normalizeTheme(value: unknown, fallback: ThemeMode): ThemeMode {
   return fallback;
 }
 
-const BADGE_KIND_VALUES: BadgeKind[] = [
-  "claude",
-  "codex",
-  "gemini",
-  "grok",
-  "custom",
-];
-
-function normalizeBadgeKind(value: unknown): BadgeKind {
-  return BADGE_KIND_VALUES.includes(value as BadgeKind)
-    ? (value as BadgeKind)
-    : "claude";
-}
-
 function normalizeBadge(value: unknown, fallback: BadgeConfig): BadgeConfig {
   const source = record(value);
   if (!source) return { ...fallback };
-  const kind = normalizeBadgeKind(source.kind);
-  const presetLabel =
-    kind === "custom" ? fallback.label : BADGE_PRESETS[kind].label;
+  const iconKey: BadgeIconKey = isBadgeIconKey(source.iconKey)
+    ? source.iconKey
+    : isLegacyBadgeKind(source.kind)
+      ? LEGACY_BADGE_KIND_TO_ICON_KEY[source.kind]
+      : fallback.iconKey;
+  const iconMode = isBadgeIconMode(source.iconMode)
+    ? source.iconMode
+    : fallback.iconMode;
+  const fallbackLabel = badgeLabelForIconKey(iconKey, fallback.label);
+
   return {
     visible: boolOrDefault(source.visible, fallback.visible),
-    kind,
-    label: stringOrDefault(source.label, presetLabel),
+    iconKey,
+    iconMode,
+    label: stringOrDefault(source.label, fallbackLabel),
     customIconUrl: stringOrDefault(source.customIconUrl, fallback.customIconUrl),
   };
 }

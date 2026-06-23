@@ -114,10 +114,10 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
   cover: {
     title: "Building With Agents",
     badges: [
-      { visible: true, kind: "claude", label: "Claude", customIconUrl: "" },
-      { visible: true, kind: "codex", label: "Codex", customIconUrl: "" },
-      { visible: false, kind: "gemini", label: "Gemini", customIconUrl: "" },
-      { visible: false, kind: "grok", label: "Grok", customIconUrl: "" },
+      { visible: true, iconKey: "claude", iconMode: "brand", label: "Claude", customIconUrl: "" },
+      { visible: true, iconKey: "codex", iconMode: "brand", label: "Codex", customIconUrl: "" },
+      { visible: false, iconKey: "gemini", iconMode: "brand", label: "Gemini", customIconUrl: "" },
+      { visible: false, iconKey: "grok", iconMode: "brand", label: "Grok", customIconUrl: "" },
     ],
     avatarUrl: "/avatar.jpg",
     avatarVisible: true,
@@ -205,10 +205,10 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
     cover: {
       title: "Building With Agents",
       badges: [
-        { visible: true, kind: "claude", label: "Claude", customIconUrl: "" },
-        { visible: true, kind: "codex", label: "Codex", customIconUrl: "" },
-        { visible: false, kind: "gemini", label: "Gemini", customIconUrl: "" },
-        { visible: false, kind: "grok", label: "Grok", customIconUrl: "" },
+        { visible: true, iconKey: "claude", iconMode: "brand", label: "Claude", customIconUrl: "" },
+        { visible: true, iconKey: "codex", iconMode: "brand", label: "Codex", customIconUrl: "" },
+        { visible: false, iconKey: "gemini", iconMode: "brand", label: "Gemini", customIconUrl: "" },
+        { visible: false, iconKey: "grok", iconMode: "brand", label: "Grok", customIconUrl: "" },
       ],
       avatarUrl: "/avatar.jpg",
       avatarVisible: true,

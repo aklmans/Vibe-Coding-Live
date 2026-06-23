@@ -1,8 +1,9 @@
 import type { CSSProperties } from "react";
 import type { BadgeConfig } from "../../lib/badges";
-import { badgeIconUrl } from "../../lib/badges";
 import { truncateLine } from "../../lib/typography";
 import EditableText from "../edit/EditableText";
+import { badgeUsesCombinedBrandMark } from "../../lib/badge-icons";
+import { BadgeIcon } from "./BadgeIcon";
 
 interface BadgeToolbarProps {
   badges: BadgeConfig[];
@@ -69,7 +70,11 @@ export default function BadgeToolbar({
       }}
     >
       {visibleBadges.map(({ badge, originalIdx }, i) => {
-        const iconUrl = badgeIconUrl(badge);
+        const hasCombinedBrandMark = badgeUsesCombinedBrandMark(
+          badge.iconKey,
+          badge.iconMode,
+        );
+
         return (
           <div
             key={originalIdx}
@@ -84,36 +89,33 @@ export default function BadgeToolbar({
                 ×
               </span>
             )}
-            {iconUrl && (
-              <img
-                src={iconUrl}
-                alt={badge.label}
+            <BadgeIcon
+              iconKey={badge.iconKey}
+              mode={badge.iconMode}
+              color={labelColor}
+              size={px(iconSize)}
+              opacity={iconOpacity}
+              label={badge.label}
+            />
+            {!hasCombinedBrandMark && (
+              <EditableText
+                readonly={readonly}
+                value={badge.label}
+                onCommit={(v) => onBadgeLabelChange?.(originalIdx, v)}
+                ariaLabel={`Badge ${i + 1} label`}
                 style={{
-                  width: px(iconSize),
-                  height: px(iconSize),
-                  objectFit: "contain",
-                  opacity: iconOpacity,
+                  ...truncateLine,
+                  fontSize: px(labelFontSize),
+                  color: labelColor,
+                  fontWeight: 500,
+                  letterSpacing: "0.04em",
+                  maxWidth: px(180),
                 }}
               />
             )}
-            <EditableText
-              readonly={readonly}
-              value={badge.label}
-              onCommit={(v) => onBadgeLabelChange?.(originalIdx, v)}
-              ariaLabel={`Badge ${i + 1} label`}
-              style={{
-                ...truncateLine,
-                fontSize: px(labelFontSize),
-                color: labelColor,
-                fontWeight: 500,
-                letterSpacing: "0.04em",
-                maxWidth: px(180),
-              }}
-            />
           </div>
         );
       })}
     </div>
   );
 }
-

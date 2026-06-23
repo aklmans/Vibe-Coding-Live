@@ -1,14 +1,20 @@
+import { useMemo, useState } from "react";
 import type { OverlayState } from "../types";
 import { patchSection } from "../lib/state";
 import {
-  BADGE_PRESETS,
+  BADGE_ICON_REGISTRY,
+  badgeLabelForIconKey,
+  searchBadgeIcons,
   type BadgeConfig,
-  type BadgeKind,
+  type BadgeIconKey,
+  type BadgeIconMode,
 } from "../lib/badges";
 import { UI_COLORS } from "../lib/design-tokens";
+import type { TranslationKey } from "../lib/i18n";
 import { useLocale } from "../hooks/useLocale";
 import { TextInput, ToggleButton } from "./shared/Field";
 import { EditorRow, FieldLine, LineSegmented } from "./inspector/EditorRow";
+import { BadgeIcon } from "./shared/BadgeIcon";
 
 interface BadgesEditorProps {
   state: OverlayState;
@@ -28,12 +34,11 @@ export default function BadgesEditor({
   testIdPrefix = "badge",
 }: BadgesEditorProps) {
   const { t } = useLocale();
-  const KIND_OPTIONS: { value: BadgeKind; label: string }[] = [
-    { value: "claude", label: t("badge.claude") },
-    { value: "codex", label: t("badge.codex") },
-    { value: "gemini", label: t("badge.gemini") },
-    { value: "grok", label: t("badge.grok") },
-    { value: "custom", label: t("badge.custom") },
+  const [queries, setQueries] = useState<Record<number, string>>({});
+
+  const iconModeOptions: { value: BadgeIconMode; label: string }[] = [
+    { value: "mono", label: t("badge.mode.mono") },
+    { value: "brand", label: t("badge.mode.brand") },
   ];
 
   const updateBadge = (idx: number, patch: Partial<BadgeConfig>) => {
@@ -46,10 +51,19 @@ export default function BadgesEditor({
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       {state.cover.badges.map((badge, idx) => {
-        const presetIcon =
-          badge.kind === "custom"
-            ? badge.customIconUrl
-            : BADGE_PRESETS[badge.kind]?.iconUrl ?? "";
+        const query = queries[idx] ?? "";
+        const iconOptions = searchBadgeIcons(query);
+        const label =
+          badge.iconKey === "custom"
+            ? badge.label || t("badge.custom")
+            : BADGE_ICON_REGISTRY[badge.iconKey]?.label ?? badge.label;
+        const categoryLabel =
+          badge.iconKey === "custom"
+            ? t("badge.category.custom")
+            : t(
+                `badge.category.${BADGE_ICON_REGISTRY[badge.iconKey].category}` as TranslationKey,
+              );
+
         return (
           <EditorRow
             key={idx}
@@ -57,31 +71,13 @@ export default function BadgesEditor({
             dimmed={!badge.visible}
             title={
               <>
-                {presetIcon ? (
-                  <img
-                    src={presetIcon}
-                    alt=""
-                    style={{
-                      width: 16,
-                      height: 16,
-                      objectFit: "contain",
-                      flexShrink: 0,
-                    }}
-                  />
-                ) : (
-                  <span
-                    aria-hidden
-                    style={{
-                      width: 16,
-                      textAlign: "center",
-                      color: UI_COLORS.textSubtle,
-                      fontSize: 11,
-                      flexShrink: 0,
-                    }}
-                  >
-                    —
-                  </span>
-                )}
+                <BadgeIcon
+                  iconKey={badge.iconKey}
+                  mode="mono"
+                  color={UI_COLORS.textSoft}
+                  size={16}
+                  label={label}
+                />
                 <span
                   style={{
                     overflow: "hidden",
@@ -90,6 +86,19 @@ export default function BadgesEditor({
                   }}
                 >
                   {badge.label || `${t("label.badge")} ${idx + 1}`}
+                </span>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    fontFamily: "var(--app-font-mono)",
+                    fontSize: 9,
+                    fontWeight: 600,
+                    letterSpacing: "0.06em",
+                    color: UI_COLORS.textSubtle,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {categoryLabel}
                 </span>
               </>
             }
@@ -102,20 +111,41 @@ export default function BadgesEditor({
               />
             }
           >
-            <LineSegmented
-              active={badge.kind}
-              onSelect={(value) => {
-                const kind = value as BadgeKind;
-                const patch: Partial<BadgeConfig> = { kind };
-                if (kind !== "custom") {
-                  patch.label = BADGE_PRESETS[kind].label;
+            <FieldLine label={t("label.search")}>
+              <TextInput
+                testId={`${testIdPrefix}-${idx}-icon-search`}
+                value={query}
+                onChange={(value) =>
+                  setQueries((current) => ({ ...current, [idx]: value }))
                 }
-                updateBadge(idx, patch);
+                placeholder={t("badge.searchPlaceholder")}
+                mono
+              />
+            </FieldLine>
+
+            <BadgeIconChooser
+              active={badge.iconKey}
+              options={iconOptions}
+              testIdPrefix={`${testIdPrefix}-${idx}`}
+              onSelect={(iconKey) => {
+                updateBadge(idx, {
+                  iconKey,
+                  label: badgeLabelForIconKey(iconKey, badge.label),
+                  customIconUrl: "",
+                });
+                setQueries((current) => ({ ...current, [idx]: "" }));
               }}
-              options={KIND_OPTIONS.map((opt) => ({
+            />
+
+            <LineSegmented
+              active={badge.iconMode}
+              onSelect={(value) =>
+                updateBadge(idx, { iconMode: value as BadgeIconMode })
+              }
+              options={iconModeOptions.map((opt) => ({
                 value: opt.value,
                 label: opt.label,
-                testId: `${testIdPrefix}-${idx}-kind-${opt.value}`,
+                testId: `${testIdPrefix}-${idx}-mode-${opt.value}`,
               }))}
             />
 
@@ -127,21 +157,86 @@ export default function BadgesEditor({
                 placeholder={t("label.displayLabel")}
               />
             </FieldLine>
-
-            {badge.kind === "custom" && (
-              <FieldLine label={t("label.iconUrl")}>
-                <TextInput
-                  testId={`${testIdPrefix}-${idx}-icon-url`}
-                  value={badge.customIconUrl}
-                  onChange={(customIconUrl) =>
-                    updateBadge(idx, { customIconUrl })
-                  }
-                  placeholder="https://…"
-                  mono
-                />
-              </FieldLine>
-            )}
           </EditorRow>
+        );
+      })}
+    </div>
+  );
+}
+
+function BadgeIconChooser({
+  active,
+  options,
+  testIdPrefix,
+  onSelect,
+}: {
+  active: BadgeIconKey;
+  options: ReturnType<typeof searchBadgeIcons>;
+  testIdPrefix: string;
+  onSelect: (iconKey: BadgeIconKey) => void;
+}) {
+  const visibleOptions = useMemo(() => options.slice(0, 8), [options]);
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        borderTop: `1px solid ${UI_COLORS.border}`,
+        borderBottom: `1px solid ${UI_COLORS.border}`,
+      }}
+    >
+      {visibleOptions.map((meta, i) => {
+        const isActive = meta.iconKey === active;
+        return (
+          <button
+            key={meta.iconKey}
+            data-testid={`${testIdPrefix}-icon-${meta.iconKey}`}
+            onClick={() => onSelect(meta.iconKey)}
+            style={{
+              minWidth: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 8px 7px",
+              border: "none",
+              borderRight:
+                i % 2 === 0 ? `1px solid ${UI_COLORS.border}` : "none",
+              borderBottom:
+                i < visibleOptions.length - 2
+                  ? `1px solid ${UI_COLORS.border}`
+                  : "none",
+              background: "transparent",
+              boxShadow: isActive
+                ? `inset 2px 0 0 ${UI_COLORS.accent}`
+                : "none",
+              color: isActive ? UI_COLORS.text : UI_COLORS.textMuted,
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            <BadgeIcon
+              iconKey={meta.iconKey}
+              mode="mono"
+              color={isActive ? UI_COLORS.accent : UI_COLORS.textMuted}
+              size={15}
+              label={meta.label}
+            />
+            <span
+              style={{
+                minWidth: 0,
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+                fontFamily: "var(--app-font-mono)",
+                fontSize: 10,
+                fontWeight: isActive ? 650 : 500,
+                letterSpacing: "0.04em",
+              }}
+            >
+              {meta.label}
+            </span>
+          </button>
         );
       })}
     </div>

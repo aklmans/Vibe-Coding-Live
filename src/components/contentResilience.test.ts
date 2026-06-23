@@ -36,8 +36,8 @@ const STRESS_SOCIALS: SocialConfig[] = [
 ];
 
 const STRESS_BADGES: BadgeConfig[] = [
-  { visible: true, kind: "custom", label: "Claude-Opus-4.6-extended-thinking-preview-build", customIconUrl: "" },
-  { visible: true, kind: "codex", label: "Codex", customIconUrl: "" },
+  { visible: true, iconKey: "claude-code", iconMode: "mono", label: "Claude-Opus-4.6-extended-thinking-preview-build", customIconUrl: "" },
+  { visible: true, iconKey: "codex", iconMode: "mono", label: "Codex", customIconUrl: "" },
 ];
 
 function coverState(patch: Partial<OverlayState["cover"]>): OverlayState {
