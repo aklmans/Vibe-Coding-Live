@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { OverlayState } from "../types";
 import { patchSection } from "../lib/state";
-import type { BrandIconKey, BrandIconMode } from "../lib/brand-icons";
+import { BRAND_ICON_PRESETS, type BrandIconKey, type BrandIconMode } from "../lib/brand-icons";
 import {
   searchSocialIconOptions,
   socialIconLabel,
@@ -13,6 +13,7 @@ import { useLocale } from "../hooks/useLocale";
 import { editorialPalette } from "./lib/editorial-palette";
 import { TextInput } from "./shared/Field";
 import { BrandIcon } from "./shared/BrandIcon";
+import IconSearchPicker, { type IconSearchPickerOption, type IconSearchPickerPreset } from "./shared/IconSearchPicker";
 import {
   EditorRow,
   FieldLine,
@@ -32,9 +33,10 @@ type VisibleSocial = {
   originalIndex: number;
 };
 
-interface SocialAddOption {
-  iconKey?: BrandIconKey;
+interface SocialPreset {
+  id: string;
   label: string;
+  keys: readonly BrandIconKey[];
 }
 
 /**
@@ -65,11 +67,41 @@ export default function SocialsEditor({
     [visibleSocials],
   );
 
-  const addOptions = useMemo<SocialAddOption[]>(() => {
+  const socialPresets = useMemo<SocialPreset[]>(() => {
+    const presetLabel = (id: string) =>
+      BRAND_ICON_PRESETS.find((preset) => preset.id === id)?.label ?? id;
+    return [
+      {
+        id: "social",
+        label: presetLabel("social"),
+        keys: ["x", "github", "website", "discord", "wechat", "telegram"],
+      },
+      {
+        id: "streaming",
+        label: presetLabel("streaming"),
+        keys: ["youtube", "bilibili"],
+      },
+    ];
+  }, []);
+
+  const addOptions = useMemo<IconSearchPickerOption[]>(() => {
     const platformOptions = searchSocialIconOptions(addQuery, locale)
       .filter((option) => !usedIconKeys.has(option.iconKey))
-      .slice(0, 8);
-    return [...platformOptions, { label: t("label.custom") }];
+      .slice(0, 8)
+      .map((option) => ({
+        id: option.iconKey,
+        label: option.label,
+        icon: (
+          <BrandIcon
+            iconKey={option.iconKey}
+            mode="mono"
+            color={UI_COLORS.textMuted}
+            size={13}
+            label={option.label}
+          />
+        ),
+      }));
+    return [...platformOptions, { id: "custom", label: t("label.custom") }];
   }, [addQuery, locale, t, usedIconKeys]);
 
   const writeSocials = (socials: SocialConfig[]) => {
@@ -98,22 +130,37 @@ export default function SocialsEditor({
     writeSocials(socials);
   };
 
-  const addSocial = (option: SocialAddOption) => {
-    if (option.iconKey && usedIconKeys.has(option.iconKey)) return;
-    const label = option.iconKey
-      ? socialIconLabel(option.iconKey, locale)
-      : t("label.custom");
+  const addSocial = (iconKey?: BrandIconKey) => {
+    if (iconKey && usedIconKeys.has(iconKey)) return;
+    const label = iconKey ? socialIconLabel(iconKey, locale) : t("label.custom");
 
     writeSocials([
       ...state.cover.socials,
       {
         visible: true,
-        iconKey: option.iconKey,
+        iconKey,
         iconMode: "mono",
         label,
         value: "",
-        customColor: option.iconKey ? "" : palette.primaryMark,
+        customColor: iconKey ? "" : palette.primaryMark,
       },
+    ]);
+    setAddQuery("");
+  };
+
+  const addSocialPreset = (preset: SocialPreset) => {
+    const additions = preset.keys.filter((key) => !usedIconKeys.has(key));
+    if (additions.length === 0) return;
+    writeSocials([
+      ...state.cover.socials,
+      ...additions.map((iconKey) => ({
+        visible: true,
+        iconKey,
+        iconMode: "mono" as const,
+        label: socialIconLabel(iconKey, locale),
+        value: "",
+        customColor: "",
+      })),
     ]);
     setAddQuery("");
   };
@@ -301,36 +348,25 @@ export default function SocialsEditor({
         </div>
       )}
 
-      <div
-        style={{
-          paddingTop: 12,
-          borderTop: `1px solid ${UI_COLORS.border}`,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
+      <IconSearchPicker
+        testIdPrefix={testIdPrefix}
+        query={addQuery}
+        onQueryChange={setAddQuery}
+        placeholder={t("social.searchPlaceholder")}
+        presets={socialPresets.map((preset): IconSearchPickerPreset => ({
+          id: preset.id,
+          label: preset.label,
+          disabled: preset.keys.every((key) => usedIconKeys.has(key)),
+        }))}
+        options={addOptions}
+        onSelectPreset={(preset) => {
+          const found = socialPresets.find((item) => item.id === preset.id);
+          if (found) addSocialPreset(found);
         }}
-      >
-        <FieldLine label={t("label.search")}>
-          <TextInput
-            testId={`${testIdPrefix}-add-search`}
-            value={addQuery}
-            onChange={setAddQuery}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && addOptions[0]) {
-                e.preventDefault();
-                addSocial(addOptions[0]);
-              }
-            }}
-            placeholder={t("social.searchPlaceholder")}
-            mono
-          />
-        </FieldLine>
-        <SocialAddResults
-          options={addOptions}
-          testIdPrefix={testIdPrefix}
-          onAdd={addSocial}
-        />
-      </div>
+        onSelectOption={(option) =>
+          addSocial(option.id === "custom" ? undefined : (option.id as BrandIconKey))
+        }
+      />
     </div>
   );
 }
@@ -391,105 +427,5 @@ function SocialToolButton({
     >
       {glyph}
     </button>
-  );
-}
-
-function SocialAddResults({
-  options,
-  testIdPrefix,
-  onAdd,
-}: {
-  options: SocialAddOption[];
-  testIdPrefix: string;
-  onAdd: (option: SocialAddOption) => void;
-}) {
-  const { t } = useLocale();
-
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-        borderTop: `1px solid ${UI_COLORS.border}`,
-        borderBottom: `1px solid ${UI_COLORS.border}`,
-      }}
-    >
-      {options.map((opt, i) => {
-        const testId = opt.iconKey ?? "custom";
-        const addLabel = `${t("btn.add")} ${opt.label}`;
-        return (
-          <button
-            key={testId}
-            data-testid={`${testIdPrefix}-add-${testId}`}
-            onClick={() => onAdd(opt)}
-            title={addLabel}
-            aria-label={addLabel}
-            style={{
-              minWidth: 0,
-              display: "grid",
-              gridTemplateColumns: "16px minmax(0, 1fr) 18px",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 8px 7px",
-              border: "none",
-              borderRight: i % 2 === 0 ? `1px solid ${UI_COLORS.border}` : "none",
-              borderBottom:
-                i < options.length - 2 ? `1px solid ${UI_COLORS.border}` : "none",
-              background: "transparent",
-              color: UI_COLORS.textMuted,
-              cursor: "pointer",
-              textAlign: "left",
-            }}
-          >
-            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-              <BrandIcon
-                iconKey={opt.iconKey}
-                mode="mono"
-                color={UI_COLORS.textMuted}
-                size={13}
-                label={opt.label}
-              />
-              {!opt.iconKey && (
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 9,
-                    height: 9,
-                    borderLeft: `2px solid ${UI_COLORS.accent}`,
-                  }}
-                />
-              )}
-            </span>
-            <span
-              style={{
-                minWidth: 0,
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
-                fontFamily: "var(--app-font-mono)",
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                color: UI_COLORS.textSoft,
-              }}
-            >
-              {opt.label}
-            </span>
-            <span
-              aria-hidden="true"
-              style={{
-                color: UI_COLORS.accentText,
-                fontFamily: "var(--app-font-mono)",
-                fontSize: 14,
-                lineHeight: 1,
-                textAlign: "center",
-              }}
-            >
-              +
-            </span>
-          </button>
-        );
-      })}
-    </div>
   );
 }

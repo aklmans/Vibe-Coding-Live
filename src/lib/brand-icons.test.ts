@@ -6,7 +6,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { BrandIcon } from "../components/shared/BrandIcon";
 import {
   BRAND_ICON_OPTIONS,
+  BRAND_ICON_PRESETS,
   inferBrandIconKey,
+  searchBrandIconPresets,
   searchBrandIcons,
 } from "./brand-icons";
 
@@ -66,4 +68,22 @@ test("BrandIcon renders inline simple-icons paths in mono and brand modes", () =
     }),
   );
   assert.match(brand, /fill="#61DAFB"/);
+});
+
+
+test("brand icon presets cover common workflows and boost alias search", () => {
+  assert.deepEqual(
+    BRAND_ICON_PRESETS.map((preset) => preset.id),
+    ["ai-agents", "frontend", "streaming", "social"],
+  );
+
+  assert.equal(searchBrandIconPresets("AI Agents")[0]?.id, "ai-agents");
+  assert.equal(searchBrandIconPresets("前端")[0]?.id, "frontend");
+  assert.equal(searchBrandIconPresets("直播")[0]?.id, "streaming");
+  assert.equal(searchBrandIconPresets("社交")[0]?.id, "social");
+
+  assert.equal(searchBrandIcons("ai agents")[0]?.iconKey, "claude");
+  assert.equal(searchBrandIcons("frontend")[0]?.iconKey, "react");
+  assert.equal(searchBrandIcons("直播")[0]?.iconKey, "obs");
+  assert.equal(searchBrandIcons("social")[0]?.iconKey, "x");
 });

@@ -3,10 +3,13 @@ import type { OverlayState } from "../types";
 import { UI_COLORS } from "../lib/design-tokens";
 import { patchSection } from "../lib/state";
 import {
+  BRAND_ICON_PRESETS,
   BRAND_ICON_REGISTRY,
+  brandIconLabel,
   searchBrandIcons,
   type BrandIconKey,
   type BrandIconMode,
+  type BrandIconPreset,
 } from "../lib/brand-icons";
 import {
   createStackItem,
@@ -16,6 +19,7 @@ import { useLocale } from "../hooks/useLocale";
 import { TextInput } from "./shared/Field";
 import { BrandIcon } from "./shared/BrandIcon";
 import { EditorRow, FieldLine, LineSegmented } from "./inspector/EditorRow";
+import IconSearchPicker, { type IconSearchPickerOption, type IconSearchPickerPreset } from "./shared/IconSearchPicker";
 
 interface StackEditorProps {
   state: OverlayState;
@@ -55,10 +59,54 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
     setDraft("");
   };
 
-  const addOptions = useMemo(
-    () => searchBrandIcons(draft).slice(0, 6),
-    [draft],
+  const stackPresets = BRAND_ICON_PRESETS.filter((preset) =>
+    ["ai-agents", "frontend", "streaming"].includes(preset.id),
   );
+
+  const usedIconKeys = useMemo(
+    () => new Set(state.stack.items.map((item) => item.iconKey).filter(Boolean)),
+    [state.stack.items],
+  );
+
+  const addIconPreset = (preset: BrandIconPreset) => {
+    const additions = preset.keys
+      .filter((key) => !usedIconKeys.has(key))
+      .map((key) => createStackItem(brandIconLabel(key), key));
+    if (additions.length === 0) return;
+    writeItems([...state.stack.items, ...additions]);
+    setDraft("");
+  };
+
+  const addOptions = useMemo(() => {
+    const options: IconSearchPickerOption[] = searchBrandIcons(draft)
+      .slice(0, 6)
+      .map((meta) => ({
+        id: meta.iconKey,
+        label: meta.label,
+        metaLabel: meta.category,
+        testId: `stack-add-option-${meta.iconKey}`,
+        icon: (
+          <BrandIcon
+            iconKey={meta.iconKey}
+            mode="mono"
+            color={UI_COLORS.textMuted}
+            size={14}
+            label={meta.label}
+          />
+        ),
+      }));
+
+    const trimmed = draft.trim();
+    if (trimmed) {
+      options.push({
+        id: "custom",
+        label: trimmed,
+        metaLabel: t("label.custom"),
+        testId: "stack-add",
+      });
+    }
+    return options;
+  }, [draft, t]);
 
   const iconModeOptions: { value: BrandIconMode; label: string }[] = [
     { value: "mono", label: t("badge.mode.mono") },
@@ -160,115 +208,26 @@ export default function StackEditor({ state, onChange }: StackEditorProps) {
         </EditorRow>
       ))}
 
-      <div
-        style={{
-          paddingTop: 12,
-          borderTop: `1px solid ${UI_COLORS.border}`,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
+      <IconSearchPicker
+        testIdPrefix="stack"
+        query={draft}
+        onQueryChange={setDraft}
+        placeholder={t("stackEditor.placeholder")}
+        presets={stackPresets.map((preset): IconSearchPickerPreset => ({
+          id: preset.id,
+          label: preset.label,
+          disabled: preset.keys.every((key) => usedIconKeys.has(key)),
+        }))}
+        options={addOptions}
+        onSelectPreset={(preset) => {
+          const found = stackPresets.find((item) => item.id === preset.id);
+          if (found) addIconPreset(found);
         }}
-      >
-        <FieldLine label={t("label.search")}>
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <TextInput
-              testId="stack-add-search"
-              value={draft}
-              onChange={setDraft}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (addOptions[0]) addIconItem(addOptions[0].iconKey);
-                  else addTextItem();
-                }
-              }}
-              placeholder={t("stackEditor.placeholder")}
-              style={{ flex: 1, borderStyle: "dashed" }}
-            />
-            <button
-              data-testid="stack-add"
-              onClick={addTextItem}
-              disabled={!draft.trim()}
-              title={t("btn.add")}
-              aria-label={t("btn.add")}
-              style={{
-                // Matching bare "+" tool glyph: the single accent only when armed.
-                width: 30,
-                minWidth: 30,
-                height: 30,
-                minHeight: 30,
-                border: "none",
-                background: "transparent",
-                color: draft.trim() ? UI_COLORS.accentText : UI_COLORS.textSubtle,
-                cursor: draft.trim() ? "pointer" : "not-allowed",
-                fontFamily: "inherit",
-                fontSize: 18,
-                lineHeight: 1,
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "color 0.12s",
-              }}
-            >
-              +
-            </button>
-          </div>
-        </FieldLine>
-
-        {addOptions.length > 0 && (
-          <div
-            data-testid="stack-add-options"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              gap: 6,
-            }}
-          >
-            {addOptions.map((meta) => (
-              <button
-                key={meta.iconKey}
-                data-testid={`stack-add-option-${meta.iconKey}`}
-                onClick={() => addIconItem(meta.iconKey)}
-                style={{
-                  minWidth: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 7,
-                  padding: "7px 8px",
-                  border: `1px solid ${UI_COLORS.border}`,
-                  background: "transparent",
-                  color: UI_COLORS.textSoft,
-                  fontFamily: "var(--app-font-mono)",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.03em",
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
-              >
-                <BrandIcon
-                  iconKey={meta.iconKey}
-                  mode="mono"
-                  color={UI_COLORS.textMuted}
-                  size={14}
-                  label={meta.label}
-                />
-                <span
-                  style={{
-                    minWidth: 0,
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {meta.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        onSelectOption={(option) => {
+          if (option.id === "custom") addTextItem();
+          else addIconItem(option.id as BrandIconKey);
+        }}
+      />
     </div>
   );
 }

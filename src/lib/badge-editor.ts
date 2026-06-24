@@ -11,6 +11,7 @@ export type BadgePreset = {
 };
 
 export const BADGE_PRESETS: readonly BadgePreset[] = [
+  { id: "ai-agents", label: "AI Agents", keys: ["claude", "codex", "chatgpt", "kimi"] },
   { id: "claude-codex", label: "Claude + Codex", keys: ["claude", "codex"] },
   { id: "chatgpt-kimi", label: "ChatGPT + Kimi", keys: ["chatgpt", "kimi"] },
   { id: "opencode-z-ai", label: "OpenCode + Z.ai", keys: ["opencode", "z-ai"] },

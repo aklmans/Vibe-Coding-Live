@@ -19,6 +19,7 @@ import { useLocale } from "../hooks/useLocale";
 import { TextInput } from "./shared/Field";
 import { EditorRow, FieldLine, LineSegmented } from "./inspector/EditorRow";
 import { BadgeIcon } from "./shared/BadgeIcon";
+import IconSearchPicker, { type IconSearchPickerOption, type IconSearchPickerPreset } from "./shared/IconSearchPicker";
 
 interface BadgesEditorProps {
   state: OverlayState;
@@ -230,44 +231,36 @@ export default function BadgesEditor({
         </div>
       )}
 
-      <BadgePresetRail
-        presets={BADGE_PRESETS}
-        usedIconKeys={usedIconKeys}
+      <IconSearchPicker
         testIdPrefix={testIdPrefix}
-        onAdd={addPreset}
-      />
-
-      <div
-        style={{
-          paddingTop: 12,
-          borderTop: `1px solid ${UI_COLORS.border}`,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
+        query={addQuery}
+        onQueryChange={setAddQuery}
+        placeholder={t("badge.searchPlaceholder")}
+        presets={BADGE_PRESETS.map((preset): IconSearchPickerPreset => ({
+          id: preset.id,
+          label: preset.label,
+          disabled: preset.keys.every((key) => usedIconKeys.has(key)),
+        }))}
+        options={addOptions.map((meta): IconSearchPickerOption => ({
+          id: meta.iconKey,
+          label: meta.label,
+          metaLabel: t(`badge.category.${meta.category}` as TranslationKey),
+          icon: (
+            <BadgeIcon
+              iconKey={meta.iconKey}
+              mode="mono"
+              color={UI_COLORS.textMuted}
+              size={15}
+              label={meta.label}
+            />
+          ),
+        }))}
+        onSelectPreset={(preset) => {
+          const found = BADGE_PRESETS.find((item) => item.id === preset.id);
+          if (found) addPreset(found.keys);
         }}
-      >
-        <FieldLine label={t("label.search")}>
-          <TextInput
-            testId={`${testIdPrefix}-add-search`}
-            value={addQuery}
-            onChange={setAddQuery}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && addOptions[0]) {
-                e.preventDefault();
-                addBadge(addOptions[0].iconKey);
-              }
-            }}
-            placeholder={t("badge.searchPlaceholder")}
-            mono
-          />
-        </FieldLine>
-
-        <BadgeAddResults
-          options={addOptions}
-          testIdPrefix={testIdPrefix}
-          onAdd={addBadge}
-        />
-      </div>
+        onSelectOption={(option) => addBadge(option.id as BadgeIconKey)}
+      />
     </div>
   );
 }
@@ -328,200 +321,5 @@ function BadgeToolButton({
     >
       {glyph}
     </button>
-  );
-}
-
-function BadgePresetRail({
-  presets,
-  usedIconKeys,
-  testIdPrefix,
-  onAdd,
-}: {
-  presets: typeof BADGE_PRESETS;
-  usedIconKeys: Set<BadgeIconKey>;
-  testIdPrefix: string;
-  onAdd: (keys: readonly BadgeIconKey[]) => void;
-}) {
-  const { t } = useLocale();
-
-  return (
-    <div
-      style={{
-        paddingTop: 12,
-        borderTop: `1px solid ${UI_COLORS.border}`,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "var(--app-font-mono)",
-          fontSize: 10,
-          fontWeight: 650,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: UI_COLORS.textMuted,
-        }}
-      >
-        {t("badge.presets")}
-      </span>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          borderTop: `1px solid ${UI_COLORS.border}`,
-          borderBottom: `1px solid ${UI_COLORS.border}`,
-        }}
-      >
-        {presets.map((preset, i) => {
-          const disabled = preset.keys.every((key) => usedIconKeys.has(key));
-          return (
-            <button
-              key={preset.id}
-              data-testid={`${testIdPrefix}-preset-${preset.id}`}
-              disabled={disabled}
-              onClick={() => onAdd(preset.keys)}
-              style={{
-                minWidth: 0,
-                padding: "8px 8px 7px",
-                border: "none",
-                borderRight: i % 2 === 0 ? `1px solid ${UI_COLORS.border}` : "none",
-                borderBottom:
-                  i < presets.length - 2 ? `1px solid ${UI_COLORS.border}` : "none",
-                background: "transparent",
-                color: disabled ? UI_COLORS.textSubtle : UI_COLORS.textSoft,
-                opacity: disabled ? 0.48 : 1,
-                cursor: disabled ? "not-allowed" : "pointer",
-                textAlign: "left",
-                fontFamily: "var(--app-font-mono)",
-                fontSize: 10,
-                fontWeight: 650,
-                letterSpacing: "0.035em",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {preset.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function BadgeAddResults({
-  options,
-  testIdPrefix,
-  onAdd,
-}: {
-  options: ReturnType<typeof searchBadgeIcons>;
-  testIdPrefix: string;
-  onAdd: (iconKey: BadgeIconKey) => void;
-}) {
-  const { t } = useLocale();
-
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-        borderTop: `1px solid ${UI_COLORS.border}`,
-        borderBottom: `1px solid ${UI_COLORS.border}`,
-      }}
-    >
-      {options.map((meta, i) => {
-        const categoryLabel = t(
-          `badge.category.${meta.category}` as TranslationKey,
-        );
-        const addLabel = `${t("btn.add")} ${meta.label}`;
-        return (
-          <button
-            key={meta.iconKey}
-            data-testid={`${testIdPrefix}-add-${meta.iconKey}`}
-            onClick={() => onAdd(meta.iconKey)}
-            title={addLabel}
-            aria-label={addLabel}
-            style={{
-              minWidth: 0,
-              display: "grid",
-              gridTemplateColumns: "18px minmax(0, 1fr) 18px",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 8px 7px",
-              border: "none",
-              borderRight:
-                i % 2 === 0 ? `1px solid ${UI_COLORS.border}` : "none",
-              borderBottom:
-                i < options.length - 2 ? `1px solid ${UI_COLORS.border}` : "none",
-              background: "transparent",
-              color: UI_COLORS.textMuted,
-              cursor: "pointer",
-              textAlign: "left",
-            }}
-          >
-            <BadgeIcon
-              iconKey={meta.iconKey}
-              mode="mono"
-              color={UI_COLORS.textMuted}
-              size={15}
-              label={meta.label}
-            />
-            <span
-              style={{
-                minWidth: 0,
-                display: "flex",
-                alignItems: "baseline",
-                gap: 6,
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-              }}
-            >
-              <span
-                style={{
-                  minWidth: 0,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  fontFamily: "var(--app-font-mono)",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  color: UI_COLORS.textSoft,
-                }}
-              >
-                {meta.label}
-              </span>
-              <span
-                style={{
-                  flexShrink: 0,
-                  fontFamily: "var(--app-font-mono)",
-                  fontSize: 9,
-                  fontWeight: 600,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: UI_COLORS.textSubtle,
-                }}
-              >
-                {categoryLabel}
-              </span>
-            </span>
-            <span
-              aria-hidden="true"
-              style={{
-                color: UI_COLORS.accentText,
-                fontFamily: "var(--app-font-mono)",
-                fontSize: 14,
-                lineHeight: 1,
-                textAlign: "center",
-              }}
-            >
-              +
-            </span>
-          </button>
-        );
-      })}
-    </div>
   );
 }

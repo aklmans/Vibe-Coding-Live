@@ -14,6 +14,7 @@ import SettingsDrawer from "./SettingsDrawer";
 import TopBar from "./topbar/TopBar";
 import BadgesEditor from "./BadgesEditor";
 import SocialsEditor from "./SocialsEditor";
+import StackEditor from "./StackEditor";
 import OverlayInspector from "./inspector/groups/OverlayInspector";
 import CoverInspector from "./inspector/groups/CoverInspector";
 import PosterInspector from "./inspector/groups/PosterInspector";
@@ -483,8 +484,9 @@ test("badge rows use display-label wording, not social-label wording", () => {
 test("badge editor selects registry icons instead of asking for icon URLs", () => {
   const source = readFileSync(resolve("src/components/BadgesEditor.tsx"), "utf8");
 
-  assert.match(source, /-add-search/);
-  assert.match(source, /BadgeAddResults/);
+  assert.match(source, /IconSearchPicker/);
+  assert.match(source, /searchBadgeIcons/);
+  assert.doesNotMatch(source, /BadgeAddResults/);
   assert.doesNotMatch(source, /icon-url/);
   assert.doesNotMatch(source, /label\.iconUrl/);
 });
@@ -607,8 +609,8 @@ test("stack editor uses searchable brand-icon rows instead of plain string-only 
 
   assert.match(source, /searchBrandIcons/);
   assert.match(source, /BrandIcon/);
+  assert.match(source, /IconSearchPicker/);
   assert.match(source, /data-testid=\{`stack-item-\$\{idx\}-icon`\}/);
-  assert.match(source, /testId="stack-add-search"/);
 });
 
 test("bottom bar stack segment renders icon-backed stack items", () => {
@@ -617,4 +619,65 @@ test("bottom bar stack segment renders icon-backed stack items", () => {
   assert.match(source, /BrandIcon/);
   assert.match(source, /stackItemLabel/);
   assert.match(source, /item\.iconKey/);
+});
+
+
+test("badge social and stack editors share the brand icon picker component", () => {
+  const pickerSource = readFileSync(resolve("src/components/shared/IconSearchPicker.tsx"), "utf8");
+  const badgeSource = readFileSync(resolve("src/components/BadgesEditor.tsx"), "utf8");
+  const socialSource = readFileSync(resolve("src/components/SocialsEditor.tsx"), "utf8");
+  const stackSource = readFileSync(resolve("src/components/StackEditor.tsx"), "utf8");
+
+  assert.match(pickerSource, /export default function IconSearchPicker/);
+  for (const source of [badgeSource, socialSource, stackSource]) {
+    assert.match(source, /IconSearchPicker/);
+  }
+
+  assert.doesNotMatch(badgeSource, /function BadgeAddResults/);
+  assert.doesNotMatch(socialSource, /function SocialAddResults/);
+  assert.doesNotMatch(stackSource, /data-testid="stack-add-options"/);
+});
+
+test("icon editors expose shared workflow presets", () => {
+  const badgeHtml = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "en",
+      persist: false,
+      children: React.createElement(BadgesEditor, {
+        state: DEFAULT_STATE,
+        onChange: () => {},
+      }),
+    }),
+  );
+  assert.match(badgeHtml, /data-testid="badge-icon-picker"/);
+  assert.match(badgeHtml, /data-testid="badge-preset-ai-agents"/);
+
+  const socialHtml = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "en",
+      persist: false,
+      children: React.createElement(SocialsEditor, {
+        state: DEFAULT_STATE,
+        onChange: () => {},
+      }),
+    }),
+  );
+  assert.match(socialHtml, /data-testid="social-icon-picker"/);
+  assert.match(socialHtml, /data-testid="social-preset-social"/);
+  assert.match(socialHtml, /data-testid="social-preset-streaming"/);
+
+  const stackHtml = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "en",
+      persist: false,
+      children: React.createElement(StackEditor, {
+        state: DEFAULT_STATE,
+        onChange: () => {},
+      }),
+    }),
+  );
+  assert.match(stackHtml, /data-testid="stack-icon-picker"/);
+  assert.match(stackHtml, /data-testid="stack-preset-ai-agents"/);
+  assert.match(stackHtml, /data-testid="stack-preset-frontend"/);
+  assert.match(stackHtml, /data-testid="stack-preset-streaming"/);
 });

@@ -428,6 +428,42 @@ export const BRAND_ICON_REGISTRY: Record<BrandIconKey, BrandIconMeta> = {
 
 export const BRAND_ICON_OPTIONS = Object.values(BRAND_ICON_REGISTRY);
 
+export type BrandIconPresetId = "ai-agents" | "frontend" | "streaming" | "social";
+
+export interface BrandIconPreset {
+  id: BrandIconPresetId;
+  label: string;
+  aliases: string[];
+  keys: readonly BrandIconKey[];
+}
+
+export const BRAND_ICON_PRESETS: readonly BrandIconPreset[] = [
+  {
+    id: "ai-agents",
+    label: "AI Agents",
+    aliases: ["agents", "ai", "agent", "模型", "智能体", "ai 工具"],
+    keys: ["claude", "cursor", "github-copilot", "gemini", "openrouter", "moonshot", "minimax", "opencode"],
+  },
+  {
+    id: "frontend",
+    label: "Frontend",
+    aliases: ["front end", "web", "前端", "网页", "ui"],
+    keys: ["react", "nextdotjs", "vite", "typescript", "tailwindcss", "javascript"],
+  },
+  {
+    id: "streaming",
+    label: "Streaming",
+    aliases: ["stream", "broadcast", "live", "直播", "视频", "录制"],
+    keys: ["obs", "youtube", "youtube-studio", "bilibili"],
+  },
+  {
+    id: "social",
+    label: "Social",
+    aliases: ["community", "contact", "follow", "社交", "社区", "账号"],
+    keys: ["x", "github", "website", "discord", "wechat", "telegram", "youtube", "bilibili"],
+  },
+] as const;
+
 export function isBrandIconKey(value: unknown): value is BrandIconKey {
   return typeof value === "string" && value in BRAND_ICON_REGISTRY;
 }
@@ -459,15 +495,41 @@ function matches(meta: BrandIconMeta, normalized: string): boolean {
   return haystack.includes(normalized);
 }
 
-export function searchBrandIcons(query: string): BrandIconMeta[] {
-  const normalized = normalizeQuery(query);
-  const options = normalized
-    ? BRAND_ICON_OPTIONS.filter((meta) => matches(meta, normalized))
-    : BRAND_ICON_OPTIONS;
+function matchesPreset(preset: BrandIconPreset, normalized: string): boolean {
+  const haystack = [preset.id, preset.label, ...preset.aliases]
+    .map(normalizeQuery)
+    .join(" ");
+  return haystack.includes(normalized);
+}
 
+export function searchBrandIconPresets(query: string): BrandIconPreset[] {
+  const normalized = normalizeQuery(query);
+  if (!normalized) return [...BRAND_ICON_PRESETS];
+  return BRAND_ICON_PRESETS.filter((preset) => matchesPreset(preset, normalized));
+}
+
+function sortBrandIconOptions(options: BrandIconMeta[]): BrandIconMeta[] {
   return [...options].sort((a, b) => {
     if (a.recommended !== b.recommended) return a.recommended ? -1 : 1;
     return a.label.localeCompare(b.label);
+  });
+}
+
+export function searchBrandIcons(query: string): BrandIconMeta[] {
+  const normalized = normalizeQuery(query);
+  if (!normalized) return sortBrandIconOptions(BRAND_ICON_OPTIONS);
+
+  const presetMatches = searchBrandIconPresets(query);
+  const presetOptions = presetMatches.flatMap((preset) =>
+    preset.keys.map((key) => BRAND_ICON_REGISTRY[key]),
+  );
+  const directOptions = BRAND_ICON_OPTIONS.filter((meta) => matches(meta, normalized));
+
+  const seen = new Set<BrandIconKey>();
+  return [...presetOptions, ...sortBrandIconOptions(directOptions)].filter((meta) => {
+    if (seen.has(meta.iconKey)) return false;
+    seen.add(meta.iconKey);
+    return true;
   });
 }
 
