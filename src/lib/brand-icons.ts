@@ -541,7 +541,11 @@ export function inferBrandIconKey(label: string): BrandIconKey | undefined {
   // compound labels like "React + Vite" anchored by the first recognizable tool.
   for (const meta of BRAND_ICON_OPTIONS) {
     const names = [meta.label, meta.iconKey, ...meta.aliases].map(normalizeQuery);
-    if (names.some((name) => normalized === name || normalized.includes(name))) {
+    if (
+      names.some((name) =>
+        normalized === name || (name.length > 1 && normalized.includes(name))
+      )
+    ) {
       return meta.iconKey;
     }
   }

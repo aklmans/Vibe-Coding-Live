@@ -222,6 +222,45 @@ test("live data prioritizes live editing before recipe import/export", () => {
   assert.ok(recipe > bottomBar);
 });
 
+test("live data uses a brief builder before legacy recipe import", () => {
+  const panelSource = readFileSync(resolve("src/components/live-data/SessionRecipePanel.tsx"), "utf8");
+  const html = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "en",
+      persist: false,
+      children: React.createElement(LiveDataManager, {
+        state: DEFAULT_STATE,
+        onChange: () => {},
+        dateKey: "2026-06-23",
+        persistence: {
+          databaseConfigured: false,
+          loading: false,
+          saving: false,
+          error: null,
+          savedAt: null,
+          session: null,
+        },
+        onReload: () => {},
+        onStartSession: () => {},
+        onEndSession: () => {},
+      }),
+    }),
+  );
+
+  assert.match(html, /data-testid="brief-builder-panel"/);
+  assert.match(html, /data-testid="brief-input"/);
+  assert.match(html, /data-testid="brief-generate"/);
+  assert.match(html, /data-testid="brief-apply"/);
+  assert.match(html, /data-testid="brief-import-toggle"/);
+  assert.doesNotMatch(html, /Copy JSON/);
+  assert.doesNotMatch(html, /Stream Recipe/);
+  assert.match(panelSource, /generateLiveBriefDraft/);
+  assert.match(panelSource, /applyLiveBriefDraftToOverlayState/);
+  assert.match(panelSource, /data-testid="brief-draft-preview"/);
+  assert.match(panelSource, /draftSource === source \? draft : generateDraft\(\)/);
+  assert.match(panelSource, /setDraft\(null\);[\s\S]*setDraftSource\(""\);/);
+});
+
 
 test("overlay inspector section tabs show one progress section at a time", () => {
   const html = renderToStaticMarkup(
