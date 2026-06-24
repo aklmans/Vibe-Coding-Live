@@ -1,4 +1,5 @@
 import type { OverlayState } from "../types";
+import { normalizeStackItems, stackItemsToLabels } from "./stack";
 import { isBottomBarKind } from "./bottomBar";
 import type { BottomBarSlot } from "./bottomBar";
 import type { Locale } from "./i18n";
@@ -130,7 +131,7 @@ export function overlayStateToLiveData(
       visible: state.bottomBar.visible,
       segments: state.bottomBar.segments.map((segment) => ({ ...segment })),
     },
-    stackItems: [...state.stack.items],
+    stackItems: stackItemsToLabels(state.stack.items),
   };
 }
 
@@ -162,7 +163,7 @@ export function applyLiveDataToOverlayState(
     },
     stack: {
       ...state.stack,
-      items: [...liveData.stackItems],
+      items: normalizeStackItems(liveData.stackItems, state.stack.items),
     },
   };
 }

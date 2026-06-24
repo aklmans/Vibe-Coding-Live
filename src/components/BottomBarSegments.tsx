@@ -4,9 +4,11 @@ import type { BottomBarSlot } from "../lib/bottomBar";
 import { formatElapsed, formatStartLabel } from "../lib/bottomBar";
 import { UI_COLORS } from "../lib/design-tokens";
 import { fontFamilies, wrapProse, clampLines, truncateLine } from "../lib/typography";
+import { stackItemLabel } from "../lib/stack";
 import { useNow } from "../hooks/useNow";
 import { useLocale } from "../hooks/useLocale";
 import { editorialPalette } from "./lib/editorial-palette";
+import { BrandIcon } from "./shared/BrandIcon";
 
 type Size = "small" | "large";
 
@@ -286,27 +288,40 @@ function SegmentBody({
               minWidth: 0,
             }}
           >
-            {items.map((item, i) => (
-              <span
-                key={i}
-                style={{
-                  ...truncateLine,
-                  fontFamily: fontFamilies.mono,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: textColor,
-                  background: surface,
-                  border: `1px solid ${line}`,
-                  borderRadius: 4,
-                  padding: "4px 10px",
-                  letterSpacing: "0.01em",
-                  boxShadow: `inset 0 -1px 0 ${lineSoft}`,
-                  maxWidth: valueSize >= 32 ? 220 : 160,
-                }}
-              >
-                {item}
-              </span>
-            ))}
+            {items.map((item, i) => {
+              const label = stackItemLabel(item);
+              return (
+                <span
+                  key={`${label}-${i}`}
+                  style={{
+                    ...truncateLine,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontFamily: fontFamilies.mono,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: textColor,
+                    background: surface,
+                    border: `1px solid ${line}`,
+                    borderRadius: 4,
+                    padding: "4px 10px",
+                    letterSpacing: "0.01em",
+                    boxShadow: `inset 0 -1px 0 ${lineSoft}`,
+                    maxWidth: valueSize >= 32 ? 220 : 160,
+                  }}
+                >
+                  <BrandIcon
+                    iconKey={item.iconKey}
+                    mode={item.iconMode}
+                    color={textColor}
+                    size={13}
+                    label={label}
+                  />
+                  <span style={{ ...truncateLine, minWidth: 0 }}>{label}</span>
+                </span>
+              );
+            })}
           </div>
         </>
       );

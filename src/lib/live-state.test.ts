@@ -43,7 +43,8 @@ test("live state store broadcasts normalized snapshots", () => {
 
   unsubscribe();
 
-  assert.deepEqual(next.state.stack.items, ["OBS", "Next.js"]);
+  assert.deepEqual(next.state.stack.items.map((item) => item.label), ["OBS", "Next.js"]);
+  assert.equal(next.state.stack.items[0].iconKey, "obs");
   assert.equal(store.get().revision, 1);
   assert.deepEqual(revisions, [1]);
 });

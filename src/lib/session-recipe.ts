@@ -1,4 +1,5 @@
 import type { OverlayState } from "../types";
+import { normalizeStackItems, stackItemsToLabels } from "./stack";
 import type { Locale } from "./i18n";
 import {
   defaultSocialLabel,
@@ -111,7 +112,9 @@ export function applySessionRecipeToOverlayState(
     },
     stack: {
       ...state.stack,
-      items: recipe.stackItems.length > 0 ? recipe.stackItems : state.stack.items,
+      items: recipe.stackItems.length > 0
+        ? normalizeStackItems(recipe.stackItems, state.stack.items)
+        : state.stack.items,
     },
     cover: {
       ...state.cover,
@@ -127,7 +130,7 @@ export function stateToSessionRecipe(state: OverlayState): SessionRecipe {
     title: state.cover.title,
     goal: state.cover.todayTopic,
     tasks: state.sidebar.sections[0]?.bullets ?? [],
-    stackItems: state.stack.items,
+    stackItems: stackItemsToLabels(state.stack.items),
     socials: state.cover.socials
       .filter((social) => social.visible)
       .map((social) => ({

@@ -5,6 +5,7 @@ import type { BottomBarSlot } from "./lib/bottomBar";
 import type { WallpaperPresetId } from "./lib/wallpaper";
 import type { Locale } from "./lib/i18n";
 import type { AppTab } from "./lib/tabs";
+import type { StackItem } from "./lib/stack";
 
 /**
  * Cover visual type — the single, explicit choice for the cover's subject:
@@ -38,7 +39,7 @@ export interface OverlayState {
     startedAt: string;
   };
   stack: {
-    items: string[];
+    items: StackItem[];
   };
   mainScreen: {
     visible: boolean;
@@ -126,7 +127,11 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
     startedAt: "",
   },
   stack: {
-    items: ["Claude Opus 4.7", "Cursor", "React + Vite"],
+    items: [
+      { label: "Claude Opus 4.7", iconKey: "claude", iconMode: "mono" },
+      { label: "Cursor", iconKey: "cursor", iconMode: "mono" },
+      { label: "React + Vite", iconKey: "react", iconMode: "mono" },
+    ],
   },
   mainScreen: {
     visible: true,
@@ -220,7 +225,11 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
       startedAt: "",
     },
     stack: {
-      items: ["Claude Opus 4.7", "Cursor", "React + Vite"],
+      items: [
+      { label: "Claude Opus 4.7", iconKey: "claude", iconMode: "mono" },
+      { label: "Cursor", iconKey: "cursor", iconMode: "mono" },
+      { label: "React + Vite", iconKey: "react", iconMode: "mono" },
+    ],
     },
     mainScreen: {
       visible: true,

@@ -19,14 +19,19 @@ test("patchSection updates one nested object without mutating previous state", (
 
 test("produceState supports array updates without sharing mutated arrays", () => {
   const prev = {
-    stack: { items: ["Claude", "React"] },
+    stack: {
+      items: [
+        { label: "Claude", iconMode: "mono" },
+        { label: "React", iconMode: "mono" },
+      ],
+    },
   };
 
   const next = produceState(prev, (draft) => {
-    draft.stack.items[1] = "Vite";
+    draft.stack.items[1] = { label: "Vite", iconMode: "mono" };
   });
 
-  assert.deepEqual(next.stack.items, ["Claude", "Vite"]);
-  assert.deepEqual(prev.stack.items, ["Claude", "React"]);
+  assert.deepEqual(next.stack.items.map((item) => item.label), ["Claude", "Vite"]);
+  assert.deepEqual(prev.stack.items.map((item) => item.label), ["Claude", "React"]);
 });
 

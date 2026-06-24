@@ -45,7 +45,7 @@ test("overlayStateToLiveData extracts only stream data from overlay state", () =
   assert.equal(liveData.sections[0]?.tasks[0]?.done, true);
   assert.equal(liveData.sections[1]?.tasks[1]?.done, true);
   assert.equal(liveData.sections[2]?.tasks[2]?.done, true);
-  assert.deepEqual(liveData.stackItems, base.stack.items);
+  assert.deepEqual(liveData.stackItems, base.stack.items.map((item) => item.label));
   assert.deepEqual(liveData.bottomBar.segments, base.bottomBar.segments);
   assert.equal("cover" in liveData, false);
 });
@@ -95,6 +95,7 @@ test("applyLiveDataToOverlayState updates stream data while preserving visual se
   assert.deepEqual(next.bottomBar.segments, [
     { kind: "text", title: "Now", text: "Database-backed" },
   ]);
-  assert.deepEqual(next.stack.items, ["Next.js", "Postgres"]);
+  assert.deepEqual(next.stack.items.map((item) => item.label), ["Next.js", "Postgres"]);
+  assert.equal(next.stack.items[0].iconKey, "nextdotjs");
   assert.equal(next.liveSession.startedAt, "2026-05-11T16:00:00.000Z");
 });

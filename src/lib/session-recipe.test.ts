@@ -119,7 +119,9 @@ test("applySessionRecipeToOverlayState updates live data and shared cover copy",
     "更新工具",
   ]);
   assert.deepEqual(next.sidebar.sectionsDone[0], [false, false, false]);
-  assert.deepEqual(next.stack.items, ["Next.js", "OBS", "Codex"]);
+  assert.deepEqual(next.stack.items.map((item) => item.label), ["Next.js", "OBS", "Codex"]);
+  assert.equal(next.stack.items[0].iconKey, "nextdotjs");
+  assert.equal(next.stack.items[1].iconKey, "obs");
   assert.deepEqual(next.cover.socials.slice(0, 2), [
     {
       visible: true,

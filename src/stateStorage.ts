@@ -27,6 +27,7 @@ import {
 } from "./lib/bottomBar";
 import { isWallpaperPresetId, type WallpaperPresetId } from "./lib/wallpaper";
 import { isAppTab } from "./lib/tabs";
+import { normalizeStackItems } from "./lib/stack";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem">;
 type OverlayColors = OverlayState["colors"];
@@ -196,15 +197,6 @@ function normalizeSegments(value: unknown, defaults: BottomBarSlot[]): BottomBar
     const fallback = defaults[index] ?? defaults[0];
     return normalizeSegment(items[index], fallback);
   });
-}
-
-function normalizeStackItems(value: unknown, fallback: string[]): string[] {
-  if (!Array.isArray(value)) return [...fallback];
-  const cleaned = value
-    .map((entry) => (typeof entry === "string" ? entry : ""))
-    .filter((entry) => entry.trim().length > 0);
-  if (cleaned.length === 0) return [];
-  return cleaned;
 }
 
 function normalizeColors(value: unknown, defaults: OverlayColors): OverlayColors {

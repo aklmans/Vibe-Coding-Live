@@ -583,3 +583,21 @@ test("cover visual editor writes cover-only image URLs and reset defaults", () =
   assert.match(source, /clearValue="\/avatar\.png"/);
   assert.match(source, /clearValue="\/vibe-studio-bg\.png"/);
 });
+
+
+test("stack editor uses searchable brand-icon rows instead of plain string-only editing", () => {
+  const source = readFileSync(resolve("src/components/StackEditor.tsx"), "utf8");
+
+  assert.match(source, /searchBrandIcons/);
+  assert.match(source, /BrandIcon/);
+  assert.match(source, /data-testid=\{`stack-item-\$\{idx\}-icon`\}/);
+  assert.match(source, /testId="stack-add-search"/);
+});
+
+test("bottom bar stack segment renders icon-backed stack items", () => {
+  const source = readFileSync(resolve("src/components/BottomBarSegments.tsx"), "utf8");
+
+  assert.match(source, /BrandIcon/);
+  assert.match(source, /stackItemLabel/);
+  assert.match(source, /item\.iconKey/);
+});

@@ -16,6 +16,7 @@ import SocialCard from "./shared/SocialCard";
 import BadgeToolbar from "./shared/BadgeToolbar";
 import BottomBarSegments from "./BottomBarSegments";
 import { editorialPalette } from "./lib/editorial-palette";
+import { createStackItem } from "../lib/stack";
 
 // ── Content pressure-test fixtures ──────────────────────────────────────────
 // Real livestream copy is not the friendly default. These cover the three
@@ -203,7 +204,7 @@ test("BottomBar stack chips keep long package names inside the fixed slot", () =
   const state: OverlayState = {
     ...DEFAULT_STATE,
     bottomBar: { ...DEFAULT_STATE.bottomBar, segments: [{ kind: "stack" }] },
-    stack: { items: [LONG_STACK_ITEM] },
+    stack: { items: [createStackItem(LONG_STACK_ITEM)] },
   };
 
   const small = renderWithLocale(

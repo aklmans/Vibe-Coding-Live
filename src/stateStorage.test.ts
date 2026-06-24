@@ -183,7 +183,7 @@ test("normalizeOverlayState handles empty arrays and invalid types conservativel
   assert.deepEqual(state.sidebar.sectionsDone[0], [false, true, false]);
   assert.equal(state.sidebar.sections[0].title, "Today's Goal");
   assert.deepEqual(state.bottomBar.segments, defaultValue.bottomBar.segments);
-  assert.deepEqual(state.stack.items, ["Keep"]);
+  assert.deepEqual(state.stack.items.map((item) => item.label), ["Keep"]);
   assert.equal(state.cover.avatarVisible, defaultValue.cover.avatarVisible);
   assert.deepEqual(state.cover.badges, []);
   assert.deepEqual(state.cover.socials, []);
@@ -304,4 +304,39 @@ test("normalizeOverlayState migrates legacy theme names without dropping custom 
   assert.equal(state.colors.bgDark, "#20201e");
   assert.equal(state.colors.pinkAccent, "#d86f4b");
   assert.equal(state.colors.textColor, DARK_PRESET.textColor);
+});
+
+
+test("normalizeOverlayState migrates legacy string stack items into icon-backed stack items", () => {
+  const state = normalizeOverlayState({
+    stack: {
+      items: ["Claude Opus 4.7", "React + Vite", "OBS Studio", "Custom Tool"],
+    },
+  });
+
+  assert.deepEqual(
+    state.stack.items.map((item) => item.label),
+    ["Claude Opus 4.7", "React + Vite", "OBS Studio", "Custom Tool"],
+  );
+  assert.equal(state.stack.items[0].iconKey, "claude");
+  assert.equal(state.stack.items[1].iconKey, "react");
+  assert.equal(state.stack.items[2].iconKey, "obs");
+  assert.equal(state.stack.items[3].iconKey, undefined);
+  assert.equal(state.stack.items[0].iconMode, "mono");
+});
+
+test("normalizeOverlayState preserves object stack item labels and valid icon settings", () => {
+  const state = normalizeOverlayState({
+    stack: {
+      items: [
+        { label: "Next.js", iconKey: "nextdotjs", iconMode: "brand" },
+        { label: "Broken", iconKey: "not-real", iconMode: "glow" },
+      ],
+    },
+  });
+
+  assert.deepEqual(state.stack.items, [
+    { label: "Next.js", iconKey: "nextdotjs", iconMode: "brand" },
+    { label: "Broken", iconKey: undefined, iconMode: "mono" },
+  ]);
 });
