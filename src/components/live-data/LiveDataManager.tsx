@@ -7,7 +7,7 @@ import SidebarSectionEditor from "../SidebarSectionEditor";
 import LiveSessionEditor from "../LiveSessionEditor";
 import StackEditor from "../StackEditor";
 import BottomBarSegmentEditor from "../BottomBarSegmentEditor";
-import SessionRecipePanel from "./SessionRecipePanel";
+import SessionConfigEditor from "./SessionConfigEditor";
 import {
   WorkbenchButton,
   WorkbenchLabel,
@@ -90,6 +90,40 @@ export default function LiveDataManager({
           boxSizing: "border-box",
         }}
       >
+        {/* Page header — frames the whole page as the live config center. */}
+        <header
+          data-testid="session-config-header"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            padding: "4px 2px 2px",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--app-font-mono)",
+              fontSize: 12,
+              fontWeight: 700,
+              color: UI_COLORS.text,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+            }}
+          >
+            {t("liveData.centerTitle")}
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: UI_COLORS.textMuted,
+              lineHeight: 1.5,
+              maxWidth: 720,
+            }}
+          >
+            {t("liveData.centerHint")}
+          </div>
+        </header>
+
         {/* Session status bar — a ruled header row, not a card. */}
         <section
           data-testid="live-data-session-bar"
@@ -288,9 +322,12 @@ export default function LiveDataManager({
           ))}
         </RuledSection>
 
-        {/* Session recipe — kept as a single bordered textarea-like exception. */}
+        {/* Session config — the JSON view of the portable core config
+            (live-session.config.json). It covers title / cover / badges /
+            stack / socials / sections, not the runtime fields above (live
+            start time, active section, done states, bottom-bar segments). */}
         <div style={{ marginTop: 32 }}>
-          <SessionRecipePanel state={state} onChange={onChange} />
+          <SessionConfigEditor state={state} onChange={onChange} />
         </div>
       </div>
     </div>

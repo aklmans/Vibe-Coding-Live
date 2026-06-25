@@ -68,7 +68,7 @@ test("operation UI source paths avoid legacy SaaS visual residue", () => {
     "src/components/CommandPalette.tsx",
     "src/components/topbar/ExportMenu.tsx",
     "src/components/live-data/LiveDataManager.tsx",
-    "src/components/live-data/SessionRecipePanel.tsx",
+    "src/components/live-data/SessionConfigEditor.tsx",
     "src/components/inspector/BrandIdentityEditor.tsx",
     "src/components/inspector/InspectorGroup.tsx",
     "src/components/ui/alert-dialog.tsx",
@@ -206,14 +206,14 @@ test("surface inspectors default to a focused first-screen workflow", () => {
   assert.doesNotMatch(wallpaper, /data-testid="wallpaper-avatar-visible"/);
 });
 
-test("live data keeps Config Studio after direct live editing controls", () => {
+test("live data keeps Session Config after direct live editing controls", () => {
   const source = readFileSync(resolve("src/components/live-data/LiveDataManager.tsx"), "utf8");
   const sessionBar = source.indexOf('data-testid="live-data-session-bar"');
   const sections = source.indexOf('testId="live-data-sections"');
   const liveSession = source.indexOf('testId="live-data-live-session"');
   const stack = source.indexOf('testId="live-data-stack"');
   const bottomBar = source.indexOf('testId="live-data-bottom-bar"');
-  const configStudio = source.indexOf("<SessionRecipePanel");
+  const configStudio = source.indexOf("<SessionConfigEditor");
 
   assert.ok(sessionBar >= 0);
   assert.ok(sections > sessionBar);
@@ -223,8 +223,8 @@ test("live data keeps Config Studio after direct live editing controls", () => {
   assert.ok(configStudio > bottomBar);
 });
 
-test("live data exposes Config Studio instead of the brief or recipe main path", () => {
-  const panelSource = readFileSync(resolve("src/components/live-data/SessionRecipePanel.tsx"), "utf8");
+test("live data exposes Session Config instead of the brief or recipe main path", () => {
+  const panelSource = readFileSync(resolve("src/components/live-data/SessionConfigEditor.tsx"), "utf8");
   const html = renderToStaticMarkup(
     React.createElement(LocaleProvider, {
       initialLocale: "en",
@@ -248,12 +248,12 @@ test("live data exposes Config Studio instead of the brief or recipe main path",
     }),
   );
 
-  assert.match(html, /data-testid="config-studio-panel"/);
+  assert.match(html, /data-testid="session-config-panel"/);
   assert.match(html, /data-testid="config-input"/);
   assert.match(html, /data-testid="config-export"/);
   assert.match(html, /data-testid="config-validate"/);
   assert.match(html, /data-testid="config-apply"/);
-  assert.match(html, /Config Studio/);
+  assert.match(html, /Session Config/);
   assert.doesNotMatch(html, /Brief Builder/);
   assert.doesNotMatch(html, /Quick Start/);
   assert.doesNotMatch(html, /Stream Recipe/);

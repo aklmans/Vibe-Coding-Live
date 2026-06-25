@@ -11,12 +11,12 @@ export const dict = {
 
     // ─── Tabs / tab badges ────────────────────────────────────────────
     "tab.overlay": "合成画面",
-    "tab.live": "直播数据",
+    "tab.live": "直播配置",
     "tab.cover": "封面",
     "tab.poster": "海报",
     "tab.wallpaper": "壁纸",
     "tabBadge.overlay": "合成画面 · 1920×1080",
-    "tabBadge.live": "直播数据 · 侧栏 / 底栏",
+    "tabBadge.live": "直播配置 · 侧栏 / 底栏",
     "tabBadge.cover": "封面 · 1280×720",
     "tabBadge.poster": "海报 · 1920×1080",
 
@@ -187,7 +187,7 @@ export const dict = {
 
     // ─── cmdk items ──────────────────────────────────────────────────
     "cmdk.tab.overlay": "跳到 合成画面 (Overlay)",
-    "cmdk.tab.live": "跳到 直播数据",
+    "cmdk.tab.live": "跳到 直播配置",
     "cmdk.tab.cover": "跳到 封面 (Cover)",
     "cmdk.tab.poster": "跳到 海报 (Poster)",
     "cmdk.tab.wallpaper": "跳到 壁纸 (Wallpaper)",
@@ -218,7 +218,7 @@ export const dict = {
 
     // ─── App ─────────────────────────────────────────────────────────
     "app.previewHint": "缩放预览 — 导出为原始分辨率",
-    "app.liveDataHint": "管理侧栏和底栏 — 自动同步到 OBS",
+    "app.liveDataHint": "直播配置中心 — 编辑本场直播配置，自动同步到 OBS",
     "app.brand": "Vibe Studio",
 
     // ─── Live bar / canvas ────────────────────────────────────────────
@@ -245,8 +245,8 @@ export const dict = {
     "liveData.status.local": "本地",
 
     // ─── Config Studio ───────────────────────────────────────────────
-    "config.title": "配置中心",
-    "config.hint": "粘贴 AI Agent 生成的直播配置，校验后应用到封面、进度、工具栈、徽标和社交信息。",
+    "config.title": "配置文件 · JSON",
+    "config.hint": "由当前 state 生成核心配置。应用会更新标题、副标题、作者、封面、徽标、工具栈、社交与段落，并按 v1 默认重建当前段落、完成状态与底栏片段；不含开场时间。",
     "config.placeholder": "粘贴 live-session.config.json 内容…",
     "config.exportCurrent": "导出当前配置",
     "config.validate": "校验配置",
@@ -256,6 +256,16 @@ export const dict = {
     "config.applied": "配置已应用到直播资产。",
     "config.exported": "已导出当前配置，并复制到剪贴板。",
     "config.copyFailed": "已导出当前配置，但复制到剪贴板失败。",
+    "config.import": "导入文件",
+    "config.downloaded": "已导出 live-session.config.json。",
+    "config.imported": "已载入文件，请检查后再应用。",
+    "config.discard": "丢弃更改",
+    "config.resynced": "已重新同步到当前直播配置。",
+    "config.changedUnderneath": "表单已更新底层配置。可「丢弃更改」载入最新，或继续编辑后用「应用配置」覆盖。",
+    "config.mode.synced": "已同步",
+    "config.mode.editing": "编辑中",
+    "liveData.centerTitle": "直播配置中心",
+    "liveData.centerHint": "上方表单编辑本场直播的运行时状态；下方 JSON 是其中「核心可移植配置」(live-session.config.json) 的投影。开场时间、当前段落、完成状态与底栏片段属运行时 / 显示控制，不在 v1 配置内。",
     "config.empty": "先粘贴一份 JSON 配置。",
     "config.invalidJson": "JSON 解析失败",
     "config.previewTitle": "配置摘要",
@@ -274,45 +284,6 @@ export const dict = {
     "config.surface.sections": "进度段落",
     "config.surface.bottomBar": "底栏",
 
-    // ─── Brief builder ───────────────────────────────────────────────
-    "brief.title": "快速开播",
-    "brief.hint": "用一句话描述今天要直播什么，先生成可检查的结构化草稿，再应用到标题、进度段落、工具栈和徽标。",
-    "brief.placeholder": "示例：今天直播重构 Vibe Studio 的直播数据入口。目标是把脆弱的 Recipe 改成 Brief Builder。任务：理解问题、生成草稿、应用到直播。工具栈：Codex、Cursor、Next.js、OBS。",
-    "brief.generate": "生成草稿",
-    "brief.apply": "应用到直播",
-    "brief.exportJson": "复制 JSON",
-    "brief.importToggle": "高级导入",
-    "brief.empty": "先写一句直播目标或大纲。",
-    "brief.generated": "已生成草稿，可先检查再应用。",
-    "brief.applied": "已应用到直播数据、封面和 OBS 预览。",
-    "brief.exported": "已生成草稿 JSON，并复制到剪贴板。",
-    "brief.advancedExported": "已生成当前 Markdown 备份，并复制到剪贴板。",
-    "brief.copyFailed": "已生成内容，但复制到剪贴板失败。",
-    "brief.importEmpty": "先粘贴 JSON 或 Markdown。",
-    "brief.imported": "已导入并应用到直播数据。",
-    "brief.previewTitle": "草稿预览",
-    "brief.previewEmpty": "生成后会在这里预览标题、段落、工具栈和徽标；确认后再应用。",
-    "brief.previewCover": "封面",
-    "brief.previewTopic": "主题",
-    "brief.previewSections": "段落",
-    "brief.previewStack": "工具",
-    "brief.previewBadges": "徽标",
-    "brief.advancedTitle": "高级导入",
-    "brief.advancedHint": "用于粘贴旧 Markdown 或上方复制出的 JSON。平时不需要碰这个。",
-    "brief.importPlaceholder": "# AI Agent 长任务实践\n\n## Goal\n理解 long-running agents，并应用到 Vibe Studio。\n\n## Tasks\n- 阅读文章\n- 提炼 Agent 工作流原则\n- 更新直播工具设计\n\n## Stack\nNext.js, OBS, Codex",
-    "brief.exportMarkdown": "导出 Markdown",
-    "brief.importApply": "导入并应用",
-
-    // ─── Legacy session recipe ───────────────────────────────────────
-    "recipe.title": "直播 Recipe",
-    "recipe.hint": "粘贴一句话、直播大纲或 Markdown Recipe，自动更新标题、今日目标、任务、工具栈和社交信息。",
-    "recipe.placeholder": "示例：今天直播学习 Addy Osmani 的 long-running agents 文章。任务是：阅读文章、总结关键观点、设计到 Vibe Studio、最后做复盘。技术栈显示 Next.js、OBS、GPT-5.5 Pro、Codex。\n\n也可以粘贴 Markdown：\n# AI Agent 长任务实践\n\n## Goal\n理解 long-running agents，并应用到 Vibe Studio。\n\n## Tasks\n- 阅读文章\n- 提炼 Agent 工作流原则\n- 更新直播工具设计\n\n## Stack\nNext.js, OBS, GPT-5.5 Pro, Codex",
-    "recipe.apply": "应用到直播",
-    "recipe.exportCurrent": "导出当前 Recipe",
-    "recipe.empty": "先粘贴一句话或 Recipe。",
-    "recipe.applied": "已应用到直播数据、封面和 OBS 预览。",
-    "recipe.exported": "已生成当前 Recipe，并复制到剪贴板。",
-    "recipe.copyFailed": "已生成 Recipe，但复制到剪贴板失败。",
 
     // ─── Bottom bar ──────────────────────────────────────────────────
     "bar.onAir": "开播",
@@ -406,12 +377,12 @@ export const dict = {
 
     // ─── Tabs / tab badges ────────────────────────────────────────────
     "tab.overlay": "Overlay",
-    "tab.live": "Live Data",
+    "tab.live": "Session Config",
     "tab.cover": "Cover",
     "tab.poster": "Poster",
     "tab.wallpaper": "Wallpaper",
     "tabBadge.overlay": "OVERLAY · 1920×1080",
-    "tabBadge.live": "LIVE DATA · SIDEBAR / LIVE BAR",
+    "tabBadge.live": "SESSION CONFIG · SIDEBAR / LIVE BAR",
     "tabBadge.cover": "COVER · 1280×720",
     "tabBadge.poster": "POSTER · 1920×1080",
 
@@ -582,7 +553,7 @@ export const dict = {
 
     // ─── cmdk items ──────────────────────────────────────────────────
     "cmdk.tab.overlay": "Go to Overlay",
-    "cmdk.tab.live": "Go to Live Data",
+    "cmdk.tab.live": "Go to Session Config",
     "cmdk.tab.cover": "Go to Cover",
     "cmdk.tab.poster": "Go to Poster",
     "cmdk.tab.wallpaper": "Go to Wallpaper",
@@ -613,7 +584,7 @@ export const dict = {
 
     // ─── App ─────────────────────────────────────────────────────────
     "app.previewHint": "Scaled preview — export at full resolution",
-    "app.liveDataHint": "Manage sidebar and live bar data — syncs to OBS automatically",
+    "app.liveDataHint": "Session config center — edit this stream's config, auto-synced to OBS",
     "app.brand": "Vibe Studio",
 
     // ─── Live bar / canvas ────────────────────────────────────────────
@@ -640,8 +611,8 @@ export const dict = {
     "liveData.status.local": "Local",
 
     // ─── Config Studio ───────────────────────────────────────────────
-    "config.title": "Config Studio",
-    "config.hint": "Paste an AI Agent generated live config, validate it, then apply it to the cover, progress, stack, badges, and social links.",
+    "config.title": "Config file · JSON",
+    "config.hint": "Generated from the current state. Apply updates title, subtitle, author, cover, badges, stack, socials, and sections — and rebuilds active section, done states, and bottom-bar segments to v1 defaults. Live start time is not included.",
     "config.placeholder": "Paste live-session.config.json…",
     "config.exportCurrent": "Export current config",
     "config.validate": "Validate config",
@@ -651,6 +622,16 @@ export const dict = {
     "config.applied": "Config applied to live assets.",
     "config.exported": "Current config exported and copied to clipboard.",
     "config.copyFailed": "Current config exported, but clipboard copy failed.",
+    "config.import": "Import file",
+    "config.downloaded": "Exported live-session.config.json.",
+    "config.imported": "File loaded — review, then Apply.",
+    "config.discard": "Discard changes",
+    "config.resynced": "Resynced to the current live config.",
+    "config.changedUnderneath": "The form changed the underlying config. Discard to load the latest, or keep editing and Apply to overwrite.",
+    "config.mode.synced": "Synced",
+    "config.mode.editing": "Editing",
+    "liveData.centerTitle": "Session Config",
+    "liveData.centerHint": "The form above edits this stream's runtime state; the JSON below is its portable core (live-session.config.json). Live start time, active section, done states, and bottom-bar segments are runtime / display controls, not part of the v1 config.",
     "config.empty": "Paste a JSON config first.",
     "config.invalidJson": "JSON parse failed",
     "config.previewTitle": "Config Summary",
@@ -669,45 +650,6 @@ export const dict = {
     "config.surface.sections": "Progress sections",
     "config.surface.bottomBar": "Bottom bar",
 
-    // ─── Brief builder ───────────────────────────────────────────────
-    "brief.title": "Quick Start",
-    "brief.hint": "Describe the stream in plain language, generate a structured draft first, then apply it to the title, progress sections, stack, and badges.",
-    "brief.placeholder": "Example: Today I am refactoring the Live Data entry in Vibe Studio. Goal: replace the fragile Recipe flow with a Brief Builder. Tasks: understand the problem, generate the draft, apply stream data. Stack: Codex, Cursor, Next.js, OBS.",
-    "brief.generate": "Generate draft",
-    "brief.apply": "Apply to stream",
-    "brief.exportJson": "Copy JSON",
-    "brief.importToggle": "Advanced import",
-    "brief.empty": "Write a stream goal or outline first.",
-    "brief.generated": "Draft generated. Review it before applying.",
-    "brief.applied": "Applied to live data, cover, and OBS preview.",
-    "brief.exported": "Draft JSON generated and copied to clipboard.",
-    "brief.advancedExported": "Current Markdown backup generated and copied to clipboard.",
-    "brief.copyFailed": "Content generated, but clipboard copy failed.",
-    "brief.importEmpty": "Paste JSON or Markdown first.",
-    "brief.imported": "Imported and applied to live data.",
-    "brief.previewTitle": "Draft Preview",
-    "brief.previewEmpty": "After generation, preview the title, sections, stack, and badges here before applying.",
-    "brief.previewCover": "Cover",
-    "brief.previewTopic": "Topic",
-    "brief.previewSections": "Sections",
-    "brief.previewStack": "Stack",
-    "brief.previewBadges": "Badges",
-    "brief.advancedTitle": "Advanced Import",
-    "brief.advancedHint": "Paste legacy Markdown or the JSON copied above. Most sessions do not need this.",
-    "brief.importPlaceholder": "# Long-running Agents\n\n## Goal\nTurn agent reading notes into stream tasks.\n\n## Tasks\n- Read the article\n- Extract workflow patterns\n- Update Vibe Studio design\n\n## Stack\nNext.js, OBS, Codex",
-    "brief.exportMarkdown": "Export Markdown",
-    "brief.importApply": "Import and apply",
-
-    // ─── Legacy session recipe ───────────────────────────────────────
-    "recipe.title": "Stream Recipe",
-    "recipe.hint": "Paste a one-line brief, stream outline, or Markdown Recipe to update the title, goal, tasks, stack, and social links.",
-    "recipe.placeholder": "Example: Today I am streaming a reading session on Addy Osmani's long-running agents article. Tasks: read the article, summarize key ideas, apply them to Vibe Studio, wrap up. Stack: Next.js, OBS, GPT-5.5 Pro, Codex.\n\nMarkdown works too:\n# Long-running Agents\n\n## Goal\nTurn agent reading notes into stream tasks.\n\n## Tasks\n- Read the article\n- Extract workflow patterns\n- Update Vibe Studio design\n\n## Stack\nNext.js, OBS, GPT-5.5 Pro, Codex",
-    "recipe.apply": "Apply to stream",
-    "recipe.exportCurrent": "Export current Recipe",
-    "recipe.empty": "Paste a brief or Recipe first.",
-    "recipe.applied": "Applied to live data, cover, and OBS preview.",
-    "recipe.exported": "Current Recipe generated and copied to clipboard.",
-    "recipe.copyFailed": "Recipe generated, but clipboard copy failed.",
 
     // ─── Bottom bar ──────────────────────────────────────────────────
     "bar.onAir": "On Air",

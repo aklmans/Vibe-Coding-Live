@@ -1,16 +1,22 @@
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { OverlayState } from "../../types";
 import { useLocale } from "../../hooks/useLocale";
 import { UI_BORDERS, UI_COLORS, cssAlpha } from "../../lib/design-tokens";
-import {
-  configToOverlayState,
-  formatLiveStudioConfigJson,
-  overlayStateToConfig,
-  parseLiveStudioConfigJson,
-  validateLiveStudioConfig,
-  type LiveStudioConfig,
-  type LiveStudioConfigValidation,
+import type {
+  LiveStudioConfig,
+  LiveStudioConfigValidation,
 } from "../../lib/live-studio-config";
+import {
+  applyConfigText,
+  beginEditing,
+  displayedConfigText,
+  initialDriftState,
+  isChangedUnderneath,
+  parseConfigText,
+  projectConfigText,
+  resyncToState,
+  type ConfigParse,
+} from "../../lib/session-config-drift";
 import {
   WorkbenchButton,
   applyWorkbenchFocus,
@@ -18,7 +24,38 @@ import {
   monoInputStyle,
 } from "../shared/Field";
 
-interface SessionRecipePanelProps {
+/*
+ * Session Config — the JSON view of the current live config.
+ *
+ * Layer boundaries (single direction of authority):
+ *  - LiveStudioConfig v1 / live-session.config.json — the AI- and human-editable
+ *    *portable core* projection: title, subtitle, author, cover, badges, stack,
+ *    socials, sections. It is NOT the whole page: live-session start time,
+ *    active section, done states, and bottom-bar segments are runtime/display
+ *    controls outside v1. Apply also rebuilds active section, done states, and
+ *    bottom-bar segments to v1 defaults — so the form and the JSON are two views
+ *    of the same config, not of the entire Session Config page.
+ *  - OverlayState — the runtime effective state. It is the single source of
+ *    truth that drives the canvases, the preview, and the OBS live-state push.
+ *    The form editors above write it directly; this JSON view projects it and
+ *    only writes it back on an explicit "Apply".
+ *  - localStorage — the local autosave/draft of OverlayState (recovery), not an
+ *    outward config file.
+ *  - DB session / live data — persistence + history, not the config file.
+ *  - /api/live-state — the one-way OBS runtime sync channel; never edited back.
+ *
+ * Drift safety: the textarea is "synced" (mirrors the live config projection)
+ * until the user edits it, which switches it to an "editing" buffer detached
+ * from state. If the form changes the underlying config while editing, a banner
+ * warns instead of silently overwriting either side. Apply / Discard are the
+ * only transitions that move data between the buffer and OverlayState. The drift
+ * state machine itself lives in lib/session-config-drift.ts (tested there).
+ */
+
+/** Outward file name for import / export / AI-agent handoff. */
+export const SESSION_CONFIG_FILE_NAME = "live-session.config.json";
+
+interface SessionConfigEditorProps {
   state: OverlayState;
   onChange: (state: OverlayState) => void;
 }
@@ -69,97 +106,122 @@ const hintStyle: CSSProperties = {
   lineHeight: 1.5,
 };
 
-type ConfigReadResult = {
-  validation: LiveStudioConfigValidation;
-  config: LiveStudioConfig | null;
-};
-
-export default function SessionRecipePanel({
+export default function SessionConfigEditor({
   state,
   onChange,
-}: SessionRecipePanelProps) {
+}: SessionConfigEditorProps) {
   const { t } = useLocale();
-  const [configText, setConfigText] = useState(() =>
-    formatLiveStudioConfigJson(overlayStateToConfig(state)),
-  );
+  // Live projection of the current config — recomputed whenever the form/state
+  // changes so the synced view never drifts.
+  const projected = useMemo(() => projectConfigText(state), [state]);
+
+  const [drift, setDrift] = useState(initialDriftState);
   const [validation, setValidation] =
     useState<LiveStudioConfigValidation | null>(null);
-  const [previewConfig, setPreviewConfig] =
-    useState<LiveStudioConfig | null>(() => overlayStateToConfig(state));
+  const [previewConfig, setPreviewConfig] = useState<LiveStudioConfig | null>(
+    null,
+  );
   const [message, setMessage] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const readConfigText = (): ConfigReadResult => {
-    const source = configText.trim();
-    if (!source) {
-      return {
-        validation: { valid: false, issues: [t("config.empty")] },
-        config: null,
-      };
+  const editing = drift.mode === "editing";
+  const displayedText = displayedConfigText(drift, projected);
+  const changedUnderneath = isChangedUnderneath(drift, projected);
+
+  // Map the i18n-free parse result into the UI's validation shape + messages.
+  const parseToValidation = (
+    parse: ConfigParse,
+  ): { validation: LiveStudioConfigValidation; config: LiveStudioConfig | null } => {
+    if (parse.ok) {
+      return { validation: { valid: true, issues: [] }, config: parse.config };
     }
+    const issues =
+      parse.reason === "empty"
+        ? [t("config.empty")]
+        : parse.reason === "json"
+          ? [`${t("config.invalidJson")}: ${parse.detail}`]
+          : parse.issues;
+    return { validation: { valid: false, issues }, config: null };
+  };
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(source) as unknown;
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
-      return {
-        validation: {
-          valid: false,
-          issues: [`${t("config.invalidJson")}: ${detail}`],
-        },
-        config: null,
-      };
-    }
+  const enterEditing = (nextDraft: string) => {
+    setDrift(beginEditing(drift, projected, nextDraft));
+    setValidation(null);
+    setMessage("");
+  };
 
-    const nextValidation = validateLiveStudioConfig(parsed);
-    if (!nextValidation.valid) {
-      return { validation: nextValidation, config: null };
-    }
-
-    return {
-      validation: nextValidation,
-      config: parseLiveStudioConfigJson(source),
-    };
+  const resyncFromState = () => {
+    setDrift(resyncToState());
+    setValidation(null);
+    setPreviewConfig(null);
+    setMessage(t("config.resynced"));
   };
 
   const validateConfigText = () => {
-    const result = readConfigText();
-    setValidation(result.validation);
-    setPreviewConfig(result.config);
-    setMessage(result.validation.valid ? t("config.valid") : t("config.invalid"));
+    const { validation: next, config } = parseToValidation(
+      parseConfigText(displayedText),
+    );
+    setValidation(next);
+    setPreviewConfig(config);
+    setMessage(next.valid ? t("config.valid") : t("config.invalid"));
   };
 
-  const applyConfigText = () => {
-    const result = readConfigText();
-    setValidation(result.validation);
-    setPreviewConfig(result.config);
+  const handleApply = () => {
+    const result = applyConfigText(state, displayedText);
+    const { validation: next, config } = parseToValidation(result.parse);
+    setValidation(next);
+    setPreviewConfig(config);
 
-    if (!result.validation.valid || !result.config) {
+    if (!result.ok || !result.nextState) {
       setMessage(t("config.invalid"));
       return;
     }
 
-    onChange(configToOverlayState(state, result.config));
-    setConfigText(formatLiveStudioConfigJson(result.config));
+    // Apply is the explicit transaction: the buffer overwrites OverlayState,
+    // then the view returns to synced (now mirroring the applied config).
+    onChange(result.nextState);
+    setDrift(result.nextDrift);
     setMessage(t("config.applied"));
   };
 
   const exportCurrentConfig = () => {
-    const currentConfig = overlayStateToConfig(state);
-    const json = formatLiveStudioConfigJson(currentConfig);
-    setConfigText(json);
-    setPreviewConfig(currentConfig);
-    setValidation({ valid: true, issues: [] });
-    setMessage(t("config.exported"));
+    // Always export the current *live* config (the state projection).
+    const json = projected;
 
-    if (!navigator.clipboard) return;
-    void navigator.clipboard.writeText(json).catch(() => {
-      setMessage(t("config.copyFailed"));
-    });
+    if (typeof document !== "undefined") {
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = SESSION_CONFIG_FILE_NAME;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    setMessage(t("config.downloaded"));
+    if (navigator.clipboard) {
+      void navigator.clipboard.writeText(json).catch(() => {
+        setMessage(t("config.copyFailed"));
+      });
+    }
+  };
+
+  const importConfigFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Load into the editing buffer — never auto-apply. The user reviews and
+      // presses Apply.
+      enterEditing(String(reader.result ?? ""));
+      setMessage(t("config.imported"));
+    };
+    reader.readAsText(file);
   };
 
   return (
-    <section data-testid="config-studio-panel" style={sectionStyle}>
+    <section data-testid="session-config-panel" style={sectionStyle}>
       <div
         style={{
           display: "flex",
@@ -172,6 +234,7 @@ export default function SessionRecipePanel({
           <div style={eyebrowStyle}>
             <AccentMark />
             {t("config.title")}
+            <ModeChip editing={editing} />
           </div>
           <div style={hintStyle}>{t("config.hint")}</div>
         </div>
@@ -201,18 +264,49 @@ export default function SessionRecipePanel({
         )}
       </div>
 
+      {changedUnderneath && (
+        <div
+          data-testid="config-changed-banner"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            fontSize: 11,
+            lineHeight: 1.45,
+            color: UI_COLORS.text,
+            background: UI_COLORS.previewBadgeSurface,
+            border: `1px solid ${cssAlpha(UI_COLORS.accent, 38)}`,
+            borderRadius: 4,
+            padding: "8px 12px",
+          }}
+        >
+          <span style={{ minWidth: 0 }}>{t("config.changedUnderneath")}</span>
+          <ConfigButton data-testid="config-resync" onClick={resyncFromState}>
+            {t("config.discard")}
+          </ConfigButton>
+        </div>
+      )}
+
       <textarea
         data-testid="config-input"
-        value={configText}
-        onChange={(event) => {
-          setConfigText(event.target.value);
-          setValidation(null);
-        }}
+        value={displayedText}
+        onChange={(event) => enterEditing(event.target.value)}
         placeholder={t("config.placeholder")}
         spellCheck={false}
         style={textareaStyle}
         onFocus={(event) => applyWorkbenchFocus(event.currentTarget)}
         onBlur={(event) => clearWorkbenchFocus(event.currentTarget)}
+      />
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        style={{ display: "none" }}
+        onChange={importConfigFile}
+        data-testid="config-file-input"
       />
 
       <div
@@ -224,16 +318,29 @@ export default function SessionRecipePanel({
           alignItems: "center",
         }}
       >
-        <ConfigButton data-testid="config-export" onClick={exportCurrentConfig}>
-          {t("config.exportCurrent")}
-        </ConfigButton>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <ConfigButton data-testid="config-export" onClick={exportCurrentConfig}>
+            {t("config.exportCurrent")}
+          </ConfigButton>
+          <ConfigButton
+            data-testid="config-import"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {t("config.import")}
+          </ConfigButton>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {editing && (
+            <ConfigButton data-testid="config-discard" onClick={resyncFromState}>
+              {t("config.discard")}
+            </ConfigButton>
+          )}
           <ConfigButton data-testid="config-validate" onClick={validateConfigText}>
             {t("config.validate")}
           </ConfigButton>
           <ConfigButton
             data-testid="config-apply"
-            onClick={applyConfigText}
+            onClick={handleApply}
             accentColor={UI_COLORS.accent}
           >
             {t("config.apply")}
@@ -243,6 +350,32 @@ export default function SessionRecipePanel({
 
       <ConfigResultPanel validation={validation} config={previewConfig} />
     </section>
+  );
+}
+
+function ModeChip({ editing }: { editing: boolean }) {
+  const { t } = useLocale();
+  const color = editing ? UI_COLORS.accentText : UI_COLORS.textMuted;
+  return (
+    <span
+      data-testid="config-mode"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        fontFamily: "var(--app-font-mono)",
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: "0.12em",
+        textTransform: "uppercase",
+        color,
+        border: `1px solid ${cssAlpha(color, 40)}`,
+        borderRadius: 3,
+        padding: "1px 6px",
+      }}
+    >
+      {t(editing ? "config.mode.editing" : "config.mode.synced")}
+    </span>
   );
 }
 
@@ -262,9 +395,7 @@ function ConfigResultPanel({
         {t("config.previewTitle")}
       </div>
 
-      {validation && (
-        <ValidationStatus validation={validation} />
-      )}
+      {validation && <ValidationStatus validation={validation} />}
 
       {!config ? (
         <div style={hintStyle}>{t("config.previewEmpty")}</div>
