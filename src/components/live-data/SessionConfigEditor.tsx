@@ -61,12 +61,12 @@ interface SessionConfigEditorProps {
 }
 
 const sectionStyle: CSSProperties = {
+  // First-class workspace view (no longer appended to a stack), so no leading
+  // margin / rule — it sits at the top of the JSON pane.
   display: "flex",
   flexDirection: "column",
   gap: 16,
-  marginTop: 32,
-  paddingTop: 24,
-  borderTop: UI_BORDERS.hair,
+  maxWidth: 720,
 };
 
 const textareaStyle: CSSProperties = {

@@ -1,47 +1,34 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { OverlayState } from "../../types";
-import { UI_COLORS } from "../../lib/design-tokens";
-import { patchSection } from "../../lib/state";
-import { useLocale } from "../../hooks/useLocale";
-import SidebarSectionEditor from "../SidebarSectionEditor";
-import LiveSessionEditor from "../LiveSessionEditor";
-import StackEditor from "../StackEditor";
-import BottomBarSegmentEditor from "../BottomBarSegmentEditor";
+import SourceOfTruthBar, { type SessionPersistence } from "./SourceOfTruthBar";
+import SessionConfigOutline, { type ConfigView } from "./SessionConfigOutline";
+import ConfigFormView from "./ConfigFormView";
+import AgentPrepareView from "./AgentPrepareView";
 import SessionConfigEditor from "./SessionConfigEditor";
-import {
-  WorkbenchButton,
-  WorkbenchLabel,
-} from "../shared/Field";
-import { LineSegmented } from "../inspector/EditorRow";
 
 interface LiveDataManagerProps {
   state: OverlayState;
   onChange: (state: OverlayState) => void;
   dateKey: string;
-  persistence: {
-    databaseConfigured: boolean;
-    loading: boolean;
-    saving: boolean;
-    error: string | null;
-    savedAt: string | null;
-    session: {
-      status: "draft" | "live" | "ended";
-      title: string;
-    } | null;
-  };
+  persistence: SessionPersistence;
   onReload: () => void;
   onStartSession: () => void;
   onEndSession: () => void;
 }
 
-const labelStyle: CSSProperties = {
-  fontSize: 11,
-  fontWeight: 500,
-  color: UI_COLORS.textSoft,
-  letterSpacing: "0.04em",
-  textTransform: "uppercase",
-};
-
+/**
+ * Session Config Center shell.
+ *
+ * Top: the source-of-truth bar (DB / local / OBS truth + session lifecycle).
+ * Left: the config outline. Right: one workspace that switches between three
+ * views of the *same* OverlayState —
+ *   - Prepare : compose an AI handoff prompt → import the result.
+ *   - Form    : the runtime editors, grouped core vs runtime.
+ *   - JSON    : the live-session.config.json portable core (drift-safe editor).
+ *
+ * All three views stay mounted (visibility toggled) so the JSON view keeps its
+ * synced projection across switches and the IA is statically inspectable.
+ */
 export default function LiveDataManager({
   state,
   onChange,
@@ -51,22 +38,24 @@ export default function LiveDataManager({
   onStartSession,
   onEndSession,
 }: LiveDataManagerProps) {
-  const { t } = useLocale();
-  const canWrite = persistence.databaseConfigured && !persistence.loading;
-  const statusLabel = persistence.session
-    ? t(`liveData.status.${persistence.session.status}`)
-    : t("liveData.status.local");
-  const statusColor =
-    persistence.session?.status === "live"
-      ? UI_COLORS.accent
-      : persistence.session?.status === "ended"
-        ? UI_COLORS.textMuted
-        : UI_COLORS.textSubtle;
-  const activeSectionIndex = Math.min(
-    Math.max(state.sidebar.activeSection, 0),
-    Math.max(state.sidebar.sections.length - 1, 0),
-  );
-  const activeSection = state.sidebar.sections[activeSectionIndex];
+  const [view, setView] = useState<ConfigView>("form");
+  const [pendingAnchor, setPendingAnchor] = useState<string | null>(null);
+
+  // Outline form items jump to a group: switch to the form view first, then
+  // scroll once it is visible.
+  useEffect(() => {
+    if (view === "form" && pendingAnchor) {
+      document
+        .getElementById(pendingAnchor)
+        ?.scrollIntoView({ block: "start", behavior: "smooth" });
+      setPendingAnchor(null);
+    }
+  }, [view, pendingAnchor]);
+
+  const selectFormAnchor = (anchorId: string) => {
+    setView("form");
+    setPendingAnchor(anchorId);
+  };
 
   return (
     <div
@@ -75,378 +64,62 @@ export default function LiveDataManager({
         flex: 1,
         minHeight: 0,
         width: "100%",
-        overflow: "auto",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
-      {/* One editorial column — ruled sections, no nested card panels. */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          maxWidth: 880,
-          margin: "0 auto",
-          padding: "4px 8px 48px",
-          boxSizing: "border-box",
-        }}
-      >
-        {/* Page header — frames the whole page as the live config center. */}
-        <header
-          data-testid="session-config-header"
+      <SourceOfTruthBar
+        dateKey={dateKey}
+        persistence={persistence}
+        onReload={onReload}
+        onStartSession={onStartSession}
+        onEndSession={onEndSession}
+      />
+
+      <div style={{ flex: 1, minHeight: 0, display: "flex", overflow: "hidden" }}>
+        <SessionConfigOutline
+          view={view}
+          onSelectView={setView}
+          onSelectFormAnchor={selectFormAnchor}
+        />
+
+        <div
+          data-testid="config-workspace"
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 6,
-            padding: "4px 2px 2px",
+            flex: 1,
+            minWidth: 0,
+            overflowY: "auto",
+            padding: "22px 28px 56px",
+            boxSizing: "border-box",
           }}
         >
-          <div
-            style={{
-              fontFamily: "var(--app-font-mono)",
-              fontSize: 12,
-              fontWeight: 700,
-              color: UI_COLORS.text,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-            }}
-          >
-            {t("liveData.centerTitle")}
-          </div>
-          <div
-            style={{
-              fontSize: 11,
-              color: UI_COLORS.textMuted,
-              lineHeight: 1.5,
-              maxWidth: 720,
-            }}
-          >
-            {t("liveData.centerHint")}
-          </div>
-        </header>
-
-        {/* Session status bar — a ruled header row, not a card. */}
-        <section
-          data-testid="live-data-session-bar"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            padding: "12px 2px 18px",
-            borderBottom: `1px solid ${UI_COLORS.border}`,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 4,
-              minWidth: 0,
-              flex: 1,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                minWidth: 0,
-                flexWrap: "wrap",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "var(--app-font-mono)",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: UI_COLORS.text,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {t("liveData.session")}
-              </span>
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <span
-                  aria-hidden
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: "50%",
-                    background: statusColor,
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: "var(--app-font-mono)",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: statusColor,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {statusLabel}
-                </span>
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--app-font-mono)",
-                  fontSize: 11,
-                  color: UI_COLORS.textMuted,
-                  letterSpacing: "0.02em",
-                }}
-              >
-                {`${t("liveData.date")} ${dateKey}`}
-              </span>
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                color: persistence.error ? UI_COLORS.danger : UI_COLORS.textMuted,
-                lineHeight: 1.4,
-              }}
-            >
-              {persistence.error
-                ? persistence.error
-                : persistence.loading
-                  ? t("liveData.loading")
-                  : !persistence.databaseConfigured
-                    ? t("liveData.localMode")
-                    : persistence.saving
-                      ? t("liveData.saving")
-                      : persistence.savedAt
-                        ? t("liveData.saved")
-                        : t("liveData.database")}
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-            <SessionButton onClick={onReload} disabled={persistence.loading}>
-              {t("liveData.reload")}
-            </SessionButton>
-            <SessionButton
-              onClick={onStartSession}
-              disabled={!canWrite || persistence.saving}
-              tone="accent"
-            >
-              {t("liveData.startSession")}
-            </SessionButton>
-            <SessionButton
-              onClick={onEndSession}
-              disabled={!canWrite || persistence.saving}
-            >
-              {t("liveData.endSession")}
-            </SessionButton>
-          </div>
-        </section>
-
-        <RuledSection
-          testId="live-data-sections"
-          title={t("group.sections")}
-          hint={t("group.sections.hint")}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <WorkbenchLabel style={labelStyle}>
-              {t("label.activeSection")}
-            </WorkbenchLabel>
-            <LineSegmented
-              testId="live-data-section-tabs"
-              active={String(activeSectionIndex)}
-              onSelect={(value) =>
-                onChange(
-                  patchSection(state, "sidebar", {
-                    activeSection: Number(value),
-                  }),
-                )
-              }
-              options={state.sidebar.sections.map((section, idx) => ({
-                value: String(idx),
-                label: section.title || `${t("label.section")} ${idx + 1}`,
-                meta: `${(state.sidebar.sectionsDone?.[idx] ?? []).filter(Boolean).length}/${section.bullets.length}`,
-                testId: `live-data-section-tab-${idx}`,
-              }))}
-            />
-          </div>
-
-          {activeSection && (
-            <EditorBlock
-              label={activeSection.title || `${t("label.section")} ${activeSectionIndex + 1}`}
-              testId={`live-data-section-panel-${activeSectionIndex}`}
-            >
-              <SidebarSectionEditor
-                state={state}
-                onChange={onChange}
-                index={activeSectionIndex}
-                accentColor={UI_COLORS.accent}
-              />
-            </EditorBlock>
-          )}
-        </RuledSection>
-
-        <RuledSection
-          testId="live-data-live-session"
-          title={t("group.liveSession")}
-          hint={t("group.liveSession.hint")}
-        >
-          <LiveSessionEditor state={state} onChange={onChange} />
-        </RuledSection>
-
-        <RuledSection
-          testId="live-data-stack"
-          title={t("group.stack")}
-          hint={t("group.stack.hint")}
-        >
-          <StackEditor state={state} onChange={onChange} />
-        </RuledSection>
-
-        <RuledSection
-          testId="live-data-bottom-bar"
-          title={t("group.bottomBarSegments")}
-          hint={t("group.bottomBarSegments.hint")}
-        >
-          {[0, 1, 2].map((idx) => (
-            <EditorBlock key={idx} label={`${t("label.segment")} ${idx + 1}`}>
-              <BottomBarSegmentEditor
-                state={state}
-                onChange={onChange}
-                index={idx}
-              />
-            </EditorBlock>
-          ))}
-        </RuledSection>
-
-        {/* Session config — the JSON view of the portable core config
-            (live-session.config.json). It covers title / cover / badges /
-            stack / socials / sections, not the runtime fields above (live
-            start time, active section, done states, bottom-bar segments). */}
-        <div style={{ marginTop: 32 }}>
-          <SessionConfigEditor state={state} onChange={onChange} />
+          <ViewPane testId="config-view-prepare" active={view === "prepare"}>
+            <AgentPrepareView state={state} onOpenJson={() => setView("json")} />
+          </ViewPane>
+          <ViewPane testId="config-view-form" active={view === "form"}>
+            <ConfigFormView state={state} onChange={onChange} />
+          </ViewPane>
+          <ViewPane testId="config-view-json" active={view === "json"}>
+            <SessionConfigEditor state={state} onChange={onChange} />
+          </ViewPane>
         </div>
       </div>
     </div>
   );
 }
 
-function SessionButton({
-  children,
-  onClick,
-  disabled,
-  tone = "neutral",
-}: {
-  children: ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-  tone?: "neutral" | "accent";
-}) {
-  return (
-    <WorkbenchButton
-      onClick={onClick}
-      disabled={disabled}
-      tone={tone}
-      style={{
-        minWidth: 82,
-        height: 30,
-        padding: "0 12px",
-      }}
-    >
-      {children}
-    </WorkbenchButton>
-  );
-}
-
-/**
- * A ruled editorial region: a top rule, a mono section eyebrow + hint, and a
- * stacked body. No rounded panel, no nested card — structure comes from the
- * rule and the heading, the way the inspector and Zhaphar lists do.
- */
-function RuledSection({
-  title,
-  hint,
+function ViewPane({
   testId,
+  active,
   children,
 }: {
-  title: string;
-  hint: string;
-  testId?: string;
+  testId: string;
+  active: boolean;
   children: ReactNode;
 }) {
   return (
-    <section
-      data-testid={testId}
-      style={{
-        marginTop: 32,
-        paddingTop: 22,
-        borderTop: `1px solid ${UI_COLORS.rule}`,
-        display: "flex",
-        flexDirection: "column",
-        gap: 18,
-      }}
-    >
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <div
-          style={{
-            fontFamily: "var(--app-font-mono)",
-            fontSize: 11,
-            fontWeight: 700,
-            color: UI_COLORS.text,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-          }}
-        >
-          {title}
-        </div>
-        <div style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.4 }}>
-          {hint}
-        </div>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-/**
- * A labelled editing row inside a ruled section. A quiet mono label and a thin
- * hairline above it — a ruled row, never a card-in-card block.
- */
-function EditorBlock({
-  label,
-  children,
-  testId,
-}: {
-  label: string;
-  children: ReactNode;
-  testId?: string;
-}) {
-  return (
-    <div
-      data-testid={testId}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        paddingTop: 16,
-        borderTop: `1px solid ${UI_COLORS.border}`,
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "var(--app-font-mono)",
-          fontSize: 10,
-          fontWeight: 600,
-          color: UI_COLORS.textMuted,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </span>
+    <div data-testid={testId} hidden={!active} style={{ display: active ? "block" : "none" }}>
       {children}
     </div>
   );
