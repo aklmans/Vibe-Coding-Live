@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { cssAlpha, UI_COLORS } from "../lib/design-tokens";
 import { dict } from "../lib/i18n";
+import { parseLiveStudioConfigJson } from "../lib/live-studio-config";
 import { LocaleProvider } from "../hooks/useLocale";
 import { DEFAULT_STATE } from "../types";
 import CommandPalette from "./CommandPalette";
@@ -205,24 +206,24 @@ test("surface inspectors default to a focused first-screen workflow", () => {
   assert.doesNotMatch(wallpaper, /data-testid="wallpaper-avatar-visible"/);
 });
 
-test("live data prioritizes live editing before recipe import/export", () => {
+test("live data keeps Config Studio after direct live editing controls", () => {
   const source = readFileSync(resolve("src/components/live-data/LiveDataManager.tsx"), "utf8");
   const sessionBar = source.indexOf('data-testid="live-data-session-bar"');
   const sections = source.indexOf('testId="live-data-sections"');
   const liveSession = source.indexOf('testId="live-data-live-session"');
   const stack = source.indexOf('testId="live-data-stack"');
   const bottomBar = source.indexOf('testId="live-data-bottom-bar"');
-  const recipe = source.indexOf("<SessionRecipePanel");
+  const configStudio = source.indexOf("<SessionRecipePanel");
 
   assert.ok(sessionBar >= 0);
   assert.ok(sections > sessionBar);
   assert.ok(liveSession > sections);
   assert.ok(stack > liveSession);
   assert.ok(bottomBar > stack);
-  assert.ok(recipe > bottomBar);
+  assert.ok(configStudio > bottomBar);
 });
 
-test("live data uses a brief builder before legacy recipe import", () => {
+test("live data exposes Config Studio instead of the brief or recipe main path", () => {
   const panelSource = readFileSync(resolve("src/components/live-data/SessionRecipePanel.tsx"), "utf8");
   const html = renderToStaticMarkup(
     React.createElement(LocaleProvider, {
@@ -247,18 +248,26 @@ test("live data uses a brief builder before legacy recipe import", () => {
     }),
   );
 
-  assert.match(html, /data-testid="brief-builder-panel"/);
-  assert.match(html, /data-testid="brief-input"/);
-  assert.match(html, /data-testid="brief-generate"/);
-  assert.match(html, /data-testid="brief-apply"/);
-  assert.match(html, /data-testid="brief-import-toggle"/);
-  assert.doesNotMatch(html, /Copy JSON/);
+  assert.match(html, /data-testid="config-studio-panel"/);
+  assert.match(html, /data-testid="config-input"/);
+  assert.match(html, /data-testid="config-export"/);
+  assert.match(html, /data-testid="config-validate"/);
+  assert.match(html, /data-testid="config-apply"/);
+  assert.match(html, /Config Studio/);
+  assert.doesNotMatch(html, /Brief Builder/);
+  assert.doesNotMatch(html, /Quick Start/);
   assert.doesNotMatch(html, /Stream Recipe/);
-  assert.match(panelSource, /generateLiveBriefDraft/);
-  assert.match(panelSource, /applyLiveBriefDraftToOverlayState/);
-  assert.match(panelSource, /data-testid="brief-draft-preview"/);
-  assert.match(panelSource, /draftSource === source \? draft : generateDraft\(\)/);
-  assert.match(panelSource, /setDraft\(null\);[\s\S]*setDraftSource\(""\);/);
+  assert.doesNotMatch(panelSource, /generateLiveBriefDraft/);
+  assert.doesNotMatch(panelSource, /applyLiveBriefDraftToOverlayState/);
+  assert.doesNotMatch(panelSource, /data-testid="brief-draft-preview"/);
+});
+
+test("live studio example config is checked in for agent handoff", () => {
+  const raw = readFileSync(resolve("docs/live-studio-config.example.json"), "utf8");
+  const parsed = parseLiveStudioConfigJson(raw);
+
+  assert.equal(parsed?.title, "Building With Agents");
+  assert.equal(parsed?.badges.includes("kimi"), true);
 });
 
 
