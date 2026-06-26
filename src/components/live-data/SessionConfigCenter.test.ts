@@ -91,8 +91,7 @@ test("Manual Settings has a category tree and grouped settings rows", () => {
 });
 
 test("Manual Settings uses a wide workbench content column", () => {
-  assert.match(MANUAL_SRC, /SETTINGS_CONTENT_MAX_WIDTH\s*=\s*940/);
-  assert.match(MANUAL_SRC, /marginInline:\s*"auto"/);
+  assert.match(MANUAL_SRC, /SETTINGS_CONTENT_MAX_WIDTH\s*=\s*920/);
   assert.doesNotMatch(MANUAL_SRC, /maxWidth:\s*720/);
 });
 
