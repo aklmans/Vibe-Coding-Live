@@ -20,16 +20,17 @@ interface AgentViewProps {
 interface AgentTask {
   id: string;
   labelKey: TranslationKey;
+  descKey: TranslationKey;
   line: string;
 }
 
-// Task chips: label localized, the handoff line stays English for AI tools.
+// Task chips: label + intent localized; the handoff line stays English for AI tools.
 const TASKS: AgentTask[] = [
-  { id: "generate", labelKey: "agentTask.generate", line: "Task: generate the full config for this stream." },
-  { id: "sections", labelKey: "agentTask.sections", line: "Task: update only the sections (titles + bullets); keep everything else." },
-  { id: "titleCover", labelKey: "agentTask.titleCover", line: "Task: update the title, subtitle, author and cover copy; keep everything else." },
-  { id: "assets", labelKey: "agentTask.assets", line: "Task: update the stack, badges and socials; keep everything else." },
-  { id: "check", labelKey: "agentTask.check", line: "Task: review the current config for issues and return a corrected version." },
+  { id: "generate", labelKey: "agentTask.generate", descKey: "agentTask.generateDesc", line: "Task: generate the full config for this stream." },
+  { id: "sections", labelKey: "agentTask.sections", descKey: "agentTask.sectionsDesc", line: "Task: update only the sections (titles + bullets); keep everything else." },
+  { id: "titleCover", labelKey: "agentTask.titleCover", descKey: "agentTask.titleCoverDesc", line: "Task: update the title, subtitle, author and cover copy; keep everything else." },
+  { id: "assets", labelKey: "agentTask.assets", descKey: "agentTask.assetsDesc", line: "Task: update the stack, badges and socials; keep everything else." },
+  { id: "check", labelKey: "agentTask.check", descKey: "agentTask.checkDesc", line: "Task: review the current config for issues and return a corrected version." },
 ];
 
 // Context chips — what the agent receives + the guarantees (informational).
@@ -181,6 +182,12 @@ export default function AgentView({ state, onOpenJson }: AgentViewProps) {
               );
             })}
           </div>
+          <div
+            data-testid="agent-task-intent"
+            style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.45 }}
+          >
+            {t(task.descKey)}
+          </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -214,7 +221,9 @@ export default function AgentView({ state, onOpenJson }: AgentViewProps) {
           </div>
         </div>
 
-        {/* Actions — copy the handoff; Import / Apply go to the JSON drawer. */}
+        {/* Actions — two distinct verbs only: copy the handoff, and open the
+            single drift-safe JSON drawer. The import → review → Apply round-trip
+            is spelled out in the numbered steps below, not as extra buttons. */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <WorkbenchButton
             data-testid="agent-copy-handoff"
@@ -232,25 +241,9 @@ export default function AgentView({ state, onOpenJson }: AgentViewProps) {
           >
             {t("drawer.openJson")}
           </WorkbenchButton>
-          <WorkbenchButton
-            data-testid="agent-import-result"
-            onClick={onOpenJson}
-            style={{ height: 32, padding: "0 12px" }}
-          >
-            {t("agent.openJsonToImport")}
-          </WorkbenchButton>
-          <WorkbenchButton
-            data-testid="agent-apply-config"
-            onClick={onOpenJson}
-            style={{ height: 32, padding: "0 12px" }}
-          >
-            {t("agent.reviewInJson")}
-          </WorkbenchButton>
-          {message && (
-            <span style={{ fontSize: 11, color: UI_COLORS.accentText, lineHeight: 1.4 }}>
-              {message}
-            </span>
-          )}
+          <span style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.4 }}>
+            {message || t("agent.openJsonHint")}
+          </span>
         </div>
 
         {/* Handoff preview — collapsed by default, not the visual centre. */}

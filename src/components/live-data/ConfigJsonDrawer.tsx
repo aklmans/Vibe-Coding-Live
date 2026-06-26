@@ -3,6 +3,7 @@ import type { OverlayState } from "../../types";
 import { UI_COLORS, cssAlpha } from "../../lib/design-tokens";
 import { useLocale } from "../../hooks/useLocale";
 import SessionConfigEditor from "./SessionConfigEditor";
+import { focusTargetTestId, needsFocusRetry } from "./drawer-focus";
 
 interface ConfigJsonDrawerProps {
   open: boolean;
@@ -54,7 +55,6 @@ export default function ConfigJsonDrawer({
 }: ConfigJsonDrawerProps) {
   const { t } = useLocale();
   const panelRef = useRef<HTMLDivElement>(null);
-  const closeBtnRef = useRef<HTMLButtonElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
 
   // Lightweight locate: select the key inside the JSON textarea and scroll it
@@ -88,11 +88,28 @@ export default function ConfigJsonDrawer({
           ? document.activeElement
           : null;
       if (panel) panel.inert = false;
-      const raf = requestAnimationFrame(() => {
-        if (focusKey) locateKey(focusKey);
-        else closeBtnRef.current?.focus();
-      });
-      return () => cancelAnimationFrame(raf);
+      // Move focus into the dialog once the panel is no longer inert. A key jump
+      // focuses the textarea; otherwise focus the close button (focusTargetTestId).
+      // We retry on the next macrotask because the opening click can otherwise
+      // reclaim focus to its trigger, stranding it behind the scrim (needsFocusRetry).
+      const focusIntoDialog = () => {
+        if (focusKey) {
+          locateKey(focusKey);
+          return;
+        }
+        const target = panel?.querySelector(
+          `[data-testid="${focusTargetTestId(focusKey)}"]`,
+        );
+        if (target instanceof HTMLElement) target.focus();
+      };
+      const raf = requestAnimationFrame(focusIntoDialog);
+      const timer = window.setTimeout(() => {
+        if (needsFocusRetry(panel, document.activeElement)) focusIntoDialog();
+      }, 0);
+      return () => {
+        cancelAnimationFrame(raf);
+        window.clearTimeout(timer);
+      };
     }
     if (panel) panel.inert = true;
     restoreFocusRef.current?.focus?.();
@@ -171,7 +188,6 @@ export default function ConfigJsonDrawer({
             </span>
           </div>
           <button
-            ref={closeBtnRef}
             data-testid="config-json-drawer-close"
             onClick={onClose}
             aria-label={t("drawer.close")}

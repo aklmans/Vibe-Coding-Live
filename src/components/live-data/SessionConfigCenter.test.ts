@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LocaleProvider } from "../../hooks/useLocale";
 import { DEFAULT_STATE } from "../../types";
 import { buildAgentPrompt } from "../../lib/agent-prompt";
+import { focusTargetTestId, needsFocusRetry } from "./drawer-focus";
 import LiveDataManager from "./LiveDataManager";
 
 type Persistence = Parameters<typeof LiveDataManager>[0]["persistence"];
@@ -104,6 +105,21 @@ test("Manual Settings has a search box that really filters categories", () => {
   assert.match(MANUAL_SRC, /data-testid="settings-search-count"/);
 });
 
+test("Manual Settings search copy says it filters categories, not fields", () => {
+  const html = renderCenter();
+  // A persistent helper line spells out the scope so the box isn't misleading.
+  assert.match(html, /data-testid="settings-search-help"/);
+  assert.match(html, /Filters setting groups, not individual fields\./);
+  const i18nSrc = readFileSync(resolve("src/lib/i18n.ts"), "utf8");
+  // Placeholder no longer implies field-level search.
+  assert.doesNotMatch(i18nSrc, /"manualSettings\.searchPlaceholder": "Search settings…"/);
+  assert.match(i18nSrc, /"manualSettings\.searchPlaceholder": "Search categories…"/);
+  assert.match(i18nSrc, /"manualSettings\.searchPlaceholder": "搜索分类…"/);
+  // Helper copy exists in both locales.
+  assert.match(i18nSrc, /"manualSettings\.searchHelp": "Filters setting groups, not individual fields\."/);
+  assert.match(i18nSrc, /"manualSettings\.searchHelp": "按设置分组过滤,不含单个字段。"/);
+});
+
 test("Manual Settings language row uses a real i18n key, not translation comparison", () => {
   const i18nSrc = readFileSync(resolve("src/lib/i18n.ts"), "utf8");
   assert.match(MANUAL_SRC, /settingsRow\.languageTitle/);
@@ -159,12 +175,30 @@ test("the JSON drawer is global, drift-safe, and openable from bar / manual / ag
 
 test("the JSON drawer manages focus and is inert while closed", () => {
   const html = renderCenter();
+  // Structure contract: a close button lives inside a dialog.
+  assert.match(html, /role="dialog"/);
   assert.match(html, /data-testid="config-json-drawer-close"/);
-  // Focus in on open, restore on close, inert while closed.
+  // The drawer wires the restore-focus + inert mechanisms and routes focus-in
+  // through the tested pure helpers — asserting behaviour, not function names
+  // or timer spelling, so a refactor that keeps the contract won't break this.
   assert.match(DRAWER_SRC, /restoreFocusRef/);
-  assert.match(DRAWER_SRC, /closeBtnRef\.current\?\.focus\(\)/);
-  assert.match(DRAWER_SRC, /panel\.inert = true/);
-  assert.match(DRAWER_SRC, /panel\.inert = false/);
+  assert.match(DRAWER_SRC, /\.inert\b/);
+  assert.match(DRAWER_SRC, /focusTargetTestId/);
+  assert.match(DRAWER_SRC, /needsFocusRetry/);
+});
+
+test("JSON drawer focus contract: target element and retry decision (pure)", () => {
+  // Opened at a key → land on the JSON textarea; no key → the close button.
+  assert.equal(focusTargetTestId("title"), "config-input");
+  assert.equal(focusTargetTestId(null), "config-json-drawer-close");
+  assert.equal(focusTargetTestId(undefined), "config-json-drawer-close");
+  // Retry focus-in only while focus is still outside the panel (the opening
+  // click can reclaim it to the trigger); never once focus is in, or panel gone.
+  const inside = { contains: () => true };
+  const outside = { contains: () => false };
+  assert.equal(needsFocusRetry(outside, {} as unknown as Node), true);
+  assert.equal(needsFocusRetry(inside, {} as unknown as Node), false);
+  assert.equal(needsFocusRetry(null, {} as unknown as Node), false);
 });
 
 test("Agent mode is a task panel with input, task chips and context chips", () => {
@@ -178,9 +212,13 @@ test("Agent mode is a task panel with input, task chips and context chips", () =
     assert.match(html, new RegExp(`data-testid="agent-context-${id}"`));
   }
   assert.match(html, /data-testid="agent-copy-handoff"/);
+  // Exactly one button opens the JSON drawer — no trio of same-weight actions.
   assert.match(html, /data-testid="open-json-agent"/);
-  assert.match(html, /Open JSON to import/);
-  assert.match(html, /Review in JSON/);
+  assert.doesNotMatch(html, /data-testid="agent-import-result"/);
+  assert.doesNotMatch(html, /data-testid="agent-apply-config"/);
+  // The import → review → Apply round-trip is guidance text, not extra buttons,
+  // and never promises auto behaviour.
+  assert.match(html, /Import the returned JSON/i);
   assert.doesNotMatch(html, /Import result/);
   assert.doesNotMatch(html, /Apply reviewed config/);
   // Handoff preview is collapsed by default (toggle present, pre not yet shown).
@@ -233,4 +271,24 @@ test("the source-of-truth bar shows DB / local status without a faked OBS revisi
   assert.match(local, /current state/);
   assert.doesNotMatch(local, /rev#?\s*\d+/i);
   assert.doesNotMatch(local, /revision\s*\d+/i);
+});
+
+test("Agent shows the active task intent and the handoff reflects the brief", () => {
+  const html = renderCenter();
+  assert.match(html, /data-testid="agent-task-intent"/);
+  // The default task (generate) intent is visible without expanding the handoff.
+  assert.match(html, /Generate a complete config/);
+
+  // The handoff varies with the user brief, not just the task chip.
+  const a = buildAgentPrompt(DEFAULT_STATE, "rebuild the intro", "Task: x");
+  const b = buildAgentPrompt(DEFAULT_STATE, "wrap up the stream", "Task: x");
+  assert.notEqual(a, b);
+  assert.match(a, /Brief: rebuild the intro/);
+  assert.match(b, /Brief: wrap up the stream/);
+});
+
+test("Studio Appearance keeps the drawer fallback labelled as a backup entry", () => {
+  const html = renderCenter();
+  assert.match(html, /data-testid="open-studio-drawer"/);
+  assert.match(html, /also available in a drawer/);
 });

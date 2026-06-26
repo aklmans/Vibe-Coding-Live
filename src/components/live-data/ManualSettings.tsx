@@ -93,9 +93,9 @@ export default function ManualSettings({
     },
     {
       id: "sections",
-      titleKey: "group.sections",
+      titleKey: "settingsGroup.content",
       hintKey: "configForm.sectionsNote",
-      keywords: "sections bullets tasks progress goal done",
+      keywords: "content sections bullets tasks progress goal done",
       render: () => (
         <div data-testid="live-data-sections" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -129,7 +129,7 @@ export default function ManualSettings({
     },
     {
       id: "stack",
-      titleKey: "group.stack",
+      titleKey: "settingsGroup.stack",
       hintKey: "group.stack.hint",
       keywords: "stack tools services",
       render: () => (
@@ -181,13 +181,27 @@ export default function ManualSettings({
             onReset={onReset}
             testIdPrefix="studio-"
           />
-          <WorkbenchButton
-            data-testid="open-studio-drawer"
-            onClick={onOpenStudioDrawer}
-            style={{ alignSelf: "flex-start", height: 30, padding: "0 12px" }}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
+              paddingTop: 14,
+              borderTop: `1px solid ${UI_COLORS.border}`,
+            }}
           >
-            {t("settingsRow.openStudioDrawer")}
-          </WorkbenchButton>
+            <WorkbenchButton
+              data-testid="open-studio-drawer"
+              onClick={onOpenStudioDrawer}
+              style={{ height: 30, padding: "0 12px", flexShrink: 0 }}
+            >
+              {t("settingsRow.openStudioDrawer")}
+            </WorkbenchButton>
+            <span style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.4 }}>
+              {t("settingsRow.studioDrawerNote")}
+            </span>
+          </div>
         </div>
       ),
     },
@@ -319,10 +333,16 @@ export default function ManualSettings({
               outline: "none",
             }}
           />
+          <div
+            data-testid="settings-search-help"
+            style={{ fontSize: 11, color: UI_COLORS.textSubtle, padding: "4px 2px 0" }}
+          >
+            {t("manualSettings.searchHelp")}
+          </div>
           {normalized && (
             <div
               data-testid="settings-search-count"
-              style={{ fontSize: 11, color: UI_COLORS.textMuted, padding: "4px 2px 0" }}
+              style={{ fontSize: 11, color: UI_COLORS.textMuted, padding: "2px 2px 0" }}
             >
               {`${matched.length} / ${categories.length} · ${t("manualSettings.matches")}`}
             </div>
