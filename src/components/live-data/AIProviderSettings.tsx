@@ -49,7 +49,7 @@ export default function AIProviderSettings({ initialStatus }: AIProviderSettings
 
   return (
     <div data-testid="ai-provider-settings" style={{ display: "flex", flexDirection: "column" }}>
-      <Row title={t("aiProvider.statusLabel")}>
+      <Row rowId="provider" title={t("aiProvider.statusLabel")}>
         {connected ? (
           <span data-testid="ai-provider-status-connected" style={pill(UI_COLORS.accentText, cssAlpha(UI_COLORS.accent, 12))}>
             <Dot color={UI_COLORS.accent} />
@@ -63,17 +63,18 @@ export default function AIProviderSettings({ initialStatus }: AIProviderSettings
         )}
       </Row>
 
-      <ReadRow label={t("aiProvider.baseUrl")} value={status.baseUrl} testId="ai-provider-base-url" />
-      <ReadRow label={t("aiProvider.model")} value={status.model} testId="ai-provider-model" />
-      <ReadRow label={t("aiProvider.userAgent")} value={status.userAgent} testId="ai-provider-user-agent" />
+      <ReadRow rowId="baseUrl" label={t("aiProvider.baseUrl")} value={status.baseUrl} testId="ai-provider-base-url" />
+      <ReadRow rowId="model" label={t("aiProvider.model")} value={status.model} testId="ai-provider-model" />
+      <ReadRow rowId="userAgent" label={t("aiProvider.userAgent")} value={status.userAgent} testId="ai-provider-user-agent" />
       <ReadRow
+        rowId="apiKey"
         label={t("aiProvider.apiKey")}
         value={connected ? t("aiProvider.apiKeyConfigured") : t("aiProvider.apiKeyEmpty")}
         testId="ai-provider-api-key"
         note={t("aiProvider.keyNote")}
       />
 
-      <Row title={t("aiProvider.test")} description={t("aiProvider.examples")}>
+      <Row rowId="test" title={t("aiProvider.test")} description={t("aiProvider.examples")}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <WorkbenchButton
             data-testid="ai-provider-test"
@@ -111,9 +112,9 @@ export default function AIProviderSettings({ initialStatus }: AIProviderSettings
 }
 
 /** A calm settings row: title + description on the left, control stacked below. */
-function Row({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+function Row({ rowId, title, description, children }: { rowId?: string; title: string; description?: string; children: ReactNode }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 16, marginTop: 16, borderTop: `1px solid ${UI_COLORS.border}` }}>
+    <div id={rowId ? `settings-row-${rowId}` : undefined} style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 16, marginTop: 16, borderTop: `1px solid ${UI_COLORS.border}` }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: UI_COLORS.textSoft }}>{title}</span>
         {description && <span style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.4 }}>{description}</span>}
@@ -124,9 +125,9 @@ function Row({ title, description, children }: { title: string; description?: st
 }
 
 /** A read-only field row — label + mono value (+ optional note). */
-function ReadRow({ label, value, testId, note }: { label: string; value?: string; testId: string; note?: string }) {
+function ReadRow({ rowId, label, value, testId, note }: { rowId?: string; label: string; value?: string; testId: string; note?: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 16, marginTop: 16, borderTop: `1px solid ${UI_COLORS.border}` }}>
+    <div id={rowId ? `settings-row-${rowId}` : undefined} style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 16, marginTop: 16, borderTop: `1px solid ${UI_COLORS.border}` }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
         <span style={fieldLabel}>{label}</span>
         <span

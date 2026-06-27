@@ -5,6 +5,7 @@ import { useLocale } from "../../hooks/useLocale";
 import { UI_BORDERS, UI_COLORS, cssAlpha } from "../../lib/design-tokens";
 import { buildAgentPrompt } from "../../lib/agent-prompt";
 import { projectConfigText } from "../../lib/session-config-drift";
+import { summarizeConfigProposal, type ConfigChange } from "../../lib/config-proposal";
 import type { SessionAgentStatus } from "../../lib/session-agent";
 import { fetchAgentStatus, runSessionAgent } from "../../lib/session-agent-client";
 import { resolveCopyResult, shortConfigHash, turnMessageKey, type CopyStatus } from "./agent-copy";
@@ -48,6 +49,19 @@ const CONTEXT: { id: string; labelKey: TranslationKey }[] = [
   { id: "noRuntime", labelKey: "agentContext.noRuntime" },
   { id: "obs", labelKey: "agentContext.obs" },
 ];
+
+/** Top-level v1 field → its "changed" label, for the proposal review summary. */
+const CHANGE_LABEL: Record<ConfigChange["field"], TranslationKey> = {
+  title: "agent.changeTitle",
+  subtitle: "agent.changeSubtitle",
+  author: "agent.changeAuthor",
+  profile: "agent.changeProfile",
+  cover: "agent.changeCover",
+  badges: "agent.changeBadges",
+  stack: "agent.changeStack",
+  socials: "agent.changeSocials",
+  sections: "agent.changeSections",
+};
 
 /**
  * Slash commands — a lightweight, natural-language command surface in the
@@ -98,7 +112,8 @@ const subLabel: CSSProperties = {
  * Agent mode — a full chat window. The user converses; "Run with AI" (when a
  * provider is configured server-side) sends the brief + task + current v1
  * projection to `/api/session-config/agent` and shows the reply as a turn. A
- * returned config renders as a JSON card whose "Review in JSON" seeds the
+ * returned config renders as a compact proposal card (no full JSON in the chat);
+ * the proposal rail summarizes what would change and "Review in JSON" seeds the
  * drift-safe drawer buffer — never auto-imported, never auto-applied. With no
  * provider, the pill reads "local · no model" and Copy handoff is the path. The
  * API key stays on the server; the client only knows provider / model names.
@@ -253,6 +268,16 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
     if (navigator.clipboard) void navigator.clipboard.writeText(text).catch(() => {});
   };
 
+  // The latest AI proposal (a successful turn that returned a config) drives the
+  // split review rail. No proposal → the Agent stays centered.
+  const proposal = useMemo<AiTurn | null>(() => {
+    for (let i = turns.length - 1; i >= 0; i--) {
+      const turn = turns[i];
+      if (turn.kind === "ai" && turn.status === "success" && turn.configText) return turn;
+    }
+    return null;
+  }, [turns]);
+
   return (
     <div
       data-testid="agent-view"
@@ -302,6 +327,11 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
         </div>
       </header>
 
+      <div
+        data-testid="agent-body"
+        style={{ flex: 1, minHeight: 0, display: "flex", overflow: "hidden" }}
+      >
+        <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", flexDirection: "column" }}>
       {/* Thread — the conversation; scrolls, composer stays pinned. The empty
           state centers so the dialog doesn't leave a large blank gap. */}
       <div
@@ -526,7 +556,132 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
           </div>
         </div>
       </div>
+        </div>
+        {proposal && (
+          <aside
+            data-testid="agent-proposal-rail"
+            aria-label={t("agent.proposalTitle")}
+            style={{
+              width: 320,
+              minWidth: 280,
+              flexShrink: 0,
+              borderLeft: `1px solid ${UI_COLORS.border}`,
+              overflowY: "auto",
+              padding: "18px 18px 24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+            }}
+          >
+            <ProposalRail
+              proposal={proposal}
+              currentConfigText={projectConfigText(state)}
+              onReviewJson={onReviewJson}
+              onCopy={copyText}
+              onOpenSettings={onOpenSettings}
+            />
+          </aside>
+        )}
+      </div>
     </div>
+  );
+}
+
+/**
+ * Proposal review rail — the right side of the Agent split once the AI returns a
+ * config. It summarizes what would change (a pure diff), but never applies:
+ * Review in JSON is the only path into the drift-safe drawer.
+ */
+function ProposalRail({
+  proposal,
+  currentConfigText,
+  onReviewJson,
+  onCopy,
+  onOpenSettings,
+}: {
+  proposal: AiTurn;
+  currentConfigText: string;
+  onReviewJson?: (text: string) => void;
+  onCopy: (text: string) => void;
+  onOpenSettings?: (group?: string) => void;
+}) {
+  const { t } = useLocale();
+  const summary = summarizeConfigProposal(currentConfigText, proposal.configText ?? "");
+
+  return (
+    <>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <span style={{ ...subLabel, color: UI_COLORS.accentText }}>{t("agent.proposalTitle")}</span>
+        <span style={{ fontFamily: "var(--app-font-serif)", fontSize: 17, fontWeight: 500, color: UI_COLORS.text }}>
+          {proposal.taskLabel}
+        </span>
+        <span style={{ fontFamily: mono, fontSize: 10, color: UI_COLORS.textMuted }}>
+          live-session.config.json · v1 · {t("agent.snapshot")} {proposal.snapshot}
+        </span>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <span style={subLabel}>{t("agent.proposalSummary")}</span>
+        {!summary.ok ? (
+          <span data-testid="agent-proposal-invalid" style={{ fontSize: 12, color: UI_COLORS.textMuted, lineHeight: 1.5 }}>
+            {t("agent.proposalInvalid")}
+          </span>
+        ) : summary.changes.length === 0 ? (
+          <span data-testid="agent-proposal-nochanges" style={{ fontSize: 12, color: UI_COLORS.textMuted, lineHeight: 1.5 }}>
+            {t("agent.proposalNoChanges")}
+          </span>
+        ) : (
+          <>
+            <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: UI_COLORS.textSoft }}>
+              {t("agent.proposalContentChanges")}
+            </span>
+            <ul data-testid="agent-proposal-changes" style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+              {summary.changes.map((change) => (
+                <li
+                  key={change.field}
+                  data-testid={`agent-proposal-change-${change.field}`}
+                  style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 12, color: UI_COLORS.textSoft }}
+                >
+                  <span aria-hidden style={{ color: UI_COLORS.accent }}>·</span>
+                  <span>
+                    {t(CHANGE_LABEL[change.field])}
+                    {change.count !== undefined ? ` · ${change.count}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div
+              data-testid="agent-proposal-runtime-safe"
+              style={{ marginTop: 4, paddingTop: 8, borderTop: `1px solid ${UI_COLORS.border}`, fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.5 }}
+            >
+              {t("agent.proposalRuntimeSafe")}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: "auto" }}>
+        {onReviewJson && (
+          <WorkbenchButton
+            data-testid="agent-proposal-review"
+            onClick={() => onReviewJson(proposal.configText as string)}
+            tone="accent"
+            accentColor={UI_COLORS.accent}
+            style={{ height: 32, padding: "0 12px" }}
+          >
+            {t("agent.reviewInJson")} ↗
+          </WorkbenchButton>
+        )}
+        <WorkbenchButton data-testid="agent-proposal-copy" onClick={() => onCopy(proposal.message)} style={{ height: 30, padding: "0 12px" }}>
+          {t("agent.copyReply")}
+        </WorkbenchButton>
+        {onOpenSettings && (
+          <button data-testid="agent-proposal-settings" onClick={() => onOpenSettings()} style={toggleStyle}>
+            {t("agent.proposalOpenSettings")}
+          </button>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -579,7 +734,12 @@ const preStyle: CSSProperties = {
   overflowWrap: "anywhere",
 };
 
-/** AI turn body: status, the reply (or a JSON card), and review actions. */
+/**
+ * AI turn body: status + a compact "proposal ready" card (Review in JSON / Copy)
+ * for a returned config, or the plain reply for a text answer. The full config
+ * JSON is never dumped in the chat — the summary lives in the proposal rail and
+ * the full text in the drift-safe JSON drawer.
+ */
 function AiTurnBody({
   turn,
   onReviewJson,
@@ -606,16 +766,20 @@ function AiTurnBody({
       </span>
 
       {turn.status === "success" && turn.configText ? (
-        <div style={{ border: `1px solid ${UI_COLORS.border}`, borderRadius: 10, overflow: "hidden", background: UI_COLORS.appSurface }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderBottom: `1px solid ${UI_COLORS.border}` }}>
-            <span style={{ fontFamily: mono, fontSize: 10, color: UI_COLORS.textMuted, letterSpacing: "0.04em" }}>
-              live-session.config.json · v1
-            </span>
-          </div>
-          <pre data-testid={`agent-turn-message-${turn.id}`} style={{ ...preStyle, margin: 0, border: "none", borderRadius: 0, background: "transparent", maxHeight: 200 }}>
-            {turn.configText}
-          </pre>
-          <div style={{ display: "flex", gap: 8, padding: "10px 12px", borderTop: `1px solid ${UI_COLORS.border}` }}>
+        <div
+          data-testid={`agent-turn-proposal-ready-${turn.id}`}
+          style={{
+            border: `1px solid ${UI_COLORS.border}`,
+            borderRadius: 8,
+            background: cssAlpha(UI_COLORS.accent, 7),
+            padding: "10px 12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <span style={{ color: UI_COLORS.textSoft, lineHeight: 1.5, fontSize: 12 }}>{t("agent.proposalReady")}</span>
+          <div style={{ display: "flex", gap: 8 }}>
             {onReviewJson && (
               <WorkbenchButton
                 data-testid={`agent-turn-review-${turn.id}`}

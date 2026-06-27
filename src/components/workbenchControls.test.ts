@@ -209,10 +209,10 @@ test("session config center wires the mode switch, both modes and the JSON drawe
   // Shell = an Agent / Settings mode segmented + the two modes + the global JSON
   // drawer. The editors and the source-of-truth bar live inside Settings.
   assert.match(source, /<LineSegmented/);
-  assert.match(source, /<ManualSettings/);
+  assert.match(source, /<SettingsView/);
   assert.match(source, /<AgentView/);
   assert.match(source, /<ConfigJsonDrawer/);
-  const formSource = readFileSync(resolve("src/components/live-data/ManualSettings.tsx"), "utf8");
+  const formSource = readFileSync(resolve("src/components/live-data/SettingsView.tsx"), "utf8");
   assert.match(formSource, /<SourceOfTruthBar/); // source-of-truth now lives in Data & Sync
   for (const id of [
     "live-data-sections",
@@ -646,7 +646,7 @@ test("right inspector editors use the inspector line segmented control", () => {
     "src/components/BottomBarSegmentEditor.tsx",
     "src/components/inspector/groups/OverlayInspector.tsx",
     "src/components/inspector/groups/WallpaperInspector.tsx",
-    "src/components/live-data/ManualSettings.tsx",
+    "src/components/live-data/SettingsView.tsx",
   ];
 
   for (const file of files) {

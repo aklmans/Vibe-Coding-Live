@@ -6,7 +6,7 @@ import { LineSegmented } from "../inspector/EditorRow";
 import { type SessionPersistence } from "./SourceOfTruthBar";
 import { IDLE_OBS_SYNC, type ObsSyncState } from "./obs-sync";
 import SessionConfigDialog from "./SessionConfigDialog";
-import ManualSettings from "./ManualSettings";
+import SettingsView from "./SettingsView";
 import AgentView from "./AgentView";
 import ConfigJsonDrawer from "./ConfigJsonDrawer";
 
@@ -97,7 +97,7 @@ export default function LiveDataManager({
   };
 
   // A deep-link (gear / ⌘, / command palette) requests a mode + Manual group.
-  // Apply the mode, forward the group to ManualSettings, and consume the
+  // Apply the mode, forward the group to SettingsView, and consume the
   // one-shot so a later plain open lands on its own default.
   useEffect(() => {
     if (!focus) return;
@@ -220,7 +220,7 @@ export default function LiveDataManager({
             hidden={mode !== "settings"}
             style={{ display: mode === "settings" ? "flex" : "none", flex: 1, minWidth: 0, minHeight: 0 }}
           >
-            <ManualSettings
+            <SettingsView
               state={state}
               onChange={onChange}
               onReset={onReset}
