@@ -32,7 +32,6 @@ interface AgentTask {
   line: string;
 }
 
-// Quick-intent chips: label + intent localized; the task line stays English.
 const TASKS: AgentTask[] = [
   { id: "generate", labelKey: "agentTask.generate", descKey: "agentTask.generateDesc", line: "Task: generate the full config for this stream." },
   { id: "sections", labelKey: "agentTask.sections", descKey: "agentTask.sectionsDesc", line: "Task: update only the sections (titles + bullets); keep everything else." },
@@ -65,27 +64,10 @@ type AiTurn = TurnBase & {
 };
 type Turn = LocalTurn | AiTurn;
 
-const eyebrow: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  color: UI_COLORS.text,
-  fontFamily: "var(--app-font-mono)",
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: "0.12em",
-  textTransform: "uppercase",
-};
-
-const hint: CSSProperties = {
-  fontSize: 11,
-  color: UI_COLORS.textMuted,
-  lineHeight: 1.5,
-  maxWidth: 640,
-};
+const mono = "var(--app-font-mono)";
 
 const subLabel: CSSProperties = {
-  fontFamily: "var(--app-font-mono)",
+  fontFamily: mono,
   fontSize: 10,
   fontWeight: 600,
   letterSpacing: "0.1em",
@@ -94,36 +76,31 @@ const subLabel: CSSProperties = {
 };
 
 /**
- * Agent mode — a local prep conversation that can optionally call a real AI.
- *
- * When a provider is configured (server-side env), "Run with AI" sends the
- * brief + task + the current v1 config projection to `/api/session-config/agent`
- * and shows the reply as a transcript turn; if the reply contains JSON, a
- * "Review in JSON" action seeds the drift-safe JSON drawer buffer — it is never
- * auto-imported or auto-applied. When no provider is configured, the badge reads
- * "Local prep · no model connected" and only the local handoff (Copy handoff)
- * is offered. The API key lives only on the server route; the client only knows
- * the provider / model name.
+ * Agent mode — a full chat window. The user converses; "Run with AI" (when a
+ * provider is configured server-side) sends the brief + task + current v1
+ * projection to `/api/session-config/agent` and shows the reply as a turn. A
+ * returned config renders as a JSON card whose "Review in JSON" seeds the
+ * drift-safe drawer buffer — never auto-imported, never auto-applied. With no
+ * provider, the pill reads "local · no model" and Copy handoff is the path. The
+ * API key stays on the server; the client only knows provider / model names.
  */
 export default function AgentView({ state, onOpenJson, onReviewJson, initialStatus }: AgentViewProps) {
   const { t, locale } = useLocale();
   const [brief, setBrief] = useState("");
   const [taskId, setTaskId] = useState("generate");
-  const [showHandoff, setShowHandoff] = useState(false);
   const [message, setMessage] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [status, setStatus] = useState<SessionAgentStatus>(initialStatus ?? { configured: false });
   const [running, setRunning] = useState(false);
+  const [intentsOpen, setIntentsOpen] = useState(false);
+  const [showHandoff, setShowHandoff] = useState(false);
   const nextTurnId = useRef(1);
 
   const task = TASKS.find((item) => item.id === taskId) ?? TASKS[0];
-  const handoff = useMemo(
-    () => buildAgentPrompt(state, brief, task.line),
-    [state, brief, task.line],
-  );
+  const handoff = useMemo(() => buildAgentPrompt(state, brief, task.line), [state, brief, task.line]);
+  const connected = status.configured;
+  const showChips = turns.length === 0 || intentsOpen;
 
-  // Connection status (key-free). Effects don't run during SSR/tests, so the
-  // default stays "not configured" → the local badge + handoff path.
   useEffect(() => {
     let active = true;
     void fetchAgentStatus().then((next) => {
@@ -140,8 +117,6 @@ export default function AgentView({ state, onOpenJson, onReviewJson, initialStat
     );
   };
 
-  // Local handoff: record the turn only after the clipboard outcome is known, so
-  // a turn never claims "copied" when the copy was blocked or rejected.
   const recordLocalTurn = (copied: boolean) => {
     const { messageKey, turnStatus } = resolveCopyResult(copied);
     setMessage(t(messageKey));
@@ -164,30 +139,28 @@ export default function AgentView({ state, onOpenJson, onReviewJson, initialStat
       recordLocalTurn(false);
       return;
     }
-    void navigator.clipboard
-      .writeText(handoff)
-      .then(() => recordLocalTurn(true))
-      .catch(() => recordLocalTurn(false));
+    void navigator.clipboard.writeText(handoff).then(() => recordLocalTurn(true)).catch(() => recordLocalTurn(false));
   };
 
   const runWithAi = () => {
     if (running) return;
-    // Always send the latest projection — never a stale snapshot.
     const configText = projectConfigText(state);
     const id = nextTurnId.current++;
-    const aiTurn: AiTurn = {
-      kind: "ai",
-      id,
-      brief: brief.trim(),
-      taskLabel: t(task.labelKey),
-      snapshot: shortConfigHash(configText),
-      status: "running",
-      message: "",
-      configText: null,
-      provider: status.provider,
-      model: status.model,
-    };
-    setTurns((prev) => [...prev, aiTurn]);
+    setTurns((prev) => [
+      ...prev,
+      {
+        kind: "ai",
+        id,
+        brief: brief.trim(),
+        taskLabel: t(task.labelKey),
+        snapshot: shortConfigHash(configText),
+        status: "running",
+        message: "",
+        configText: null,
+        provider: status.provider,
+        model: status.model,
+      },
+    ]);
     setRunning(true);
     setMessage("");
     void runSessionAgent({ brief: brief.trim(), task: task.line, configText, locale })
@@ -201,7 +174,6 @@ export default function AgentView({ state, onOpenJson, onReviewJson, initialStat
             model: result.model,
           });
         } else if (result.mode === "local") {
-          // Provider stopped being configured mid-session — fall back honestly.
           patchTurn(id, { status: "error", message: t("agent.aiNotConfigured") });
         } else {
           patchTurn(id, { status: "error", message: result.error ?? t("agent.aiError") });
@@ -214,236 +186,228 @@ export default function AgentView({ state, onOpenJson, onReviewJson, initialStat
     if (navigator.clipboard) void navigator.clipboard.writeText(text).catch(() => {});
   };
 
-  const connected = status.configured;
-
   return (
     <div
       data-testid="agent-view"
-      style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 720 }}
+      style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, width: "100%" }}
     >
-      <header style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <div style={eyebrow}>
-            <Mark />
-            {t("agent.title")}
-          </div>
+      {/* Header — connection + new chat + open JSON. */}
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          flexWrap: "wrap",
+          padding: "14px 28px",
+          borderBottom: `1px solid ${UI_COLORS.border}`,
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ ...subLabel, color: UI_COLORS.text }}>{t("agent.title")}</span>
           {connected ? (
-            <span data-testid="agent-connected-badge" style={badgeStyle(UI_COLORS.accentText, cssAlpha(UI_COLORS.accent, 40))}>
-              {`${t("agent.connected")}: ${status.provider ?? ""}${status.model ? ` · ${status.model}` : ""}`}
+            <span data-testid="agent-connected-badge" style={pillStyle(UI_COLORS.accentText, cssAlpha(UI_COLORS.accent, 12))}>
+              <Dot color={UI_COLORS.accent} />
+              {`${t("agent.connected")} · ${status.provider ?? ""}${status.model ? ` · ${status.model}` : ""}`}
             </span>
           ) : (
-            <span data-testid="agent-local-badge" style={badgeStyle(UI_COLORS.textMuted, UI_COLORS.controlBorder)}>
+            <span data-testid="agent-local-badge" style={pillStyle(UI_COLORS.textMuted, UI_COLORS.inputInset)}>
+              <Dot color={UI_COLORS.textSubtle} />
               {t("agent.localBadge")}
             </span>
           )}
         </div>
-        <div style={hint}>{t("agent.intro")}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {turns.length > 0 && (
+            <GhostButton testId="agent-new-chat" onClick={() => { setTurns([]); setMessage(""); }}>
+              {t("agent.newChat")}
+            </GhostButton>
+          )}
+          <GhostButton testId="open-json-agent" onClick={onOpenJson}>
+            {t("drawer.openJson")} ↗
+          </GhostButton>
+        </div>
       </header>
 
-      {/* Transcript — local + AI turns. Always opens with a seed guidance turn. */}
-      <div data-testid="agent-transcript" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <Bubble role="assistant" testId="agent-msg-seed">
-          {connected ? t("agent.seedConnected") : t("agent.seedMessage")}
-        </Bubble>
-        {turns.map((turn) => (
-          <Fragment key={turn.id}>
-            <Bubble role="user" testId={`agent-turn-user-${turn.id}`}>
-              <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      {/* Thread — the conversation; scrolls, composer stays pinned. */}
+      <div
+        data-testid="agent-transcript"
+        style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "20px 28px", display: "flex", flexDirection: "column", gap: 16 }}
+      >
+        <div style={{ maxWidth: 760, width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+          <AssistantRow testId="agent-msg-seed">
+            <span style={{ color: UI_COLORS.textSoft, lineHeight: 1.6 }}>
+              {connected ? t("agent.seedConnected") : t("agent.seedMessage")}
+            </span>
+          </AssistantRow>
+
+          {turns.map((turn) => (
+            <Fragment key={turn.id}>
+              <UserBubble testId={`agent-turn-user-${turn.id}`}>
                 <span>{turn.brief || t("agent.noBrief")}</span>
-                <span style={{ ...subLabel, fontSize: 9 }}>
+                <span style={{ ...subLabel, fontSize: 9, marginTop: 4 }}>
                   {turn.taskLabel} · {t("agent.snapshot")} {turn.snapshot}
                 </span>
-              </span>
-            </Bubble>
-            <Bubble role="assistant" testId={`agent-turn-assistant-${turn.id}`}>
-              {turn.kind === "local" ? (
-                <span style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <span data-testid={`agent-turn-status-${turn.id}`}>{t(turnMessageKey(turn.status))}</span>
-                  <TurnPreview id={turn.id} text={turn.handoff} toggleLabel={t("agent.handoffPreview")} />
-                </span>
-              ) : (
-                <AiTurnBody turn={turn} onReviewJson={onReviewJson} onCopy={copyText} />
-              )}
-            </Bubble>
-          </Fragment>
-        ))}
-      </div>
-
-      {/* Composer — quick-intent chips + a brief, then Run with AI / Copy handoff. */}
-      <section
-        data-testid="agent-panel"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-          border: `1px solid ${UI_COLORS.border}`,
-          borderRadius: 4,
-          background: UI_COLORS.appSurface,
-          padding: 16,
-        }}
-      >
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-          {TASKS.map((item) => {
-            const active = item.id === taskId;
-            return (
-              <button
-                key={item.id}
-                data-testid={`agent-task-${item.id}`}
-                aria-pressed={active}
-                onClick={() => setTaskId(item.id)}
-                style={{
-                  appearance: "none",
-                  cursor: "pointer",
-                  borderRadius: 999,
-                  border: `1px solid ${active ? cssAlpha(UI_COLORS.accent, 44) : UI_COLORS.controlBorder}`,
-                  background: active ? cssAlpha(UI_COLORS.accent, 12) : "transparent",
-                  color: active ? UI_COLORS.text : UI_COLORS.textMuted,
-                  fontFamily: "var(--app-font-mono)",
-                  fontSize: 11,
-                  fontWeight: active ? 700 : 500,
-                  letterSpacing: "0.02em",
-                  padding: "4px 11px",
-                  transition: "color 0.12s, border-color 0.12s, background 0.12s",
-                }}
-              >
-                {t(item.labelKey)}
-              </button>
-            );
-          })}
-        </div>
-        <div
-          data-testid="agent-task-intent"
-          style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.45 }}
-        >
-          {t(task.descKey)}
-        </div>
-
-        <textarea
-          data-testid="agent-brief-input"
-          value={brief}
-          onChange={(e) => setBrief(e.target.value)}
-          placeholder={t("agent.briefPlaceholder")}
-          spellCheck={false}
-          style={{
-            ...monoInputStyle,
-            width: "100%",
-            minHeight: 84,
-            resize: "vertical",
-            border: UI_BORDERS.control,
-            borderRadius: 4,
-            background: UI_COLORS.inputInset,
-            padding: "10px 12px",
-            lineHeight: 1.55,
-            fontSize: 13,
-          }}
-          onFocus={(e) => applyWorkbenchFocus(e.currentTarget)}
-          onBlur={(e) => clearWorkbenchFocus(e.currentTarget)}
-        />
-
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-          <span style={{ ...subLabel, fontSize: 9 }}>{t("agent.contextLabel")}</span>
-          {CONTEXT.map((item) => (
-            <span
-              key={item.id}
-              data-testid={`agent-context-${item.id}`}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                borderRadius: 3,
-                border: `1px solid ${UI_COLORS.controlBorder}`,
-                background: UI_COLORS.inputInset,
-                color: UI_COLORS.textMuted,
-                fontFamily: "var(--app-font-mono)",
-                fontSize: 10,
-                letterSpacing: "0.02em",
-                padding: "3px 8px",
-              }}
-            >
-              <span aria-hidden style={{ width: 4, height: 4, borderRadius: "50%", background: cssAlpha(UI_COLORS.accent, 70) }} />
-              {t(item.labelKey)}
-            </span>
+              </UserBubble>
+              <AssistantRow testId={`agent-turn-assistant-${turn.id}`}>
+                {turn.kind === "local" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <span data-testid={`agent-turn-status-${turn.id}`}>{t(turnMessageKey(turn.status))}</span>
+                    <Collapsible id={turn.id} text={turn.handoff} toggleLabel={t("agent.handoffPreview")} />
+                  </div>
+                ) : (
+                  <AiTurnBody turn={turn} onReviewJson={onReviewJson} onCopy={copyText} />
+                )}
+              </AssistantRow>
+            </Fragment>
           ))}
         </div>
+      </div>
 
-        {/* Actions — Run with AI (when a provider is configured) is the primary
-            path; Copy handoff is always available as the local fallback. The AI
-            reply is reviewed in the JSON drawer; it is never auto-applied. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          {connected && (
-            <WorkbenchButton
-              data-testid="agent-run-ai"
-              onClick={runWithAi}
-              disabled={running}
-              tone="accent"
-              accentColor={UI_COLORS.accent}
-              style={{ minWidth: 130, height: 32, padding: "0 12px" }}
-            >
-              {running ? t("agent.running") : t("agent.runAi")}
-            </WorkbenchButton>
+      {/* Composer — pinned. Suggestion chips collapse after the first turn. */}
+      <div style={{ flexShrink: 0, borderTop: `1px solid ${UI_COLORS.border}`, padding: "12px 28px 16px" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
+          {showChips ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {TASKS.map((item) => {
+                  const active = item.id === taskId;
+                  return (
+                    <button
+                      key={item.id}
+                      data-testid={`agent-task-${item.id}`}
+                      aria-pressed={active}
+                      onClick={() => setTaskId(item.id)}
+                      style={{
+                        appearance: "none",
+                        cursor: "pointer",
+                        borderRadius: 999,
+                        border: `1px solid ${active ? cssAlpha(UI_COLORS.accent, 44) : UI_COLORS.controlBorder}`,
+                        background: active ? cssAlpha(UI_COLORS.accent, 12) : "transparent",
+                        color: active ? UI_COLORS.text : UI_COLORS.textMuted,
+                        fontFamily: mono,
+                        fontSize: 11,
+                        fontWeight: active ? 700 : 500,
+                        padding: "4px 11px",
+                        transition: "color 0.12s, border-color 0.12s, background 0.12s",
+                      }}
+                    >
+                      {t(item.labelKey)}
+                    </button>
+                  );
+                })}
+              </div>
+              <div data-testid="agent-task-intent" style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.4 }}>
+                {t(task.descKey)}
+              </div>
+            </div>
+          ) : (
+            <button data-testid="agent-intents-toggle" onClick={() => setIntentsOpen(true)} style={toggleStyle}>
+              <span aria-hidden>▸</span>
+              {t("agent.intents")}
+            </button>
           )}
-          <WorkbenchButton
-            data-testid="agent-copy-handoff"
-            onClick={copyHandoff}
-            tone={connected ? "neutral" : "accent"}
-            accentColor={connected ? UI_COLORS.textSoft : UI_COLORS.accent}
-            style={{ minWidth: 130, height: 32, padding: "0 12px" }}
-          >
-            {t("agent.copyHandoff")}
-          </WorkbenchButton>
-          <WorkbenchButton
-            data-testid="open-json-agent"
-            onClick={onOpenJson}
-            style={{ height: 32, padding: "0 12px" }}
-          >
-            {t("drawer.openJson")}
-          </WorkbenchButton>
-          <span style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.4 }}>
-            {message || t("agent.openJsonHint")}
-          </span>
-        </div>
 
-        {/* Draft handoff preview — collapsed by default; what the next Copy sends. */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <button
-            data-testid="agent-handoff-toggle"
-            aria-expanded={showHandoff}
-            onClick={() => setShowHandoff((v) => !v)}
-            style={toggleStyle}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-end",
+              gap: 8,
+              border: UI_BORDERS.control,
+              borderRadius: 10,
+              background: UI_COLORS.inputInset,
+              padding: "8px 8px 8px 12px",
+            }}
           >
-            <span aria-hidden style={{ transform: showHandoff ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
-              ▸
-            </span>
-            {t("agent.draftPreview")}
-          </button>
+            <textarea
+              data-testid="agent-brief-input"
+              value={brief}
+              onChange={(e) => setBrief(e.target.value)}
+              placeholder={t("agent.briefPlaceholder")}
+              spellCheck={false}
+              style={{
+                ...monoInputStyle,
+                flex: 1,
+                minHeight: 44,
+                maxHeight: 160,
+                resize: "vertical",
+                border: "none",
+                background: "transparent",
+                padding: "6px 0",
+                lineHeight: 1.5,
+                fontSize: 13,
+                boxShadow: "none",
+              }}
+              onFocus={(e) => applyWorkbenchFocus(e.currentTarget.parentElement as HTMLElement)}
+              onBlur={(e) => clearWorkbenchFocus(e.currentTarget.parentElement as HTMLElement)}
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              {connected && (
+                <WorkbenchButton
+                  data-testid="agent-copy-handoff"
+                  onClick={copyHandoff}
+                  style={{ height: 30, padding: "0 10px" }}
+                >
+                  {t("agent.copyHandoff")}
+                </WorkbenchButton>
+              )}
+              <WorkbenchButton
+                data-testid={connected ? "agent-run-ai" : "agent-copy-handoff"}
+                onClick={connected ? runWithAi : copyHandoff}
+                disabled={connected && running}
+                tone="accent"
+                accentColor={UI_COLORS.accent}
+                style={{ height: 30, minWidth: 116, padding: "0 12px" }}
+              >
+                {connected ? (running ? t("agent.running") : t("agent.runAi")) : t("agent.copyHandoff")}
+              </WorkbenchButton>
+            </div>
+          </div>
+
+          {/* Meta — context (what the agent sees) + handoff preview + status. */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 10, color: UI_COLORS.textSubtle, fontFamily: mono }}>
+              <span style={subLabel}>{t("agent.contextLabel")}</span>
+              {CONTEXT.map((item) => (
+                <span key={item.id} data-testid={`agent-context-${item.id}`} style={{ letterSpacing: "0.02em" }}>
+                  · {t(item.labelKey)}
+                </span>
+              ))}
+            </div>
+            <button data-testid="agent-handoff-toggle" aria-expanded={showHandoff} onClick={() => setShowHandoff((v) => !v)} style={toggleStyle}>
+              <span aria-hidden style={{ transform: showHandoff ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>▸</span>
+              {t("agent.draftPreview")}
+            </button>
+          </div>
           {showHandoff && (
             <pre data-testid="agent-handoff-preview" style={preStyle}>
               {handoff}
             </pre>
           )}
-        </div>
-      </section>
 
-      <ol style={{ margin: 0, paddingLeft: 18, fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.6 }}>
-        <li>{t("agent.step1")}</li>
-        <li>{t("agent.step2")}</li>
-        <li>{t("agent.step3")}</li>
-      </ol>
+          <div style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.4, display: "flex", alignItems: "center", gap: 6 }}>
+            {message || (connected ? t("agent.footerConnected") : t("agent.footerLocal"))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-function badgeStyle(color: string, borderColor: string): CSSProperties {
+function pillStyle(color: string, bg: string): CSSProperties {
   return {
-    fontFamily: "var(--app-font-mono)",
-    fontSize: 9,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    fontFamily: mono,
+    fontSize: 10,
     fontWeight: 600,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
+    letterSpacing: "0.04em",
     color,
-    border: `1px solid ${borderColor}`,
-    borderRadius: 3,
-    padding: "2px 7px",
+    background: bg,
+    borderRadius: 999,
+    padding: "3px 10px",
   };
 }
 
@@ -453,7 +417,7 @@ const toggleStyle: CSSProperties = {
   background: "transparent",
   color: UI_COLORS.textMuted,
   cursor: "pointer",
-  fontFamily: "var(--app-font-mono)",
+  fontFamily: mono,
   fontSize: 10,
   fontWeight: 600,
   letterSpacing: "0.08em",
@@ -462,26 +426,25 @@ const toggleStyle: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: 6,
-  alignSelf: "flex-start",
 };
 
 const preStyle: CSSProperties = {
   margin: 0,
-  maxHeight: 200,
+  maxHeight: 220,
   overflow: "auto",
-  fontFamily: "var(--app-font-mono)",
+  fontFamily: mono,
   fontSize: 11,
   lineHeight: 1.5,
   color: UI_COLORS.textSoft,
   background: UI_COLORS.inputInset,
   border: UI_BORDERS.control,
-  borderRadius: 4,
+  borderRadius: 6,
   padding: "10px 12px",
   whiteSpace: "pre-wrap",
   overflowWrap: "anywhere",
 };
 
-/** The assistant body for an AI turn: status, reply text, and review actions. */
+/** AI turn body: status, the reply (or a JSON card), and review actions. */
 function AiTurnBody({
   turn,
   onReviewJson,
@@ -502,57 +465,60 @@ function AiTurnBody({
           : t("agent.aiSuccessText");
 
   return (
-    <span style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <span data-testid={`agent-turn-status-${turn.id}`} style={{ color: turn.status === "error" ? UI_COLORS.danger : undefined }}>
         {statusText}
       </span>
-      {turn.status !== "running" && turn.message && (
-        <pre data-testid={`agent-turn-message-${turn.id}`} style={preStyle}>
-          {turn.message}
-        </pre>
-      )}
-      {turn.status !== "running" && (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {turn.configText && onReviewJson && (
-            <WorkbenchButton
-              data-testid={`agent-turn-review-${turn.id}`}
-              onClick={() => onReviewJson(turn.configText as string)}
-              tone="accent"
-              accentColor={UI_COLORS.accent}
-              style={{ height: 28, padding: "0 10px" }}
-            >
-              {t("agent.reviewInJson")}
-            </WorkbenchButton>
-          )}
-          {turn.message && (
-            <WorkbenchButton
-              data-testid={`agent-turn-copy-${turn.id}`}
-              onClick={() => onCopy(turn.message)}
-              style={{ height: 28, padding: "0 10px" }}
-            >
+
+      {turn.status === "success" && turn.configText ? (
+        <div style={{ border: `1px solid ${UI_COLORS.border}`, borderRadius: 10, overflow: "hidden", background: UI_COLORS.appSurface }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderBottom: `1px solid ${UI_COLORS.border}` }}>
+            <span style={{ fontFamily: mono, fontSize: 10, color: UI_COLORS.textMuted, letterSpacing: "0.04em" }}>
+              live-session.config.json · v1
+            </span>
+          </div>
+          <pre data-testid={`agent-turn-message-${turn.id}`} style={{ ...preStyle, margin: 0, border: "none", borderRadius: 0, background: "transparent", maxHeight: 200 }}>
+            {turn.configText}
+          </pre>
+          <div style={{ display: "flex", gap: 8, padding: "10px 12px", borderTop: `1px solid ${UI_COLORS.border}` }}>
+            {onReviewJson && (
+              <WorkbenchButton
+                data-testid={`agent-turn-review-${turn.id}`}
+                onClick={() => onReviewJson(turn.configText as string)}
+                tone="accent"
+                accentColor={UI_COLORS.accent}
+                style={{ height: 28, padding: "0 10px" }}
+              >
+                {t("agent.reviewInJson")} ↗
+              </WorkbenchButton>
+            )}
+            <WorkbenchButton data-testid={`agent-turn-copy-${turn.id}`} onClick={() => onCopy(turn.message)} style={{ height: 28, padding: "0 10px" }}>
               {t("agent.copyReply")}
             </WorkbenchButton>
-          )}
+          </div>
         </div>
-      )}
-    </span>
+      ) : turn.status !== "running" && turn.message ? (
+        <>
+          <pre data-testid={`agent-turn-message-${turn.id}`} style={preStyle}>
+            {turn.message}
+          </pre>
+          <div>
+            <WorkbenchButton data-testid={`agent-turn-copy-${turn.id}`} onClick={() => onCopy(turn.message)} style={{ height: 28, padding: "0 10px" }}>
+              {t("agent.copyReply")}
+            </WorkbenchButton>
+          </div>
+        </>
+      ) : null}
+    </div>
   );
 }
 
-/** A per-turn collapsible snapshot of the handoff that was copied. */
-function TurnPreview({ id, text, toggleLabel }: { id: number; text: string; toggleLabel: string }) {
+function Collapsible({ id, text, toggleLabel }: { id: number; text: string; toggleLabel: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <button
-        data-testid={`agent-turn-handoff-toggle-${id}`}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        style={toggleStyle}
-      >
-        <span aria-hidden style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
-          ▸
-        </span>
+      <button data-testid={`agent-turn-handoff-toggle-${id}`} aria-expanded={open} onClick={() => setOpen((v) => !v)} style={toggleStyle}>
+        <span aria-hidden style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>▸</span>
         {toggleLabel}
       </button>
       {open && (
@@ -564,35 +530,50 @@ function TurnPreview({ id, text, toggleLabel }: { id: number; text: string; togg
   );
 }
 
-/** A chat bubble — a left-ruled aside for the assistant, a quiet card for the user. */
-function Bubble({
-  role,
-  testId,
-  children,
-}: {
-  role: "assistant" | "user";
-  testId: string;
-  children: ReactNode;
-}) {
-  const isUser = role === "user";
+/** Assistant row — a spark mark + left-aligned readable content. */
+function AssistantRow({ testId, children }: { testId: string; children: ReactNode }) {
+  return (
+    <div data-testid={testId} data-role="assistant" style={{ display: "flex", gap: 10, maxWidth: "94%", fontSize: 13 }}>
+      <span
+        aria-hidden
+        style={{
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          flexShrink: 0,
+          background: cssAlpha(UI_COLORS.accent, 12),
+          color: UI_COLORS.accentText,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 11,
+        }}
+      >
+        ✦
+      </span>
+      <div style={{ flex: 1, minWidth: 0, color: UI_COLORS.textSoft, lineHeight: 1.55 }}>{children}</div>
+    </div>
+  );
+}
+
+/** User bubble — right-aligned quiet card. */
+function UserBubble({ testId, children }: { testId: string; children: ReactNode }) {
   return (
     <div
       data-testid={testId}
-      data-role={role}
+      data-role="user"
       style={{
-        alignSelf: isUser ? "flex-end" : "flex-start",
-        maxWidth: "88%",
+        alignSelf: "flex-end",
+        maxWidth: "78%",
         display: "flex",
         flexDirection: "column",
-        gap: 4,
-        fontSize: 12,
+        background: UI_COLORS.inputInset,
+        border: `1px solid ${UI_COLORS.controlBorder}`,
+        borderRadius: 10,
+        padding: "8px 12px",
+        fontSize: 13,
         lineHeight: 1.5,
-        color: isUser ? UI_COLORS.text : UI_COLORS.textSoft,
-        background: isUser ? UI_COLORS.inputInset : "transparent",
-        border: isUser ? `1px solid ${UI_COLORS.controlBorder}` : "none",
-        borderLeft: isUser ? `1px solid ${UI_COLORS.controlBorder}` : `2px solid ${cssAlpha(UI_COLORS.accent, 52)}`,
-        borderRadius: isUser ? 6 : 0,
-        padding: isUser ? "8px 12px" : "2px 0 2px 12px",
+        color: UI_COLORS.text,
       }}
     >
       {children}
@@ -600,16 +581,31 @@ function Bubble({
   );
 }
 
-function Mark({ muted = false }: { muted?: boolean }) {
+function GhostButton({ testId, onClick, children }: { testId: string; onClick: () => void; children: ReactNode }) {
   return (
-    <span
-      aria-hidden
+    <button
+      data-testid={testId}
+      onClick={onClick}
       style={{
-        width: 3,
-        height: 13,
-        borderRadius: 2,
-        background: muted ? cssAlpha(UI_COLORS.accent, 52) : UI_COLORS.accent,
+        appearance: "none",
+        cursor: "pointer",
+        border: `1px solid ${UI_COLORS.controlBorder}`,
+        borderRadius: 4,
+        background: "transparent",
+        color: UI_COLORS.textSoft,
+        fontFamily: mono,
+        fontSize: 10,
+        fontWeight: 600,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        padding: "4px 10px",
       }}
-    />
+    >
+      {children}
+    </button>
   );
+}
+
+function Dot({ color }: { color: string }) {
+  return <span aria-hidden style={{ width: 5, height: 5, borderRadius: "50%", background: color, flexShrink: 0 }} />;
 }

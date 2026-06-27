@@ -134,11 +134,10 @@ export default function LiveDataManager({
           data-testid="config-view-agent"
           hidden={mode !== "agent"}
           style={{
-            display: mode === "agent" ? "block" : "none",
+            display: mode === "agent" ? "flex" : "none",
             flex: 1,
             minWidth: 0,
-            overflowY: "auto",
-            padding: "22px 28px 56px",
+            minHeight: 0,
           }}
         >
           <AgentView

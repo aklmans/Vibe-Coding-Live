@@ -71,59 +71,40 @@ test("mode is a segmented switch (Manual / Agent), not a left-nav of pages", () 
   assert.doesNotMatch(html, /data-testid="config-view-json"/);
 });
 
-test("Manual Settings has a category tree and grouped settings rows", () => {
+test("Manual Settings is a tabbed panel — tab bar + panels, no tree / no search", () => {
   const html = renderCenter();
   assert.match(html, /data-testid="manual-settings"/);
-  assert.match(html, /data-testid="settings-category-tree"/);
-  for (const id of [
-    "general",
-    "session",
-    "sections",
-    "stack",
-    "assets",
-    "display",
-    "appearance",
-    "persistence",
-    "advanced",
-  ]) {
-    assert.match(html, new RegExp(`data-testid="settings-cat-${id}"`));
-    assert.match(html, new RegExp(`data-testid="settings-group-${id}"`));
+  assert.match(html, /data-testid="settings-tab-bar"/);
+  for (const id of ["session", "cover", "branding", "display", "appearance", "data"]) {
+    assert.match(html, new RegExp(`data-testid="settings-tab-${id}"`));
+    assert.match(html, new RegExp(`data-testid="settings-panel-${id}"`));
+    assert.match(html, new RegExp(`id="settings-tab-${id}"[^>]*aria-controls="settings-panel-${id}"`));
+    assert.match(html, new RegExp(`id="settings-panel-${id}"[^>]*aria-labelledby="settings-tab-${id}"`));
   }
-  // Existing editors are reused inside the settings rows.
+  // The old category tree, field search, and scroll-spy are retired.
+  assert.doesNotMatch(html, /data-testid="settings-category-tree"/);
+  assert.doesNotMatch(html, /data-testid="settings-search"/);
+  assert.doesNotMatch(MANUAL_SRC, /suppressSpyUntil|matchedFields|fieldHits/);
+  // Existing editors are reused inside the panels (all mounted, visibility toggled).
   assert.match(html, /data-testid="live-data-sections"/);
   assert.match(html, /data-testid="live-data-stack"/);
   assert.match(html, /data-testid="live-data-bottom-bar"/);
   assert.match(html, /data-testid="live-data-live-session"/);
 });
 
+test("Manual Settings tabs expose the full keyboard and ARIA tab contract", () => {
+  assert.match(MANUAL_SRC, /tabIndex=\{active \? 0 : -1\}/);
+  assert.match(MANUAL_SRC, /handleTabKeyDown/);
+  for (const key of ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"]) {
+    assert.match(MANUAL_SRC, new RegExp(`event\\.key === "${key}"`));
+  }
+  assert.match(MANUAL_SRC, /aria-controls=\{`settings-panel-\$\{tab\.id\}`\}/);
+  assert.match(MANUAL_SRC, /aria-labelledby=\{`settings-tab-\$\{tab\.id\}`\}/);
+});
+
 test("Manual Settings uses a wide workbench content column", () => {
   assert.match(MANUAL_SRC, /SETTINGS_CONTENT_MAX_WIDTH\s*=\s*920/);
   assert.doesNotMatch(MANUAL_SRC, /maxWidth:\s*720/);
-});
-
-test("Manual Settings search is field-level and shows which fields hit", () => {
-  const html = renderCenter();
-  assert.match(html, /data-testid="settings-search"/);
-  // Field-level: each category carries a static field index, and matched fields
-  // are surfaced — not just a category-title filter.
-  assert.match(MANUAL_SRC, /fields:\s*\[/);
-  assert.match(MANUAL_SRC, /matchedFields/);
-  assert.match(MANUAL_SRC, /fieldHits/);
-  assert.match(MANUAL_SRC, /data-testid="settings-search-count"/);
-  assert.match(MANUAL_SRC, /data-testid="settings-matched-fields"/);
-});
-
-test("Manual Settings search copy reflects field-level search, not category-only", () => {
-  const html = renderCenter();
-  assert.match(html, /data-testid="settings-search-help"/);
-  assert.match(html, /Searches setting groups and field names\./);
-  const i18nSrc = readFileSync(resolve("src/lib/i18n.ts"), "utf8");
-  // No longer claims it only filters categories / not fields.
-  assert.doesNotMatch(i18nSrc, /Filters setting groups, not individual fields\./);
-  assert.match(i18nSrc, /"manualSettings\.searchPlaceholder": "Search settings & fields…"/);
-  assert.match(i18nSrc, /"manualSettings\.searchPlaceholder": "搜索设置与字段…"/);
-  assert.match(i18nSrc, /"manualSettings\.searchHelp": "Searches setting groups and field names\."/);
-  assert.match(i18nSrc, /"manualSettings\.searchHelp": "搜索设置分组与字段名。"/);
 });
 
 test("Manual Settings edits the v1 portable-core fields directly", () => {
@@ -224,7 +205,7 @@ test("Manual Settings language row uses a real i18n key, not translation compari
 
 test("Studio Appearance shows real theme / colors / reset rows, plus a drawer fallback", () => {
   const html = renderCenter();
-  assert.match(html, /data-testid="settings-group-appearance"/);
+  assert.match(html, /data-testid="settings-panel-appearance"/);
   // Real controls inline (prefixed testids), not just a button.
   assert.match(html, /data-testid="studio-theme-light"/);
   assert.match(html, /data-testid="studio-theme-dark"/);
@@ -295,9 +276,11 @@ test("JSON drawer focus contract: target element and retry decision (pure)", () 
   assert.equal(needsFocusRetry(null, {} as unknown as Node), false);
 });
 
-test("Agent mode is a task panel with input, task chips and context chips", () => {
+test("Agent chat has the seed, brief input, task chips, context chips and honest actions", () => {
   const html = renderCenter();
   assert.match(html, /data-testid="agent-view"/);
+  assert.match(html, /data-testid="agent-transcript"/);
+  assert.match(html, /data-testid="agent-msg-seed"/);
   assert.match(html, /data-testid="agent-brief-input"/);
   for (const id of ["generate", "sections", "titleCover", "assets", "check"]) {
     assert.match(html, new RegExp(`data-testid="agent-task-${id}"`));
@@ -310,12 +293,11 @@ test("Agent mode is a task panel with input, task chips and context chips", () =
   assert.match(html, /data-testid="open-json-agent"/);
   assert.doesNotMatch(html, /data-testid="agent-import-result"/);
   assert.doesNotMatch(html, /data-testid="agent-apply-config"/);
-  // The import → review → Apply round-trip is guidance text, not extra buttons,
-  // and never promises auto behaviour.
-  assert.match(html, /Import the returned JSON/i);
+  // Honest framing: the seed explains review-before-Apply; no auto-apply copy.
+  assert.match(html, /review/i);
   assert.doesNotMatch(html, /Import result/);
   assert.doesNotMatch(html, /Apply reviewed config/);
-  // Handoff preview is collapsed by default (toggle present, pre not yet shown).
+  // Draft handoff preview is collapsed by default (toggle present, pre not shown).
   assert.match(html, /data-testid="agent-handoff-toggle"/);
   assert.doesNotMatch(html, /data-testid="agent-handoff-preview"/);
 });
@@ -387,7 +369,7 @@ test("Agent shows a connected badge + Run with AI only when a provider is config
     }),
   );
   assert.match(connected, /data-testid="agent-connected-badge"/);
-  assert.match(connected, /Connected: deepseek · deepseek-chat/);
+  assert.match(connected, /Connected · deepseek · deepseek-chat/);
   assert.match(connected, /data-testid="agent-run-ai"/);
   assert.match(connected, /data-testid="agent-copy-handoff"/);
 });
@@ -424,15 +406,16 @@ test("the OBS chip is honest: push confirmed, consumption not heartbeat-confirme
   assert.doesNotMatch(i18nSrc, /OBS confirmed receipt|OBS is receiving/i);
 });
 
-test("Manual Settings scroll-spy is jump-stable and only moves the highlight", () => {
-  const manualSrc = readFileSync(resolve("src/components/live-data/ManualSettings.tsx"), "utf8");
-  // A click-jump suppresses the spy so it doesn't fight the smooth scroll.
-  assert.match(manualSrc, /suppressSpyUntil/);
-  assert.match(manualSrc, /Date\.now\(\) < suppressSpyUntil\.current/);
-  // The spy never scrolls the container (no scroll-stealing) — it only setActiveCat.
-  const spy = manualSrc.slice(manualSrc.indexOf("const update = () =>"), manualSrc.indexOf("const onScroll"));
-  assert.doesNotMatch(spy, /scrollTo|scrollIntoView|scrollTop =/);
-  assert.match(spy, /setActiveCat/);
+test("switching Manual tabs only swaps the visible panel (state preserved)", () => {
+  const html = renderCenter();
+  // Tabs are a presentation switch — every panel is rendered (visibility
+  // toggled via hidden), so the v1 fields + JSON drift never unmount on switch.
+  assert.match(MANUAL_SRC, /role="tabpanel"/);
+  assert.match(MANUAL_SRC, /hidden=\{tab\.id !== activeTab\}/);
+  // All six panels are present in the markup even though one is active.
+  for (const id of ["session", "cover", "branding", "display", "appearance", "data"]) {
+    assert.match(html, new RegExp(`data-testid="settings-panel-${id}"`));
+  }
 });
 
 test("obsolete Session Config i18n namespaces are removed", () => {
