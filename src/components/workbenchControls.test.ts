@@ -503,9 +503,13 @@ test("export all is offered in the menu + command palette and wired through the 
 test("command palette follows the website search overlay structure", () => {
   const source = readFileSync(resolve("src/components/CommandPalette.tsx"), "utf8");
 
-  assert.doesNotMatch(source, /borderRadius:\s*6/);
   assert.match(source, /top:\s*80/);
-  assert.match(source, /border:\s*`0\.5px solid \$\{UI_COLORS\.text\}`/);
+  // The frame is unified with the Session Config dialog: a soft hairline + rounded.
+  assert.match(source, /border:\s*`1px solid \$\{UI_COLORS\.border\}`/);
+  assert.match(source, /borderRadius:\s*12/);
+  // The scrim matches too: the shared overlay scrim + a light blur, no frost.
+  assert.match(source, /background:\s*UI_COLORS\.overlayScrim/);
+  assert.doesNotMatch(source, /saturate/);
   assert.match(source, /gridTemplateColumns:\s*"34px minmax\(0, 1fr\) auto"/);
   assert.match(source, /fontFamily:\s*"var\(--app-font-serif\)"/);
   assert.match(source, /box-shadow: inset 1\.5px 0 0 \$\{UI_COLORS\.accent\};/);
@@ -537,14 +541,15 @@ test("command palette renders like an editorial search popup", () => {
   );
 
   assert.match(html, /data-testid="cmdk-dialog"[^>]*top:80px/);
-  assert.match(html, /data-testid="cmdk-dialog"[^>]*border:0\.5px solid var\(--live-text\)/);
-  assert.match(html, /data-testid="cmdk-dialog"[^>]*border-radius:0/);
+  assert.match(html, /data-testid="cmdk-dialog"[^>]*border:1px solid var\(--live-border\)/);
+  assert.match(html, /data-testid="cmdk-dialog"[^>]*border-radius:12px/);
   assert.match(html, /data-testid="cmdk-input"[^>]*font-family:var\(--app-font-serif\)/);
   assert.match(html, /data-testid="cmdk-tab-poster"/);
   assert.match(html, /data-current="true"/);
   assert.match(html, /border-left:1\.5px solid transparent/);
   assert.match(html, /background:var\(--live-input-inset\)/);
-  assert.doesNotMatch(html, /border-radius:6px/);
+  // The scrim is unified with the Session Config dialog: overlay scrim + blur(3px).
+  assert.match(html, /data-testid="cmdk-scrim"[^>]*backdrop-filter:blur\(3px\)/);
 });
 
 test("reset dialog typography uses the actual app mono family without Chinese-hostile title casing", () => {

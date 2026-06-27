@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Command } from "cmdk";
 import type { OverlayState } from "../types";
-import { cssAlpha, UI_COLORS } from "../lib/design-tokens";
+import { UI_COLORS } from "../lib/design-tokens";
 import { patchSection, produceState } from "../lib/state";
 import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
 import { exportForTab } from "../lib/export-targets";
@@ -149,8 +149,9 @@ export default function CommandPalette({
         style={{
           position: "fixed",
           inset: 0,
-          background: cssAlpha(UI_COLORS.shellBg, 72),
-          backdropFilter: "blur(10px) saturate(1.08)",
+          background: UI_COLORS.overlayScrim,
+          backdropFilter: "blur(3px)",
+          WebkitBackdropFilter: "blur(3px)",
           zIndex: 100,
         }}
       />
@@ -167,8 +168,8 @@ export default function CommandPalette({
           width: "min(640px, 92vw)",
           maxHeight: "min(720px, 82vh)",
           background: UI_COLORS.appSurface,
-          border: `0.5px solid ${UI_COLORS.text}`,
-          borderRadius: 0,
+          border: `1px solid ${UI_COLORS.border}`,
+          borderRadius: 12,
           boxShadow: UI_COLORS.commandShadow,
           zIndex: 110,
           overflow: "hidden",
