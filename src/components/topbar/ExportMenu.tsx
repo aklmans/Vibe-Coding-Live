@@ -3,9 +3,11 @@ import { createPortal } from "react-dom";
 import type { OverlayState } from "../../types";
 import { UI_COLORS } from "../../lib/design-tokens";
 import { useLocale } from "../../hooks/useLocale";
+import { currentExportKind, currentExportLabelKey, exportForTab } from "../../lib/export-targets";
 
 type ExportKind =
   | "current"
+  | "all"
   | "overlay"
   | "cover"
   | "poster"
@@ -16,6 +18,7 @@ type ExportKind =
 interface ExportMenuProps {
   state: OverlayState;
   exporting: string | null;
+  onExportAll: () => void;
   onExportOverlay: () => void;
   onExportCover: () => void;
   onExportPoster: () => void;
@@ -23,14 +26,6 @@ interface ExportMenuProps {
   onExportSidebar: () => void;
   onExportBottomBar: () => void;
 }
-
-const PRIMARY_KIND: Record<OverlayState["activeTab"], ExportKind> = {
-  overlay: "overlay",
-  live: "overlay",
-  cover: "cover",
-  poster: "poster",
-  wallpaper: "wallpaper",
-};
 
 const PRIMARY_ACTION_WIDTH = 186;
 
@@ -48,6 +43,7 @@ const PRIMARY_ACTION_WIDTH = 186;
 export default function ExportMenu({
   state,
   exporting,
+  onExportAll,
   onExportOverlay,
   onExportCover,
   onExportPoster,
@@ -99,28 +95,15 @@ export default function ExportMenu({
   }, [open, updatePos]);
 
   const isLoading = exporting !== null;
-  const primaryKind = PRIMARY_KIND[state.activeTab];
-  const isCurrentLoading =
-    exporting === primaryKind ||
-    (primaryKind === "wallpaper" && exporting === "wallpaper");
+  const primaryKind = currentExportKind(state.activeTab);
+  const isCurrentLoading = exporting === primaryKind;
 
-  const handlePrimary = () => {
-    switch (state.activeTab) {
-      case "overlay":
-      case "live":
-        onExportOverlay();
-        break;
-      case "cover":
-        onExportCover();
-        break;
-      case "poster":
-        onExportPoster();
-        break;
-      case "wallpaper":
-        onExportWallpaper();
-        break;
-    }
-  };
+  const handlePrimary = exportForTab(state.activeTab, {
+    onExportOverlay,
+    onExportCover,
+    onExportPoster,
+    onExportWallpaper,
+  });
 
   const itemRow = (label: string, onClick: () => void, kind: ExportKind) => {
     const loading = exporting === kind;
@@ -220,13 +203,7 @@ export default function ExportMenu({
             (e.currentTarget as HTMLElement).style.color = "inherit";
         }}
       >
-        {isCurrentLoading
-          ? t("export.exporting")
-          : t(
-              state.activeTab === "live"
-                ? "export.overlay"
-                : `export.${state.activeTab}`,
-            )}
+        {isCurrentLoading ? t("export.exporting") : t(currentExportLabelKey(state.activeTab))}
       </button>
       <button
         data-testid="btn-export-menu-toggle"
@@ -275,6 +252,15 @@ export default function ExportMenu({
               boxShadow: UI_COLORS.commandShadow,
             }}
           >
+            {itemRow(t("export.all"), onExportAll, "all")}
+            <div
+              style={{
+                height: 1,
+                background: UI_COLORS.border,
+                margin: "5px 0",
+              }}
+              aria-hidden
+            />
             {itemRow(t("export.fullOverlay"), onExportOverlay, "overlay")}
             {itemRow(t("export.cover"), onExportCover, "cover")}
             {itemRow(t("export.poster"), onExportPoster, "poster")}

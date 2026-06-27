@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import type { OverlayState } from "../../types";
 import type { Locale, TranslationKey } from "../../lib/i18n";
 import { UI_COLORS, cssAlpha } from "../../lib/design-tokens";
@@ -15,17 +15,15 @@ import AvatarUploader from "../shared/AvatarUploader";
 import { TextInput, WorkbenchButton } from "../shared/Field";
 import { LineSegmented, RuleNote } from "../inspector/EditorRow";
 import StudioAppearanceControls, { SettingsSelector } from "./StudioAppearanceControls";
-import type { SessionPersistence } from "./SourceOfTruthBar";
 
 interface ManualSettingsProps {
   state: OverlayState;
   onChange: (state: OverlayState) => void;
-  persistence: SessionPersistence;
   onReset: () => void;
   /** Open the JSON drawer (optionally jumping to a module key). */
   onOpenJson: (key?: string) => void;
-  /** Fallback: open the full studio settings drawer. */
-  onOpenStudioDrawer: () => void;
+  /** A one-shot deep-link request to reveal a settings group (e.g. appearance). */
+  focus?: { group?: string } | null;
 }
 
 interface TabDef {
@@ -48,13 +46,17 @@ const SETTINGS_CONTENT_MAX_WIDTH = 920;
 export default function ManualSettings({
   state,
   onChange,
-  persistence,
   onReset,
   onOpenJson,
-  onOpenStudioDrawer,
+  focus,
 }: ManualSettingsProps) {
   const { t, locale, setLocale } = useLocale();
   const [activeTab, setActiveTab] = useState("session");
+
+  // Honor a deep-link request (e.g. the gear / ⌘, jump to Studio Appearance).
+  useEffect(() => {
+    if (focus?.group) setActiveTab(focus.group);
+  }, [focus]);
 
   const activeSectionIndex = Math.min(
     Math.max(state.sidebar.activeSection, 0),
@@ -185,24 +187,7 @@ export default function ManualSettings({
       titleKey: "settingsGroup.appearance",
       hintKey: "settingsGroup.appearanceHint",
       render: () => (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <StudioAppearanceControls state={state} onChange={onChange} onReset={onReset} testIdPrefix="studio-" />
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              flexWrap: "wrap",
-              paddingTop: 14,
-              borderTop: `1px solid ${UI_COLORS.border}`,
-            }}
-          >
-            <WorkbenchButton data-testid="open-studio-drawer" onClick={onOpenStudioDrawer} style={{ height: 30, padding: "0 12px", flexShrink: 0 }}>
-              {t("settingsRow.openStudioDrawer")}
-            </WorkbenchButton>
-            <span style={{ fontSize: 11, color: UI_COLORS.textMuted, lineHeight: 1.4 }}>{t("settingsRow.studioDrawerNote")}</span>
-          </div>
-        </div>
+        <StudioAppearanceControls state={state} onChange={onChange} onReset={onReset} testIdPrefix="studio-" />
       ),
     },
     {
@@ -211,11 +196,6 @@ export default function ManualSettings({
       hintKey: "settingsGroup.dataHint",
       render: () => (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <SummaryRow label={t("sourceBar.db")} value={persistence.databaseConfigured ? t("sourceBar.dbReady") : t("sourceBar.dbLocal")} />
-            <SummaryRow label={t("sourceBar.authority")} value={t("sourceBar.localDraft")} />
-            <SummaryRow label={t("sourceBar.obs")} value={t("sourceBar.obsState")} />
-          </div>
           <RuleNote>{t("settingsRow.persistenceNote")}</RuleNote>
           <RuleNote>{t("settingsRow.advancedNote")}</RuleNote>
           <RuleNote>{t("settingsRow.fileStrategyNote")}</RuleNote>
@@ -444,28 +424,5 @@ function EditInJson({ jsonKey, onOpenJson }: { jsonKey: string; onOpenJson: (key
     >
       {t("manualSettings.openJsonAt")}
     </button>
-  );
-}
-
-/** A read-only summary row (persistence status). */
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 12, paddingTop: 12, borderTop: `1px solid ${UI_COLORS.border}` }}>
-      <span style={{ ...fieldLabel, width: 96, flexShrink: 0 }}>{label}</span>
-      <span
-        style={{
-          flex: 1,
-          minWidth: 0,
-          fontFamily: "var(--app-font-mono)",
-          fontSize: 12,
-          color: UI_COLORS.text,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {value}
-      </span>
-    </div>
   );
 }

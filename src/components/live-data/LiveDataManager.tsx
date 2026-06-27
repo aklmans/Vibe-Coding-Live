@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { OverlayState } from "../../types";
 import { UI_COLORS } from "../../lib/design-tokens";
 import { useLocale } from "../../hooks/useLocale";
@@ -12,6 +12,15 @@ import ConfigJsonDrawer from "./ConfigJsonDrawer";
 
 type ConfigMode = "manual" | "agent";
 
+/** A one-shot request to open the dialog at a specific mode + Manual group. */
+export interface SessionConfigFocus {
+  mode: ConfigMode;
+  /** Manual Settings group id to reveal (e.g. "appearance"). */
+  group?: string;
+  /** Bumped per request so a repeat deep-link re-applies even if unchanged. */
+  nonce: number;
+}
+
 interface LiveDataManagerProps {
   state: OverlayState;
   onChange: (state: OverlayState) => void;
@@ -22,12 +31,14 @@ interface LiveDataManagerProps {
   onReload: () => void;
   onStartSession: () => void;
   onEndSession: () => void;
-  /** Opens the studio SettingsDrawer (fallback for Studio Appearance). */
-  onOpenSettings: () => void;
   /** Safe reset (reused by the inline Studio Appearance controls). */
   onReset: () => void;
   /** Close the Session Config Center dialog (returns to the previous tab). */
   onClose?: () => void;
+  /** A one-shot deep-link request (gear / ⌘, → Studio Appearance). */
+  focus?: SessionConfigFocus | null;
+  /** Clear the focus request once applied so a later plain open is honored. */
+  onFocusConsumed?: () => void;
 }
 
 /**
@@ -51,9 +62,10 @@ export default function LiveDataManager({
   onReload,
   onStartSession,
   onEndSession,
-  onOpenSettings,
   onReset,
   onClose,
+  focus,
+  onFocusConsumed,
 }: LiveDataManagerProps) {
   const { t } = useLocale();
   const [mode, setMode] = useState<ConfigMode>("manual");
@@ -73,6 +85,15 @@ export default function LiveDataManager({
     setReviewText(text);
     setJsonOpen(true);
   };
+
+  // A deep-link (gear / ⌘, / command palette) requests a mode + Manual group.
+  // Apply the mode, forward the group to ManualSettings, and consume the
+  // one-shot so a later plain open lands on its own default.
+  useEffect(() => {
+    if (!focus) return;
+    setMode(focus.mode);
+    onFocusConsumed?.();
+  }, [focus, onFocusConsumed]);
 
   const close = onClose ?? (() => {});
 
@@ -165,10 +186,9 @@ export default function LiveDataManager({
             <ManualSettings
               state={state}
               onChange={onChange}
-              persistence={persistence}
               onReset={onReset}
               onOpenJson={openJson}
-              onOpenStudioDrawer={onOpenSettings}
+              focus={focus}
             />
           </div>
           <div

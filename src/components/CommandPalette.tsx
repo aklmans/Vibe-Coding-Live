@@ -4,6 +4,7 @@ import type { OverlayState } from "../types";
 import { cssAlpha, UI_COLORS } from "../lib/design-tokens";
 import { patchSection, produceState } from "../lib/state";
 import { THEME_PRESETS, type ThemeMode } from "../lib/theme";
+import { exportForTab } from "../lib/export-targets";
 import { useLocale } from "../hooks/useLocale";
 import type { Locale } from "../lib/i18n";
 
@@ -12,6 +13,7 @@ interface CommandPaletteProps {
   onClose: () => void;
   state: OverlayState;
   onChange: (state: OverlayState) => void;
+  onExportAll: () => void;
   onExportOverlay: () => void;
   onExportCover: () => void;
   onExportPoster: () => void;
@@ -31,6 +33,7 @@ export default function CommandPalette({
   onClose,
   state,
   onChange,
+  onExportAll,
   onExportOverlay,
   onExportCover,
   onExportPoster,
@@ -296,9 +299,12 @@ export default function CommandPalette({
             </Group>
 
             <Group heading={t("cmdk.group.export")}>
+              <Item value="export-all 导出全部 export all png" onSelect={run(onExportAll)} testId="cmdk-export-all">
+                {t("export.all")}
+              </Item>
               <Item
                 value="export-current 导出当前 export current"
-                onSelect={run(currentTabExporter(state, {
+                onSelect={run(exportForTab(state.activeTab, {
                   onExportOverlay,
                   onExportCover,
                   onExportPoster,
@@ -468,28 +474,6 @@ export default function CommandPalette({
       </div>
     </>
   );
-}
-
-function currentTabExporter(
-  state: OverlayState,
-  exporters: {
-    onExportOverlay: () => void;
-    onExportCover: () => void;
-    onExportPoster: () => void;
-    onExportWallpaper: () => void;
-  },
-): () => void {
-  switch (state.activeTab) {
-    case "overlay":
-    case "live":
-      return exporters.onExportOverlay;
-    case "cover":
-      return exporters.onExportCover;
-    case "poster":
-      return exporters.onExportPoster;
-    case "wallpaper":
-      return exporters.onExportWallpaper;
-  }
 }
 
 interface GroupProps {

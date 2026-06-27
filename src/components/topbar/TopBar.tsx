@@ -12,6 +12,7 @@ interface TopBarProps {
   state: OverlayState;
   onChange: (state: OverlayState) => void;
   exporting: string | null;
+  onExportAll: () => void;
   onExportOverlay: () => void;
   onExportSidebar: () => void;
   onExportBottomBar: () => void;
@@ -157,6 +158,7 @@ export default function TopBar({
   state,
   onChange,
   exporting,
+  onExportAll,
   onExportOverlay,
   onExportSidebar,
   onExportBottomBar,
@@ -356,6 +358,7 @@ export default function TopBar({
       <ExportMenu
         state={state}
         exporting={exporting}
+        onExportAll={onExportAll}
         onExportOverlay={onExportOverlay}
         onExportCover={onExportCover}
         onExportPoster={onExportPoster}

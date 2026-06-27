@@ -60,8 +60,8 @@ const accentFieldAllowedFiles = new Set([
   "lib/theme.ts",
   "stateStorage.ts",
   "components/lib/editorial-palette.ts",
-  // The shared studio color editor (used by the SettingsDrawer and the Session
-  // Config "Studio Appearance" group) edits the raw persisted color fields.
+  // The shared studio color editor (the Session Config "Studio Appearance"
+  // group) edits the raw persisted color fields.
   "components/live-data/StudioAppearanceControls.tsx",
 ]);
 const accentFieldPattern = /\b(cyanAccent|pinkAccent|warmAccent)\b/g;

@@ -11,7 +11,6 @@ import { parseLiveStudioConfigJson } from "../lib/live-studio-config";
 import { LocaleProvider } from "../hooks/useLocale";
 import { DEFAULT_STATE } from "../types";
 import CommandPalette from "./CommandPalette";
-import SettingsDrawer from "./SettingsDrawer";
 import TopBar from "./topbar/TopBar";
 import BadgesEditor from "./BadgesEditor";
 import SocialsEditor from "./SocialsEditor";
@@ -64,7 +63,6 @@ test("operation UI source paths avoid legacy SaaS visual residue", () => {
     "src/components/BottomBarSegmentEditor.tsx",
     "src/components/LiveSessionEditor.tsx",
     "src/components/StackEditor.tsx",
-    "src/components/SettingsDrawer.tsx",
     "src/components/CommandPalette.tsx",
     "src/components/topbar/ExportMenu.tsx",
     "src/components/live-data/LiveDataManager.tsx",
@@ -247,7 +245,6 @@ test("session config exposes the JSON editor instead of the brief or recipe main
         onReload: () => {},
         onStartSession: () => {},
         onEndSession: () => {},
-        onOpenSettings: () => {},
         onReset: () => {},
       }),
     }),
@@ -317,7 +314,6 @@ test("session config section editor shows one progress section at a time", () =>
         onReload: () => {},
         onStartSession: () => {},
         onEndSession: () => {},
-        onOpenSettings: () => {},
         onReset: () => {},
       }),
     }),
@@ -370,12 +366,8 @@ test("social display components render registry icons next to social values", ()
 });
 
 test("studio appearance controls use ruled selectors and color rows instead of shared pills", () => {
-  const drawerSource = readFileSync(resolve("src/components/SettingsDrawer.tsx"), "utf8");
-  assert.doesNotMatch(drawerSource, /WorkbenchSegmented/);
-  assert.doesNotMatch(drawerSource, /ColorInput/);
-
-  // The selectors + color rows now live in the shared StudioAppearanceControls,
-  // reused by the drawer and the Session Config Studio Appearance group.
+  // The selectors + color rows live in the shared StudioAppearanceControls,
+  // the single home for the Session Config Studio Appearance group.
   const source = readFileSync(
     resolve("src/components/live-data/StudioAppearanceControls.tsx"),
     "utf8",
@@ -388,29 +380,6 @@ test("studio appearance controls use ruled selectors and color rows instead of s
   assert.match(source, /gridTemplateColumns:\s*"minmax\(0, 1fr\) auto auto"/);
 });
 
-test("settings drawer renders semantic ruled controls for selectors and colors", () => {
-  const html = renderToStaticMarkup(
-    React.createElement(LocaleProvider, {
-      initialLocale: "zh",
-      persist: false,
-      children: React.createElement(SettingsDrawer, {
-        open: true,
-        state: DEFAULT_STATE,
-        onClose: () => {},
-        onChange: () => {},
-        onReset: () => {},
-      }),
-    }),
-  );
-
-  assert.match(html, /data-testid="locale-zh"[^>]*aria-pressed="true"/);
-  assert.match(html, /data-testid="locale-en"[^>]*aria-pressed="false"/);
-  assert.match(html, /data-testid="theme-dark"[^>]*aria-pressed="true"/);
-  assert.match(html, /data-testid="color-bg-dark"[^>]*type="color"/);
-  assert.match(html, /#1a1a1a/i);
-  assert.doesNotMatch(html, /role="switch"[^>]*data-testid="locale-/);
-});
-
 test("topbar search language and theme share the editorial website tool style", () => {
   const html = renderToStaticMarkup(
     React.createElement(LocaleProvider, {
@@ -420,6 +389,7 @@ test("topbar search language and theme share the editorial website tool style", 
         state: DEFAULT_STATE,
         onChange: () => {},
         exporting: null,
+        onExportAll: () => {},
         onExportOverlay: () => {},
         onExportSidebar: () => {},
         onExportBottomBar: () => {},
@@ -459,6 +429,7 @@ test("export control aligns with the topbar tool language", () => {
         state: { ...DEFAULT_STATE, activeTab: "poster" },
         onChange: () => {},
         exporting: null,
+        onExportAll: () => {},
         onExportOverlay: () => {},
         onExportSidebar: () => {},
         onExportBottomBar: () => {},
@@ -477,6 +448,56 @@ test("export control aligns with the topbar tool language", () => {
   assert.match(html, /data-testid="btn-export-menu-toggle"[\s\S]*?<svg/);
   assert.match(html, />Export Poster<\/button>/);
   assert.doesNotMatch(html, /data-testid="btn-export-primary"[^>]*padding:7px 15px/);
+});
+
+test("export all is offered in the menu + command palette and wired through the app", () => {
+  // The TopBar export dropdown is a closed-by-default portal, so assert the
+  // wiring at the source: an "Export All" row + the onExportAll prop.
+  const menuSrc = readFileSync(resolve("src/components/topbar/ExportMenu.tsx"), "utf8");
+  assert.match(menuSrc, /itemRow\(t\("export\.all"\), onExportAll, "all"\)/);
+  assert.match(menuSrc, /onExportAll: \(\) => void/);
+
+  // The command palette exposes "Export All" inline (it renders when open).
+  const html = renderToStaticMarkup(
+    React.createElement(LocaleProvider, {
+      initialLocale: "en",
+      persist: false,
+      children: React.createElement(CommandPalette, {
+        open: true,
+        state: DEFAULT_STATE,
+        onClose: () => {},
+        onChange: () => {},
+        onExportAll: () => {},
+        onExportOverlay: () => {},
+        onExportCover: () => {},
+        onExportPoster: () => {},
+        onExportWallpaper: () => {},
+        onExportSidebar: () => {},
+        onExportBottomBar: () => {},
+        onOpenSettings: () => {},
+        onReset: () => {},
+      }),
+    }),
+  );
+  assert.match(html, /data-testid="cmdk-export-all"/);
+  assert.match(html, /Export All/);
+
+  // The app implements one action that exports every artifact, and forwards it
+  // to both the TopBar and the command palette.
+  const appSrc = readFileSync(resolve("src/components/OverlayBuilderApp.tsx"), "utf8");
+  assert.match(appSrc, /const handleExportAll = useCallback/);
+  for (const fn of [
+    "exportFullOverlay",
+    "exportCover",
+    "exportPoster",
+    "exportWallpaper",
+    "exportSidebar",
+    "exportBottomBar",
+  ]) {
+    assert.match(appSrc, new RegExp(`await ${fn}\\(`));
+  }
+  const allWirings = appSrc.match(/onExportAll=\{handleExportAll\}/g) ?? [];
+  assert.equal(allWirings.length, 2); // TopBar + command palette
 });
 
 test("command palette follows the website search overlay structure", () => {
@@ -502,6 +523,7 @@ test("command palette renders like an editorial search popup", () => {
         state: { ...DEFAULT_STATE, theme: "light", activeTab: "poster" },
         onClose: () => {},
         onChange: () => {},
+        onExportAll: () => {},
         onExportOverlay: () => {},
         onExportCover: () => {},
         onExportPoster: () => {},

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import React from "react";
@@ -39,7 +39,6 @@ function renderCenter(persistence: Partial<Persistence> = {}) {
         onReload: () => {},
         onStartSession: () => {},
         onEndSession: () => {},
-        onOpenSettings: () => {},
         onReset: () => {},
       }),
     }),
@@ -248,29 +247,69 @@ test("Manual Settings language row uses a real i18n key, not translation compari
   assert.doesNotMatch(MANUAL_SRC, /settings\.theme"\)\s*===/);
 });
 
-test("Studio Appearance shows real theme / colors / reset rows, plus a drawer fallback", () => {
+test("Studio Appearance shows real theme / colors / reset rows inline", () => {
   const html = renderCenter();
   assert.match(html, /data-testid="settings-panel-appearance"/);
-  // Real controls inline (prefixed testids), not just a button.
+  // Real controls inline (prefixed testids) — the single home for appearance.
   assert.match(html, /data-testid="studio-theme-light"/);
   assert.match(html, /data-testid="studio-theme-dark"/);
   assert.match(html, /data-testid="studio-color-bg-dark"/);
   assert.match(html, /data-testid="studio-btn-reset"/);
-  // Fallback entry to the full studio drawer is kept.
-  assert.match(html, /data-testid="open-studio-drawer"/);
+  // No separate drawer to defer to — the merge removed the fallback button.
+  assert.doesNotMatch(html, /data-testid="open-studio-drawer"/);
 });
 
-test("the legacy SettingsDrawer keeps its own theme/colors/reset testids (shared logic)", () => {
-  const drawerSrc = readFileSync(resolve("src/components/SettingsDrawer.tsx"), "utf8");
-  // The drawer now reuses the shared controls (no duplicated theme/reset logic).
-  assert.match(drawerSrc, /StudioAppearanceControls/);
-  assert.doesNotMatch(drawerSrc, /THEME_PRESETS/);
+test("Settings is merged into Session Config: no standalone drawer, deep-link to Studio Appearance", () => {
+  // The standalone SettingsDrawer is gone — one config surface only.
+  assert.equal(existsSync(resolve("src/components/SettingsDrawer.tsx")), false);
+  assert.doesNotMatch(APP_SRC, /SettingsDrawer/);
+  assert.doesNotMatch(APP_SRC, /settingsOpen/);
+
+  // The studio appearance logic still has a single home (the shared controls).
   const sharedSrc = readFileSync(
     resolve("src/components/live-data/StudioAppearanceControls.tsx"),
     "utf8",
   );
   assert.match(sharedSrc, /THEME_PRESETS/);
   assert.match(sharedSrc, /produceState/);
+
+  // Gear / ⌘, / command-palette "Settings" deep-link into the dialog at the
+  // Studio Appearance group (open the live tab + request the focus).
+  assert.match(APP_SRC, /setSessionConfigFocus\(\{ mode: "manual", group: "appearance"/);
+  assert.match(APP_SRC, /draft\.activeTab = "live"/);
+  assert.match(APP_SRC, /onOpenSettings: openSessionConfigAppearance/); // ⌘, shortcut
+  assert.match(APP_SRC, /onOpenSettings=\{openSessionConfigAppearance\}/); // TopBar + palette
+  assert.match(APP_SRC, /focus=\{sessionConfigFocus\}/);
+  assert.match(APP_SRC, /onFocusConsumed=\{consumeSessionConfigFocus\}/);
+
+  // The dialog applies the requested mode + group, then consumes the one-shot.
+  const managerSrc = readFileSync(resolve("src/components/live-data/LiveDataManager.tsx"), "utf8");
+  assert.match(managerSrc, /setMode\(focus\.mode\)/);
+  assert.match(managerSrc, /onFocusConsumed\?\.\(\)/);
+  assert.match(managerSrc, /focus=\{focus\}/); // forwarded to ManualSettings
+  assert.match(MANUAL_SRC, /if \(focus\?\.group\) setActiveTab\(focus\.group\)/);
+
+  // The drawer fallback button + its plumbing are removed from Manual.
+  assert.doesNotMatch(MANUAL_SRC, /open-studio-drawer/);
+  assert.doesNotMatch(MANUAL_SRC, /onOpenStudioDrawer/);
+
+  // The dead drawer i18n keys are gone.
+  const i18nSrc = readFileSync(resolve("src/lib/i18n.ts"), "utf8");
+  for (const key of [
+    "settings.title",
+    "settings.subtitle",
+    "settings.closeSettings",
+    "settingsRow.openStudioDrawer",
+    "settingsRow.studioDrawerNote",
+  ]) {
+    assert.doesNotMatch(i18nSrc, new RegExp(key.replace(/\./g, "\\.")));
+  }
+
+  // Language + theme still render inside the dialog (moved from the drawer).
+  const html = renderCenter();
+  assert.match(html, /data-testid="manual-locale-zh"/);
+  assert.match(html, /data-testid="manual-locale-en"/);
+  assert.match(html, /data-testid="studio-theme-dark"/);
 });
 
 test("the JSON drawer is global, drift-safe, and openable from bar / manual / agent", () => {
@@ -589,10 +628,4 @@ test("Agent shows the active task intent and the handoff reflects the brief", ()
   assert.notEqual(a, b);
   assert.match(a, /Brief: rebuild the intro/);
   assert.match(b, /Brief: wrap up the stream/);
-});
-
-test("Studio Appearance keeps the drawer fallback labelled as a backup entry", () => {
-  const html = renderCenter();
-  assert.match(html, /data-testid="open-studio-drawer"/);
-  assert.match(html, /also available in a drawer/);
 });

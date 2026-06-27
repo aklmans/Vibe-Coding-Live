@@ -8,7 +8,7 @@ import { fieldLabelStyle } from "../shared/Field";
  * action slot on the right. Hairlines separate rows — no card boxes, no fills.
  *
  * Kept out of shared/Field so changing the editor rhythm never touches the
- * SettingsDrawer / CommandPalette controls that share Field's atoms. */
+ * CommandPalette controls that share Field's atoms. */
 
 const indexStyle: CSSProperties = {
   fontFamily: "var(--app-font-mono)",

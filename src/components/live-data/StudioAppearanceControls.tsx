@@ -21,15 +21,15 @@ interface StudioAppearanceControlsProps {
   state: OverlayState;
   onChange: (state: OverlayState) => void;
   onReset: () => void;
-  /** Distinguish instances (the drawer keeps legacy testids; inline uses a prefix). */
+  /** Prefix to namespace the testids (the Session Config group uses "studio-"). */
   testIdPrefix?: string;
 }
 
 /**
  * The studio-level appearance controls — theme, asset palette colors and the
- * safe reset. Shared by the SettingsDrawer and the Session Config "Studio
- * Appearance" group so there is a single source of truth for the logic
- * (produceState + THEME_PRESETS) and the tokens. Visual is warm editorial.
+ * safe reset. The single home for studio appearance, rendered in the Session
+ * Config "Studio Appearance" group, so there is one source of truth for the
+ * logic (produceState + THEME_PRESETS) and the tokens. Visual is warm editorial.
  */
 export default function StudioAppearanceControls({
   state,

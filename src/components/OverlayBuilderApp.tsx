@@ -8,10 +8,9 @@ import PosterCanvas from "./PosterCanvas";
 import WallpaperCanvas from "./WallpaperCanvas";
 import SidebarPanel from "./SidebarPanel";
 import BottomBarPanel from "./BottomBarPanel";
-import LiveDataManager from "./live-data/LiveDataManager";
+import LiveDataManager, { type SessionConfigFocus } from "./live-data/LiveDataManager";
 import TopBar from "./topbar/TopBar";
 import Inspector from "./inspector/Inspector";
-import SettingsDrawer from "./SettingsDrawer";
 import CommandPalette from "./CommandPalette";
 import {
   exportFullOverlay,
@@ -32,6 +31,7 @@ import {
   OVERLAY_CANVAS_DIMENSIONS,
 } from "../lib/canvas-dimensions";
 import { produceState } from "../lib/state";
+import { exportForTab } from "../lib/export-targets";
 import { publishLiveState } from "../lib/live-state-client";
 import { IDLE_OBS_SYNC, type ObsSyncState } from "./live-data/obs-sync";
 import {
@@ -169,7 +169,7 @@ export default function App() {
   );
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sessionConfigFocus, setSessionConfigFocus] = useState<SessionConfigFocus | null>(null);
   const [cmdkOpen, setCmdkOpen] = useState(false);
   const [obsSync, setObsSync] = useState<ObsSyncState>(IDLE_OBS_SYNC);
   // The tab to return to when the Session Config dialog closes.
@@ -384,7 +384,7 @@ export default function App() {
 
   const handleExport = useCallback(
     async (
-      type: "overlay" | "sidebar" | "bottom-bar" | "cover" | "poster" | "wallpaper",
+      type: "overlay" | "sidebar" | "bottom-bar" | "cover" | "poster" | "wallpaper" | "all",
       fn: () => Promise<void>,
     ) => {
       setExporting(type);
@@ -462,26 +462,50 @@ export default function App() {
     });
   }, [handleExport]);
 
+  // Export every artifact in one action. Sequential — the offscreen export
+  // nodes and the browser's download channel are shared, so one PNG at a time
+  // keeps each correct (and naturally spaces the downloads). Wallpaper expands
+  // to its full preset set, so "all" is 8 files (overlay/cover/poster + 3
+  // wallpapers + sidebar + bottom-bar).
+  const handleExportAll = useCallback(() => {
+    handleExport("all", async () => {
+      const overlay = exportOverlayRef.current;
+      const cover = exportCoverRef.current;
+      const poster = exportPosterRef.current;
+      const sidebar = exportSidebarRef.current;
+      const bottomBar = exportBottomBarRef.current;
+      if (!overlay || !cover || !poster || !sidebar || !bottomBar) {
+        throw new Error(t("export.notReady"));
+      }
+      await exportFullOverlay(overlay);
+      await exportCover(cover);
+      await exportPoster(poster);
+      for (const preset of WALLPAPER_PRESETS) {
+        const el = exportWallpaperRefs.current.get(preset.id);
+        if (!el) throw new Error(`Wallpaper export node missing: ${preset.id}`);
+        await exportWallpaper(
+          el,
+          `vibe-coding-wallpaper-${preset.id}.png`,
+          preset.width,
+          preset.height,
+        );
+      }
+      await exportSidebar(sidebar);
+      await exportBottomBar(bottomBar);
+    });
+  }, [handleExport, t]);
+
   const handleReset = useCallback(() => {
     setState({ ...DEFAULT_STATE_BY_LOCALE[locale] });
   }, [setState, locale]);
 
   const handleExportCurrent = useCallback(() => {
-    switch (state.activeTab) {
-      case "overlay":
-      case "live":
-        handleExportOverlay();
-        break;
-      case "cover":
-        handleExportCover();
-        break;
-      case "poster":
-        handleExportPoster();
-        break;
-      case "wallpaper":
-        handleExportWallpaper();
-        break;
-    }
+    exportForTab(state.activeTab, {
+      onExportOverlay: handleExportOverlay,
+      onExportCover: handleExportCover,
+      onExportPoster: handleExportPoster,
+      onExportWallpaper: handleExportWallpaper,
+    })();
   }, [
     state.activeTab,
     handleExportOverlay,
@@ -491,6 +515,18 @@ export default function App() {
   ]);
 
   const TAB_ORDER = APP_TABS;
+
+  // Gear / ⌘, / command-palette "Settings" now open the single config surface:
+  // the Session Config dialog, deep-linked to its Studio Appearance group.
+  const openSessionConfigAppearance = () => {
+    setSessionConfigFocus({ mode: "manual", group: "appearance", nonce: Date.now() });
+    setState(
+      produceState(state, (draft) => {
+        draft.activeTab = "live";
+      }),
+    );
+  };
+  const consumeSessionConfigFocus = useCallback(() => setSessionConfigFocus(null), []);
 
   useKeyboardShortcuts({
     onCommandPalette: () => setCmdkOpen((v) => !v),
@@ -505,7 +541,7 @@ export default function App() {
       }
     },
     onExportCurrent: handleExportCurrent,
-    onOpenSettings: () => setSettingsOpen(true),
+    onOpenSettings: openSessionConfigAppearance,
   });
 
   const wallpaperPreset = getWallpaperPreset(state.wallpaper.previewPresetId);
@@ -618,7 +654,8 @@ export default function App() {
           onExportCover={handleExportCover}
           onExportPoster={handleExportPoster}
           onExportWallpaper={handleExportWallpaper}
-          onOpenSettings={() => setSettingsOpen(true)}
+          onExportAll={handleExportAll}
+          onOpenSettings={openSessionConfigAppearance}
           onOpenCommandPalette={() => setCmdkOpen(true)}
         />
 
@@ -723,20 +760,13 @@ export default function App() {
             onReload={reloadLiveData}
             onStartSession={handleStartLiveSession}
             onEndSession={handleEndLiveSession}
-            onOpenSettings={() => setSettingsOpen(true)}
             onReset={handleReset}
             onClose={closeSessionConfig}
+            focus={sessionConfigFocus}
+            onFocusConsumed={consumeSessionConfigFocus}
           />
         )}
       </div>
-
-      <SettingsDrawer
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        state={state}
-        onChange={setState}
-        onReset={handleReset}
-      />
 
       <CommandPalette
         open={cmdkOpen}
@@ -749,7 +779,8 @@ export default function App() {
         onExportWallpaper={handleExportWallpaper}
         onExportSidebar={handleExportSidebar}
         onExportBottomBar={handleExportBottomBar}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onExportAll={handleExportAll}
+        onOpenSettings={openSessionConfigAppearance}
       />
     </>
   );
