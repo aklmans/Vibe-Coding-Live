@@ -193,8 +193,36 @@ test("Agent shows a split proposal review rail once the AI returns a config", ()
   assert.match(AGENT_SRC, /data-testid="agent-proposal-preview-disabled"/);
   assert.match(AGENT_SRC, /agent\.previewNote/);
   assert.match(AGENT_SRC, /data-testid="agent-proposal-review"/);
-  assert.match(AGENT_SRC, /onReviewJson\(proposal\.configText as string\)/);
+  assert.match(AGENT_SRC, /onClick=\{\(\) => onReviewProposal\(proposal\)\}/);
   assert.doesNotMatch(AGENT_SRC, /applyConfigText|onChange\(/); // no auto-apply / no state write
+});
+
+test("Agent conversations are persisted opportunistically with history and local fallback", () => {
+  const managerSrc = readFileSync(resolve("src/components/live-data/LiveDataManager.tsx"), "utf8");
+
+  assert.match(managerSrc, /<AgentView[\s\S]*dateKey=\{dateKey\}/);
+  assert.match(AGENT_SRC, /fetchAgentConversations/);
+  assert.match(AGENT_SRC, /createAgentConversationClient/);
+  assert.match(AGENT_SRC, /fetchAgentConversation/);
+  assert.match(AGENT_SRC, /appendAgentConversationMessage/);
+  assert.match(AGENT_SRC, /archiveAgentConversationClient/);
+  assert.match(AGENT_SRC, /markAgentProposalReviewedClient/);
+  assert.match(AGENT_SRC, /messagesToTurns/);
+  assert.match(AGENT_SRC, /persistTurnPair/);
+  assert.match(AGENT_SRC, /proposalId\?: string/);
+  assert.match(AGENT_SRC, /proposalId: message\.proposal\?\.id/);
+  assert.match(AGENT_SRC, /reviewProposal/);
+  assert.match(AGENT_SRC, /testId="agent-history-toggle"/);
+  assert.match(AGENT_SRC, /data-testid="agent-history-list"/);
+  assert.match(AGENT_SRC, /data-testid=\{`agent-history-item-\$\{conversation\.id\}`\}/);
+  assert.match(AGENT_SRC, /data-testid=\{`agent-history-archive-\$\{conversation\.id\}`\}/);
+  assert.match(AGENT_SRC, /data-testid="agent-conversation-status"/);
+  // Persistence is opportunistic; the Agent remains usable when the DB route
+  // reports databaseConfigured:false or a request fails.
+  assert.match(AGENT_SRC, /setConversationAvailable\(result\.databaseConfigured === true\)/);
+  assert.match(AGENT_SRC, /if \(!conversationId\) return/);
+  assert.match(AGENT_SRC, /setConversations\(\(prev\) => prev\.filter/);
+  assert.doesNotMatch(AGENT_SRC, /apiKey|Authorization|baseUrl/i);
 });
 
 test("Settings field search has a full keyboard contract + combobox semantics", () => {
@@ -605,7 +633,7 @@ test("Agent shows a connected badge + Run with AI only when a provider is config
     React.createElement(LocaleProvider, {
       initialLocale: "en",
       persist: false,
-      children: React.createElement(AgentView, { state: DEFAULT_STATE, onOpenJson: () => {} }),
+      children: React.createElement(AgentView, { state: DEFAULT_STATE, dateKey: "2026-06-27", onOpenJson: () => {} }),
     }),
   );
   assert.match(local, /data-testid="agent-local-badge"/);
@@ -619,6 +647,7 @@ test("Agent shows a connected badge + Run with AI only when a provider is config
       persist: false,
       children: React.createElement(AgentView, {
         state: DEFAULT_STATE,
+        dateKey: "2026-06-27",
         onOpenJson: () => {},
         initialStatus: { configured: true, provider: "deepseek", model: "deepseek-chat" },
       }),
@@ -631,8 +660,10 @@ test("Agent shows a connected badge + Run with AI only when a provider is config
 });
 
 test("AI review path is wired to the drawer buffer and never auto-applies", () => {
-  // AgentView hands returned JSON up via onReviewJson (not a second apply path).
-  assert.match(AGENT_SRC, /onReviewJson\(turn\.configText as string\)/);
+  // AgentView hands returned JSON up via reviewProposal (not a second apply path)
+  // and opportunistically marks the persisted proposal as reviewed.
+  assert.match(AGENT_SRC, /markAgentProposalReviewedClient\(conversationId, turn\.proposalId\)/);
+  assert.match(AGENT_SRC, /if \(turn\.configText\) onReviewJson\?\.\(turn\.configText\)/);
   assert.doesNotMatch(AGENT_SRC, /onChange\(/); // the agent never writes state
 
   // LiveDataManager opens the drawer for review and clears the one-shot after.

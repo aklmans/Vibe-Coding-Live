@@ -210,6 +210,7 @@ export default function LiveDataManager({
           >
             <AgentView
               state={state}
+              dateKey={dateKey}
               onOpenJson={() => openJson()}
               onReviewJson={openJsonForReview}
               onOpenSettings={openSettings}

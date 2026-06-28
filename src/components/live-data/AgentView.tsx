@@ -9,6 +9,20 @@ import { configToOverlayState } from "../../lib/live-studio-config";
 import { diffConfigProposal, type ConfigChange, type DiffGroup, type FieldDiff } from "../../lib/config-proposal";
 import type { SessionAgentStatus } from "../../lib/session-agent";
 import { fetchAgentStatus, runSessionAgent } from "../../lib/session-agent-client";
+import {
+  appendAgentConversationMessage,
+  archiveAgentConversationClient,
+  createAgentConversationClient,
+  fetchAgentConversation,
+  fetchAgentConversations,
+  markAgentProposalReviewedClient,
+} from "../../lib/agent-conversation-client";
+import type {
+  AgentConversationDetail,
+  AgentConversationMessage,
+  AgentConversationSummary,
+  AgentProposalStatus,
+} from "../../db/agent-conversation-repository";
 import { resolveCopyResult, shortConfigHash, turnMessageKey, type CopyStatus } from "./agent-copy";
 import {
   WorkbenchButton,
@@ -19,6 +33,7 @@ import {
 
 interface AgentViewProps {
   state: OverlayState;
+  dateKey: string;
   /** Open the global drift-safe JSON drawer (single import / apply path). */
   onOpenJson: () => void;
   /** Open the JSON drawer with text seeded into the editing buffer (review path). */
@@ -83,6 +98,7 @@ const SLASH_COMMANDS: { cmd: string; task?: string; group?: string; json?: boole
 
 interface TurnBase {
   id: number;
+  taskId: string;
   brief: string;
   taskLabel: string;
   snapshot: string;
@@ -95,6 +111,8 @@ type AiTurn = TurnBase & {
   configText: string | null;
   provider?: string;
   model?: string;
+  proposalId?: string;
+  proposalStatus?: AgentProposalStatus;
 };
 type Turn = LocalTurn | AiTurn;
 
@@ -109,6 +127,57 @@ const subLabel: CSSProperties = {
   color: UI_COLORS.textMuted,
 };
 
+function summaryFromDetail(detail: AgentConversationDetail): AgentConversationSummary {
+  const { messages: _messages, ...summary } = detail;
+  return summary;
+}
+
+function messagesToTurns(messages: AgentConversationMessage[]): Turn[] {
+  const turns: Turn[] = [];
+  let pendingUser: AgentConversationMessage | null = null;
+  let nextId = 1;
+
+  for (const message of messages) {
+    if (message.role === "user") {
+      pendingUser = message;
+      continue;
+    }
+
+    const user = pendingUser;
+    pendingUser = null;
+    const base = {
+      id: nextId++,
+      taskId: user?.taskId || message.taskId || "generate",
+      brief: user?.content || "",
+      taskLabel: user?.taskLabel || message.taskLabel || "",
+      snapshot: user?.snapshot || message.snapshot || "",
+    };
+
+    if (message.kind === "local") {
+      turns.push({
+        ...base,
+        kind: "local",
+        status: message.status === "copied" ? "copied" : "manual",
+        handoff: message.content,
+      });
+    } else {
+      turns.push({
+        ...base,
+        kind: "ai",
+        status: message.status === "error" ? "error" : "success",
+        message: message.content,
+        configText: message.proposal?.configText ?? null,
+        provider: message.provider || undefined,
+        model: message.model || undefined,
+        proposalId: message.proposal?.id,
+        proposalStatus: message.proposal?.status,
+      });
+    }
+  }
+
+  return turns;
+}
+
 /**
  * Agent mode — a full chat window. The user converses; "Run with AI" (when a
  * provider is configured server-side) sends the brief + task + current v1
@@ -119,12 +188,16 @@ const subLabel: CSSProperties = {
  * provider, the pill reads "local · no model" and Copy handoff is the path. The
  * API key stays on the server; the client only knows provider / model names.
  */
-export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSettings, initialStatus }: AgentViewProps) {
+export default function AgentView({ state, dateKey, onOpenJson, onReviewJson, onOpenSettings, initialStatus }: AgentViewProps) {
   const { t, locale } = useLocale();
   const [brief, setBrief] = useState("");
   const [taskId, setTaskId] = useState("generate");
   const [message, setMessage] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<AgentConversationSummary[]>([]);
+  const [conversationAvailable, setConversationAvailable] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [status, setStatus] = useState<SessionAgentStatus>(initialStatus ?? { configured: false });
   const [running, setRunning] = useState(false);
   const [intentsOpen, setIntentsOpen] = useState(false);
@@ -194,27 +267,128 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    void fetchAgentConversations(locale, dateKey).then((result) => {
+      if (!active) return;
+      setConversationAvailable(result.databaseConfigured === true);
+      setConversations(result.conversations);
+      setConversationId(result.current?.id ?? null);
+      if (result.current) {
+        const hydrated = messagesToTurns(result.current.messages);
+        setTurns(hydrated);
+        nextTurnId.current = hydrated.length + 1;
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [locale, dateKey]);
+
+  const refreshConversationList = () => {
+    void fetchAgentConversations(locale, dateKey).then((result) => {
+      setConversationAvailable(result.databaseConfigured === true);
+      if (result.databaseConfigured) setConversations(result.conversations);
+    });
+  };
+
   const patchTurn = (id: number, patch: Partial<AiTurn>) => {
     setTurns((prev) =>
       prev.map((turn) => (turn.id === id && turn.kind === "ai" ? { ...turn, ...patch } : turn)),
     );
   };
 
+  const persistTurnPair = (turn: LocalTurn | AiTurn) => {
+    if (!conversationId) return;
+    void appendAgentConversationMessage(conversationId, {
+      role: "user",
+      content: turn.brief || t("agent.noBrief"),
+      taskId: turn.taskId,
+      taskLabel: turn.taskLabel,
+      snapshot: turn.snapshot,
+    }).then(() =>
+      appendAgentConversationMessage(conversationId, {
+        role: "assistant",
+        kind: turn.kind,
+        status: turn.status === "running" ? "success" : turn.status,
+        content: turn.kind === "local" ? turn.handoff : turn.message || t("agent.aiSuccessText"),
+        taskId: turn.taskId,
+        taskLabel: turn.taskLabel,
+        snapshot: turn.snapshot,
+        provider: turn.kind === "ai" ? turn.provider : undefined,
+        model: turn.kind === "ai" ? turn.model : undefined,
+        proposal:
+          turn.kind === "ai" && turn.configText
+            ? { configText: turn.configText }
+            : undefined,
+      }),
+    ).then((result) => {
+      if (turn.kind === "ai" && result.message?.proposal?.id) {
+        patchTurn(turn.id, {
+          proposalId: result.message.proposal.id,
+          proposalStatus: result.message.proposal.status,
+        });
+      }
+      refreshConversationList();
+    });
+  };
+
+  const loadConversation = (id: string) => {
+    void fetchAgentConversation(id).then((result) => {
+      setConversationAvailable(result.databaseConfigured === true);
+      if (!result.conversation) return;
+      const hydrated = messagesToTurns(result.conversation.messages);
+      setConversationId(result.conversation.id);
+      setTurns(hydrated);
+      setMessage("");
+      setHistoryOpen(false);
+      nextTurnId.current = hydrated.length + 1;
+    });
+  };
+
+  const startNewConversation = () => {
+    setTurns([]);
+    setMessage("");
+    setHistoryOpen(false);
+    void createAgentConversationClient(locale, dateKey).then((result) => {
+      setConversationAvailable(result.databaseConfigured === true);
+      if (!result.conversation) {
+        setConversationId(null);
+        return;
+      }
+      setConversationId(result.conversation.id);
+      setConversations((prev) => [
+        summaryFromDetail(result.conversation as AgentConversationDetail),
+        ...prev.filter((conversation) => conversation.id !== result.conversation?.id),
+      ]);
+      nextTurnId.current = 1;
+    });
+  };
+
+  const archiveConversation = (id: string) => {
+    void archiveAgentConversationClient(id).then((result) => {
+      setConversationAvailable(result.databaseConfigured === true);
+      if (!result.databaseConfigured) return;
+      setConversations((prev) => prev.filter((conversation) => conversation.id !== id));
+      if (id === conversationId) startNewConversation();
+    });
+  };
+
   const recordLocalTurn = (copied: boolean) => {
     const { messageKey, turnStatus } = resolveCopyResult(copied);
+    const turn: LocalTurn = {
+      kind: "local",
+      id: nextTurnId.current++,
+      taskId: task.id,
+      brief: brief.trim(),
+      taskLabel: t(task.labelKey),
+      snapshot: shortConfigHash(handoff),
+      handoff,
+      status: turnStatus,
+    };
     setMessage(t(messageKey));
-    setTurns((prev) => [
-      ...prev,
-      {
-        kind: "local",
-        id: nextTurnId.current++,
-        brief: brief.trim(),
-        taskLabel: t(task.labelKey),
-        snapshot: shortConfigHash(handoff),
-        handoff,
-        status: turnStatus,
-      },
-    ]);
+    setTurns((prev) => [...prev, turn]);
+    persistTurnPair(turn);
   };
 
   const copyHandoff = () => {
@@ -229,19 +403,23 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
     if (running) return;
     const configText = projectConfigText(state);
     const id = nextTurnId.current++;
+    const baseTurn = {
+      kind: "ai" as const,
+      id,
+      taskId: task.id,
+      brief: brief.trim(),
+      taskLabel: t(task.labelKey),
+      snapshot: shortConfigHash(configText),
+      provider: status.provider,
+      model: status.model,
+    };
     setTurns((prev) => [
       ...prev,
       {
-        kind: "ai",
-        id,
-        brief: brief.trim(),
-        taskLabel: t(task.labelKey),
-        snapshot: shortConfigHash(configText),
+        ...baseTurn,
         status: "running",
         message: "",
         configText: null,
-        provider: status.provider,
-        model: status.model,
       },
     ]);
     setRunning(true);
@@ -249,17 +427,23 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
     void runSessionAgent({ brief: brief.trim(), task: task.line, configText, locale })
       .then((result) => {
         if (result.mode === "ai") {
-          patchTurn(id, {
+          const patch = {
             status: "success",
             message: result.message ?? "",
             configText: result.configText ?? null,
             provider: result.provider,
             model: result.model,
-          });
+          } satisfies Partial<AiTurn>;
+          patchTurn(id, patch);
+          persistTurnPair({ ...baseTurn, ...patch } as AiTurn);
         } else if (result.mode === "local") {
-          patchTurn(id, { status: "error", message: t("agent.aiNotConfigured") });
+          const patch = { status: "error", message: t("agent.aiNotConfigured"), configText: null } satisfies Partial<AiTurn>;
+          patchTurn(id, patch);
+          persistTurnPair({ ...baseTurn, ...patch } as AiTurn);
         } else {
-          patchTurn(id, { status: "error", message: result.error ?? t("agent.aiError") });
+          const patch = { status: "error", message: result.error ?? t("agent.aiError"), configText: null } satisfies Partial<AiTurn>;
+          patchTurn(id, patch);
+          persistTurnPair({ ...baseTurn, ...patch } as AiTurn);
         }
       })
       .finally(() => setRunning(false));
@@ -267,6 +451,15 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
 
   const copyText = (text: string) => {
     if (navigator.clipboard) void navigator.clipboard.writeText(text).catch(() => {});
+  };
+
+  const reviewProposal = (turn: AiTurn) => {
+    if (conversationId && turn.proposalId) {
+      void markAgentProposalReviewedClient(conversationId, turn.proposalId).then((result) => {
+        if (result.proposal) patchTurn(turn.id, { proposalStatus: result.proposal.status });
+      });
+    }
+    if (turn.configText) onReviewJson?.(turn.configText);
   };
 
   // The latest AI proposal (a successful turn that returned a config) drives the
@@ -315,10 +508,100 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
               {t("agent.setupProvider")}
             </GhostButton>
           )}
+          <span data-testid="agent-conversation-status" style={pillStyle(UI_COLORS.textMuted, UI_COLORS.inputInset)}>
+            <Dot color={conversationAvailable ? UI_COLORS.success : UI_COLORS.textSubtle} />
+            {conversationAvailable ? t("agent.conversationSaved") : t("agent.conversationLocal")}
+          </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ position: "relative" }}>
+            <GhostButton testId="agent-history-toggle" onClick={() => setHistoryOpen((open) => !open)}>
+              {t("agent.history")}
+            </GhostButton>
+            {historyOpen && (
+              <div
+                data-testid="agent-history-list"
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "calc(100% + 6px)",
+                  zIndex: 4,
+                  width: 260,
+                  maxHeight: 260,
+                  overflowY: "auto",
+                  border: UI_BORDERS.control,
+                  borderRadius: 8,
+                  background: UI_COLORS.appSurface,
+                  boxShadow: "0 16px 38px rgba(0,0,0,0.22)",
+                  padding: 6,
+                }}
+              >
+                {conversations.length === 0 ? (
+                  <div style={{ padding: "8px 10px", fontSize: 11, color: UI_COLORS.textMuted }}>
+                    {t("agent.noHistory")}
+                  </div>
+                ) : (
+                  conversations.map((conversation) => {
+                    const active = conversation.id === conversationId;
+                    return (
+                      <div
+                        key={conversation.id}
+                        data-testid={`agent-history-item-${conversation.id}`}
+                        style={{
+                          width: "100%",
+                          borderLeft: `2px solid ${active ? UI_COLORS.accent : "transparent"}`,
+                          borderRadius: 4,
+                          background: active ? cssAlpha(UI_COLORS.accent, 10) : "transparent",
+                          padding: "7px 7px 7px 9px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <button
+                          data-testid={`agent-history-load-${conversation.id}`}
+                          onClick={() => loadConversation(conversation.id)}
+                          style={{
+                            appearance: "none",
+                            border: "none",
+                            background: "transparent",
+                            color: UI_COLORS.text,
+                            cursor: "pointer",
+                            padding: 0,
+                            textAlign: "left",
+                            minWidth: 0,
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 3,
+                          }}
+                        >
+                          <span style={{ fontSize: 12, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{conversation.title}</span>
+                          <span style={{ ...subLabel, fontSize: 9, letterSpacing: "0.04em" }}>
+                            {conversation.updatedAt.slice(0, 10)}
+                          </span>
+                        </button>
+                        <button
+                          data-testid={`agent-history-archive-${conversation.id}`}
+                          onClick={() => archiveConversation(conversation.id)}
+                          style={{
+                            ...toggleStyle,
+                            flexShrink: 0,
+                            color: UI_COLORS.textSubtle,
+                            letterSpacing: "0.04em",
+                          }}
+                        >
+                          {t("agent.archive")}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
           {turns.length > 0 && (
-            <GhostButton testId="agent-new-chat" onClick={() => { setTurns([]); setMessage(""); }}>
+            <GhostButton testId="agent-new-chat" onClick={startNewConversation}>
               {t("agent.newChat")}
             </GhostButton>
           )}
@@ -370,7 +653,7 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
                     <Collapsible id={turn.id} text={turn.handoff} toggleLabel={t("agent.handoffPreview")} />
                   </div>
                 ) : (
-                  <AiTurnBody turn={turn} onReviewJson={onReviewJson} onCopy={copyText} />
+                  <AiTurnBody turn={turn} onReviewProposal={reviewProposal} onCopy={copyText} />
                 )}
               </AssistantRow>
             </Fragment>
@@ -578,7 +861,7 @@ export default function AgentView({ state, onOpenJson, onReviewJson, onOpenSetti
               proposal={proposal}
               currentConfigText={projectConfigText(state)}
               state={state}
-              onReviewJson={onReviewJson}
+              onReviewProposal={reviewProposal}
               onCopy={copyText}
               onOpenSettings={onOpenSettings}
             />
@@ -611,14 +894,14 @@ function ProposalRail({
   proposal,
   currentConfigText,
   state,
-  onReviewJson,
+  onReviewProposal,
   onCopy,
   onOpenSettings,
 }: {
   proposal: AiTurn;
   currentConfigText: string;
   state: OverlayState;
-  onReviewJson?: (text: string) => void;
+  onReviewProposal?: (turn: AiTurn) => void;
   onCopy: (text: string) => void;
   onOpenSettings?: (group?: string) => void;
 }) {
@@ -699,10 +982,10 @@ function ProposalRail({
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: "auto" }}>
-        {onReviewJson && (
+        {onReviewProposal && (
           <WorkbenchButton
             data-testid="agent-proposal-review"
-            onClick={() => onReviewJson(proposal.configText as string)}
+            onClick={() => onReviewProposal(proposal)}
             tone="accent"
             accentColor={UI_COLORS.accent}
             style={{ height: 32, padding: "0 12px" }}
@@ -840,11 +1123,11 @@ const preStyle: CSSProperties = {
  */
 function AiTurnBody({
   turn,
-  onReviewJson,
+  onReviewProposal,
   onCopy,
 }: {
   turn: AiTurn;
-  onReviewJson?: (text: string) => void;
+  onReviewProposal?: (turn: AiTurn) => void;
   onCopy: (text: string) => void;
 }) {
   const { t } = useLocale();
@@ -878,10 +1161,10 @@ function AiTurnBody({
         >
           <span style={{ color: UI_COLORS.textSoft, lineHeight: 1.5, fontSize: 12 }}>{t("agent.proposalReady")}</span>
           <div style={{ display: "flex", gap: 8 }}>
-            {onReviewJson && (
+            {onReviewProposal && (
               <WorkbenchButton
                 data-testid={`agent-turn-review-${turn.id}`}
-                onClick={() => onReviewJson(turn.configText as string)}
+                onClick={() => onReviewProposal(turn)}
                 tone="accent"
                 accentColor={UI_COLORS.accent}
                 style={{ height: 28, padding: "0 10px" }}

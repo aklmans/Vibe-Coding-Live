@@ -1,9 +1,11 @@
 import {
   boolean,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
+  index,
   uniqueIndex,
   uuid,
   varchar,
@@ -76,3 +78,79 @@ export const liveBottomBarSegments = pgTable("live_bottom_bar_segments", {
   title: text("title"),
   text: text("text"),
 });
+
+export const agentConversations = pgTable(
+  "agent_conversations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    dateKey: varchar("date_key", { length: 10 }).notNull(),
+    locale: varchar("locale", { length: 2 }).notNull(),
+    liveSessionId: uuid("live_session_id").references(() => liveSessions.id, {
+      onDelete: "set null",
+    }),
+    title: text("title").notNull(),
+    status: varchar("status", { length: 16 }).notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("agent_conversations_date_locale_idx").on(table.dateKey, table.locale),
+    index("agent_conversations_updated_at_idx").on(table.updatedAt),
+  ],
+);
+
+export const agentMessages = pgTable(
+  "agent_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => agentConversations.id, { onDelete: "cascade" }),
+    role: varchar("role", { length: 16 }).notNull(),
+    kind: varchar("kind", { length: 16 }),
+    status: varchar("status", { length: 16 }),
+    content: text("content").notNull(),
+    taskId: varchar("task_id", { length: 32 }),
+    taskLabel: text("task_label"),
+    snapshot: varchar("snapshot", { length: 64 }),
+    provider: varchar("provider", { length: 64 }),
+    model: text("model"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("agent_messages_conversation_created_idx").on(
+      table.conversationId,
+      table.createdAt,
+    ),
+  ],
+);
+
+export const agentProposals = pgTable(
+  "agent_proposals",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => agentConversations.id, { onDelete: "cascade" }),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => agentMessages.id, { onDelete: "cascade" }),
+    configText: text("config_text").notNull(),
+    summaryJson: jsonb("summary_json"),
+    status: varchar("status", { length: 16 }).notNull().default("draft"),
+    appliedAt: timestamp("applied_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("agent_proposals_conversation_idx").on(table.conversationId),
+    index("agent_proposals_message_idx").on(table.messageId),
+  ],
+);
