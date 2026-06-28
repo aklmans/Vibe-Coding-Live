@@ -1,12 +1,17 @@
+import GetStartedHandoff from "./landing/GetStartedHandoff";
 import SurfacesTabs from "./landing/SurfacesTabs";
 import {
   agentFlow,
   agentSafety,
+  agentSetupPrompt,
+  agentTasks,
   appNav,
   faqItems,
   featureItems,
   GITHUB_PROFILE_URL,
   GITHUB_URL,
+  heroProofChips,
+  humanChecklist,
   MAIN_SITE_URL,
   mobileNav,
   RSS_URL,
@@ -15,13 +20,36 @@ import {
   X_URL,
 } from "./landing/content";
 
-const mobileMenuScript = `
+const landingScript = `
   (function () {
     var menu = document.querySelector('[data-testid="landing-mobile-menu"]');
-    if (!menu) return;
-    menu.addEventListener('click', function (e) {
-      if (e.target instanceof Element && e.target.closest('a')) menu.open = false;
-    });
+    if (menu) {
+      menu.addEventListener('click', function (e) {
+        if (e.target instanceof Element && e.target.closest('a')) menu.open = false;
+      });
+    }
+    var copyBtn = document.querySelector('[data-testid="landing-hero-copy-prompt"]');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        var text = copyBtn.getAttribute('data-prompt') || '';
+        var original = copyBtn.textContent;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(
+            function () {
+              copyBtn.textContent = 'Copied';
+              setTimeout(function () { copyBtn.textContent = original; }, 2500);
+            },
+            function () {
+              copyBtn.textContent = 'Copy failed — select manually';
+              setTimeout(function () { copyBtn.textContent = original; }, 3000);
+            }
+          );
+        } else {
+          copyBtn.textContent = 'Copy failed — select manually';
+          setTimeout(function () { copyBtn.textContent = original; }, 3000);
+        }
+      });
+    }
   })();
 `;
 
@@ -77,10 +105,10 @@ export default function LandingPage() {
       <section id="product" className="akl-hero">
         <p className="akl-hero-wordmark">Vibe Coding Live</p>
         <p className="akl-eyebrow">Editorial broadcast workbench</p>
-        <h1>Broadcast graphics for coding streams</h1>
+        <h1>AI-prepared broadcast graphics for coding streams</h1>
         <p className="akl-hero-lede">
-          Prepare a live session, design every broadcast surface, point OBS browser sources at it,
-          and export the full visual kit. Optional AI drafts the config — you review and apply.
+          Describe the session. Review the config. Let OBS own the real capture while Vibe Coding
+          Live renders the editorial frame and export kit.
         </p>
         <div className="akl-hero-actions">
           <a href="/demo" className="akl-button akl-button-light">
@@ -89,7 +117,20 @@ export default function LandingPage() {
           <a href="/studio" className="akl-button akl-button-dark">
             Open Studio
           </a>
+          <button
+            type="button"
+            className="akl-hero-copy-prompt"
+            data-testid="landing-hero-copy-prompt"
+            data-prompt={agentSetupPrompt}
+          >
+            Copy Agent Setup Prompt
+          </button>
         </div>
+        <ul className="akl-hero-chips" data-testid="landing-hero-chips">
+          {heroProofChips.map((chip) => (
+            <li key={chip}>{chip}</li>
+          ))}
+        </ul>
         <p className="akl-hero-note">
           Demo mode is local-only. Private studio at <a href="/studio">/studio</a>.
           <br />
@@ -192,49 +233,18 @@ export default function LandingPage() {
       <section id="get-started" className="akl-section akl-get-started">
         <div className="akl-get-started-copy">
           <p className="akl-eyebrow">Get started</p>
-          <h2>Try the demo, then take the studio live.</h2>
+          <h2>Start with an agent-ready handoff.</h2>
           <p>
-            Start with the safe public demo, then move to the private studio when you want real AI
-            provider configuration, database persistence and OBS automation.
+            Most setup work is better delegated: clone, inspect, run, configure AI keys, and prepare
+            OBS routes. The demo stays safe and local-only.
           </p>
         </div>
-        <div className="akl-get-started-steps">
-          <ol>
-            <li>
-              <span>01</span>
-              <div>
-                <h3>Open the public demo</h3>
-                <p>Local-only. No provider calls, no database writes, no OBS side effects.</p>
-                <a href="/demo" className="akl-get-started-link">Try Demo →</a>
-              </div>
-            </li>
-            <li>
-              <span>02</span>
-              <div>
-                <h3>Run the private studio</h3>
-                <p>Full workspace with optional AI, persistence and OBS automation.</p>
-                <a href="/studio" className="akl-get-started-link">Open Studio →</a>
-              </div>
-            </li>
-            <li>
-              <span>03</span>
-              <div>
-                <h3>Add OBS browser sources</h3>
-                <p>Point OBS at these routes, place real captures underneath.</p>
-                <code className="akl-get-started-routes">
-                  /obs/overlay?camera=empty<br />
-                  /obs/overlay?camera=avatar<br />
-                  /obs/sidebar<br />
-                  /obs/bottom-bar
-                </code>
-              </div>
-            </li>
-          </ol>
-          <div className="akl-get-started-meta">
-            <code>pnpm dev</code>
-            <a href={GITHUB_URL} className="akl-get-started-link">README on GitHub →</a>
-          </div>
-        </div>
+        <GetStartedHandoff
+          tasks={agentTasks}
+          setupPrompt={agentSetupPrompt}
+          humanItems={humanChecklist}
+          githubUrl={GITHUB_URL}
+        />
       </section>
 
       <section id="faq" className="akl-faq">
@@ -268,7 +278,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      <script dangerouslySetInnerHTML={{ __html: mobileMenuScript }} />
+      <script dangerouslySetInnerHTML={{ __html: landingScript }} />
     </main>
   );
 }
@@ -621,8 +631,8 @@ const landingCss = `
 
   .akl-hero h1 {
     margin-top: 16px;
-    font-size: 80px;
-    line-height: 1;
+    font-size: 68px;
+    line-height: 1.02;
   }
 
   .akl-hero h1::after {
@@ -644,6 +654,71 @@ const landingCss = `
     justify-content: center;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .akl-hero-copy-prompt {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    border: 0.5px solid transparent;
+    border-color: color-mix(in srgb, var(--akl-accent) 45%, transparent);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--akl-accent) 6%, transparent);
+    color: var(--akl-text);
+    padding: 0 18px;
+    font-family: var(--app-font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      color 180ms ease,
+      border-color 180ms ease,
+      background 180ms ease;
+  }
+
+  .akl-hero-copy-prompt:hover,
+  .akl-hero-copy-prompt:focus-visible {
+    color: var(--akl-accent);
+    border-color: var(--akl-accent);
+    background: color-mix(in srgb, var(--akl-accent) 10%, transparent);
+  }
+
+  .akl-hero-chips {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .akl-hero-chips li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border: 0.5px solid var(--akl-border-subtle);
+    border-radius: 2px;
+    color: var(--akl-text-subtle);
+    font-family: var(--app-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .akl-hero-chips li::before {
+    content: "";
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 999px;
+    background: var(--akl-accent);
+    flex: 0 0 auto;
   }
 
   .akl-hero-note {
@@ -1207,7 +1282,7 @@ const landingCss = `
     line-height: 1.6;
   }
 
-  /* ─── Get started ────────────────────────────────────── */
+  /* ─── Get started (agent/human handoff) ──────────────── */
 
   .akl-get-started {
     display: grid;
@@ -1216,50 +1291,223 @@ const landingCss = `
     align-items: start;
   }
 
-  .akl-get-started-steps ol {
+  .akl-handoff {
+    border: 0.5px solid var(--akl-border);
+    border-radius: 2px;
+    background: var(--akl-surface);
+    overflow: hidden;
+  }
+
+  .akl-handoff-segmented {
+    display: flex;
+    border-bottom: 0.5px solid var(--akl-border-subtle);
+  }
+
+  .akl-handoff-seg {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    border: 0;
+    background: transparent;
+    color: var(--akl-text-muted);
+    font-family: var(--app-font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 160ms ease;
+    position: relative;
+  }
+
+  .akl-handoff-seg[data-selected] {
+    color: var(--akl-text);
+  }
+
+  .akl-handoff-seg[data-selected]::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 1.5px;
+    background: var(--akl-accent);
+  }
+
+  .akl-handoff-seg:hover,
+  .akl-handoff-seg:focus-visible {
+    color: var(--akl-accent);
+  }
+
+  .akl-handoff-seg:focus-visible {
+    outline: 0.5px solid var(--akl-accent);
+    outline-offset: -2px;
+  }
+
+  .akl-handoff-panel[hidden] {
+    display: none;
+  }
+
+  .akl-handoff-panel {
+    padding: 24px;
+  }
+
+  /* Agent mode — task chips + prompt block */
+
+  .akl-handoff-tasks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .akl-handoff-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 14px;
+    border: 0.5px solid var(--akl-border);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--akl-text-muted);
+    font-family: var(--app-font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .akl-handoff-chip[data-selected] {
+    color: var(--akl-text);
+    border-color: var(--akl-accent);
+  }
+
+  .akl-handoff-chip:hover,
+  .akl-handoff-chip:focus-visible {
+    color: var(--akl-accent);
+    border-color: var(--akl-accent);
+  }
+
+  .akl-handoff-chip:focus-visible {
+    outline: 0.5px solid var(--akl-accent);
+    outline-offset: 2px;
+  }
+
+  .akl-handoff-prompt {
+    position: relative;
+  }
+
+  .akl-handoff-prompt-text {
+    margin: 0;
+    padding: 16px;
+    border: 0.5px solid var(--akl-border-subtle);
+    border-radius: 2px;
+    background: #151413;
+    color: #d8d0c4;
+    font-family: var(--app-font-mono);
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  .akl-handoff-copy {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 12px;
+    padding: 8px 16px;
+    border: 0.5px solid var(--akl-border);
+    border-radius: 2px;
+    background: var(--akl-paper);
+    color: var(--akl-paper-ink);
+    font-family: var(--app-font-sans);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .akl-handoff-copy:hover,
+  .akl-handoff-copy:focus-visible {
+    background: #fff;
+  }
+
+  .akl-handoff-copy:focus-visible {
+    outline: 0.5px solid var(--akl-accent);
+    outline-offset: 2px;
+  }
+
+  .akl-handoff-copy[data-state="copied"] {
+    background: transparent;
+    color: var(--akl-accent);
+    border-color: var(--akl-accent);
+  }
+
+  .akl-handoff-copy[data-state="failed"] {
+    background: transparent;
+    color: #e07070;
+    border-color: #e07070;
+    font-size: 12px;
+  }
+
+  /* Human mode — checklist */
+
+  .akl-handoff-checklist {
     margin: 0;
     padding: 0;
     list-style: none;
     border-top: 0.5px solid var(--akl-border-subtle);
   }
 
-  .akl-get-started-steps li {
-    display: grid;
-    grid-template-columns: 64px minmax(0, 1fr);
-    gap: 24px;
-    align-items: start;
-    padding: 24px 0;
+  .akl-handoff-checklist li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
     border-bottom: 0.5px solid var(--akl-border-subtle);
   }
 
-  .akl-get-started-steps li > span {
+  .akl-handoff-checklist-label {
+    color: var(--akl-text-muted);
+    font-family: var(--app-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .akl-handoff-checklist-value {
     color: var(--akl-accent);
     font-family: var(--app-font-mono);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    line-height: 1;
-    padding-top: 4px;
-  }
-
-  .akl-get-started-steps h3 {
-    margin: 0;
-    color: var(--akl-text);
-    font-family: var(--app-font-serif);
-    font-size: 20px;
+    font-size: 13px;
     font-weight: 600;
-    line-height: 1.2;
+    text-decoration: none;
+    transition: color 160ms ease;
   }
 
-  .akl-get-started-steps p {
-    margin: 8px 0 12px;
-    color: var(--akl-text-muted);
-    font-size: 15px;
-    line-height: 1.55;
+  a.akl-handoff-checklist-value:hover,
+  a.akl-handoff-checklist-value:focus-visible {
+    color: var(--akl-text);
   }
 
+  /* Shared get-started link (used in human panel footer) */
   .akl-get-started-link {
     display: inline-block;
+    margin-top: 18px;
     color: #aaa49b;
     font-family: var(--app-font-mono);
     font-size: 12px;
@@ -1276,38 +1524,6 @@ const landingCss = `
   .akl-get-started-link:focus-visible {
     color: var(--akl-accent);
     border-bottom-color: var(--akl-accent);
-  }
-
-  .akl-get-started-routes {
-    display: block;
-    margin-top: 10px;
-    padding: 12px 14px;
-    border: 0.5px solid var(--akl-border);
-    border-radius: 2px;
-    background: var(--akl-surface);
-    color: var(--akl-accent);
-    font-family: var(--app-font-mono);
-    font-size: 13px;
-    line-height: 1.7;
-    white-space: normal;
-  }
-
-  .akl-get-started-meta {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-top: 28px;
-    padding: 14px 16px;
-    border: 0.5px solid var(--akl-border);
-    border-radius: 2px;
-    background: var(--akl-surface);
-  }
-
-  .akl-get-started-meta code {
-    color: var(--akl-accent);
-    font-family: var(--app-font-mono);
-    font-size: 13px;
-    white-space: nowrap;
   }
 
   /* ─── FAQ ────────────────────────────────────────────── */
@@ -1463,7 +1679,7 @@ const landingCss = `
     }
 
     .akl-hero h1 {
-      font-size: 52px;
+      font-size: 44px;
     }
 
     .akl-split-section,
@@ -1576,15 +1792,14 @@ const landingCss = `
       gap: 18px;
     }
 
-    .akl-get-started-steps li {
-      grid-template-columns: 48px minmax(0, 1fr);
-      gap: 16px;
+    .akl-handoff-prompt-text {
+      font-size: 12px;
     }
 
-    .akl-get-started-meta {
+    .akl-handoff-checklist li {
       flex-direction: column;
       align-items: flex-start;
-      gap: 12px;
+      gap: 4px;
     }
 
     .akl-footer-row {

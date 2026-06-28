@@ -199,6 +199,76 @@ export const surfaceCards: ReadonlyArray<SurfaceCard> = [
   },
 ];
 
+export const heroProofChips = [
+  "No auto-apply",
+  "Transparent OBS frame",
+  "Overlay / cover / poster / wallpapers",
+];
+
+export const agentSetupPrompt = `Read this repository and help me run Vibe Coding Live locally.
+Use pnpm. Check README.md and AGENTS.md.
+Start the demo route first, then explain how to configure the private studio,
+AI provider env vars, and OBS browser sources.`;
+
+export interface AgentTask {
+  id: string;
+  label: string;
+  prompt: string;
+}
+
+export const agentTasks: ReadonlyArray<AgentTask> = [
+  {
+    id: "run-demo",
+    label: "Run local demo",
+    prompt: `Read this repository and help me run the Vibe Coding Live local demo.
+Use pnpm. Check README.md for install and dev commands.
+The public demo is at /demo — it runs locally with no provider calls, no database writes, no OBS side effects.
+Start the dev server and open /demo to confirm it loads.`,
+  },
+  {
+    id: "configure-ai",
+    label: "Configure AI provider",
+    prompt: `Read this repository and help me configure the Session Config Agent for Vibe Coding Live.
+Check README.md and AGENTS.md for the Session Config Agent section.
+The agent uses an OpenAI-compatible Chat Completions adapter — set these in .env.local (server only, never committed):
+  SESSION_AGENT_PROVIDER, SESSION_AGENT_BASE_URL, SESSION_AGENT_API_KEY, SESSION_AGENT_MODEL, SESSION_AGENT_USER_AGENT
+The API key stays on the server — it never enters the client bundle, localStorage, or logs.
+No key configured? The agent falls back to a local copy handoff. AI output is never auto-applied.`,
+  },
+  {
+    id: "prepare-obs",
+    label: "Prepare OBS sources",
+    prompt: `Read this repository and help me set up OBS browser sources for Vibe Coding Live.
+Check README.md and AGENTS.md for the OBS setup section.
+Add these browser sources in OBS (or Livehime via OBS Virtual Camera):
+  /obs/overlay?camera=empty  — transparent main-screen frame, empty camera slot
+  /obs/overlay?camera=avatar — same frame with avatar camera slot
+  /obs/sidebar               — live sidebar panel
+  /obs/bottom-bar            — broadcast metadata strip
+Place real screen capture and camera underneath the overlay frame. The overlay owns only the UI frame, not the real capture.`,
+  },
+  {
+    id: "understand-project",
+    label: "Understand the project",
+    prompt: `Read this repository and give me a concise architecture summary of Vibe Coding Live.
+Check README.md, AGENTS.md, and DESIGN_LANGUAGE.md.
+Cover: the App Router entry points (/, /demo, /studio, /obs/*), the builder shell, the off-screen export architecture,
+the Session Config Agent boundary (server-side key, review/apply, never auto-applied), and the OBS browser source workflow.
+Keep it under 300 words.`,
+  },
+];
+
+export const humanChecklist: ReadonlyArray<{ label: string; value: string; href?: string }> = [
+  { label: "Install", value: "pnpm install" },
+  { label: "Dev server", value: "pnpm dev" },
+  { label: "Public demo", value: "/demo", href: "/demo" },
+  { label: "Private studio", value: "/studio", href: "/studio" },
+  { label: "Overlay (empty)", value: "/obs/overlay?camera=empty" },
+  { label: "Overlay (avatar)", value: "/obs/overlay?camera=avatar" },
+  { label: "Sidebar", value: "/obs/sidebar" },
+  { label: "Bottom bar", value: "/obs/bottom-bar" },
+];
+
 export const faqItems = [
   {
     question: "Is the public demo connected to my private stream?",

@@ -9,6 +9,7 @@ import Page from "./page";
 
 const PAGE_SRC = readFileSync(resolve("src/app/page.tsx"), "utf8");
 const SURFACES_TABS_SRC = readFileSync(resolve("src/app/landing/SurfacesTabs.tsx"), "utf8");
+const HANDOFF_SRC = readFileSync(resolve("src/app/landing/GetStartedHandoff.tsx"), "utf8");
 const LAYOUT_SRC = readFileSync(resolve("src/app/layout.tsx"), "utf8");
 const CLIENT_PAGE_SRC = readFileSync(resolve("src/app/client-page.tsx"), "utf8");
 const DEMO_PAGE_PATH = resolve("src/app/demo/page.tsx");
@@ -49,10 +50,17 @@ test("root route is a product landing page with public navigation and real expor
   assert.doesNotMatch(html, />Sessions</);
   assert.doesNotMatch(html, />About</);
 
-  // Hero communicates value, not just the product name.
-  assert.match(html, /Broadcast graphics for coding streams/);
+  // Hero communicates AI-native value.
+  assert.match(html, /AI-prepared broadcast graphics for coding streams/);
   assert.match(html, /Try Demo/);
   assert.match(html, /Open Studio/);
+  assert.match(html, /Copy Agent Setup Prompt/);
+  assert.match(html, /data-testid="landing-hero-copy-prompt"/);
+  // Hero proof chips.
+  assert.match(html, /data-testid="landing-hero-chips"/);
+  assert.match(html, /No auto-apply/);
+  assert.match(html, /Transparent OBS frame/);
+  assert.match(html, /Overlay \/ cover \/ poster \/ wallpapers/);
 
   // Feature content preserved.
   assert.match(html, /Live Overlay Builder/);
@@ -270,37 +278,76 @@ test("the AI / Agent section tells the three-step product story and safety claim
   assert.doesNotMatch(html, /Meets you where you stream/);
 });
 
-test("Get Started replaces Docs / Guide and exposes OBS routes", () => {
+test("Get Started is an agent-ready handoff with dual-mode panel", () => {
   const html = renderToStaticMarkup(React.createElement(Page));
 
-  // Section renamed to Get started.
-  assert.match(html, /Get started/);
+  // Section heading upgraded.
+  assert.match(html, /Start with an agent-ready handoff\./i);
   assert.match(html, /id="get-started"/);
-  // The old Docs / Guide label must not survive as an eyebrow.
-  assert.doesNotMatch(html, /Docs \/ Guide/);
+  // Old heading must not return.
+  assert.doesNotMatch(html, /Try the demo, then take the studio live\./i);
 
-  // CSS classes renamed from guide to get-started.
-  assert.match(PAGE_SRC, /\.akl-get-started\b/);
-  assert.match(PAGE_SRC, /\.akl-get-started-copy/);
-  assert.match(PAGE_SRC, /\.akl-get-started-steps/);
-  assert.match(PAGE_SRC, /\.akl-get-started-link/);
-  // Old guide class names should not linger.
-  assert.doesNotMatch(PAGE_SRC, /\.akl-guide\b/);
-  assert.doesNotMatch(PAGE_SRC, /\.akl-guide-copy/);
-  assert.doesNotMatch(PAGE_SRC, /\.akl-guide-link/);
+  // Handoff panel exists.
+  assert.match(html, /data-testid="landing-handoff"/);
+  assert.match(html, /data-testid="landing-agent-panel"/);
+  assert.match(html, /data-testid="landing-human-panel"/);
 
-  // Three onboarding steps with demo / studio / OBS routes.
-  assert.match(html, /Try the demo, then take the studio live\./i);
-  assert.match(html, /Open the public demo/);
-  assert.match(html, /Run the private studio/);
-  assert.match(html, /Add OBS browser sources/);
+  // Segmented control with ARIA tablist semantics.
+  assert.match(html, /role="tablist"/);
+  assert.match(html, /I.*m an Agent/);
+  assert.match(html, /I.*m a Human/);
+  assert.match(html, /aria-controls=/);
+  assert.match(html, /aria-labelledby=/);
+
+  // Agent mode is default (panel not hidden).
+  assert.match(html, /aria-selected="true"[^>]*aria-controls="[^"]*agent"/);
+
+  // Four task chips exist.
+  assert.match(html, /Run local demo/);
+  assert.match(html, /Configure AI provider/);
+  assert.match(html, /Prepare OBS sources/);
+  assert.match(html, /Understand the project/);
+
+  // Prompt text includes key references.
+  assert.match(html, /README\.md/);
+  assert.match(html, /AGENTS\.md/);
+  assert.match(html, /pnpm/);
+  assert.match(html, /\/demo/);
+  assert.match(html, /OBS/);
+
+  // Human mode preserves checklist commands and OBS routes.
+  assert.match(html, /pnpm install/);
+  assert.match(html, /pnpm dev/);
   assert.match(html, /\/obs\/overlay\?camera=empty/);
   assert.match(html, /\/obs\/overlay\?camera=avatar/);
   assert.match(html, /\/obs\/sidebar/);
   assert.match(html, /\/obs\/bottom-bar/);
+  assert.match(html, /README on GitHub/);
 
-  // pnpm dev present but not the hero of the section.
-  assert.match(html, /pnpm dev/);
+  // Old Docs / Guide label must not return.
+  assert.doesNotMatch(html, /Docs \/ Guide/);
+});
+
+test("Get Started handoff copy logic is honest about success and failure", () => {
+  // The client component source has honest copy states.
+  assert.match(HANDOFF_SRC, /"copied"/);
+  assert.match(HANDOFF_SRC, /"failed"/);
+  assert.match(HANDOFF_SRC, /Copy failed/);
+  assert.match(HANDOFF_SRC, /navigator\.clipboard/);
+  // Keyboard support on the segmented control.
+  assert.match(HANDOFF_SRC, /ArrowRight/);
+  assert.match(HANDOFF_SRC, /ArrowLeft/);
+  assert.match(HANDOFF_SRC, /agentTabRef/);
+  assert.match(HANDOFF_SRC, /humanTabRef/);
+  assert.match(HANDOFF_SRC, /\.focus\(\)/);
+  // It is a client component.
+  assert.match(HANDOFF_SRC, /^['"]use client['"]/m);
+});
+
+test("Hero copy prompt CTA reads as an available action, not disabled text", () => {
+  assert.match(PAGE_SRC, /\.akl-hero-copy-prompt\s*{[^}]*color: var\(--akl-text\)/s);
+  assert.match(PAGE_SRC, /\.akl-hero-copy-prompt\s*{[^}]*border-color: color-mix\(in srgb, var\(--akl-accent\) 45%, transparent\)/s);
+  assert.doesNotMatch(PAGE_SRC, /\.akl-hero-copy-prompt\s*{[^}]*color: var\(--akl-text-muted\)/s);
 });
 
 test("FAQ covers AI auto-apply safety plus demo / studio / OBS / export", () => {
