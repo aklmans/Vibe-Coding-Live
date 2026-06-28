@@ -7,12 +7,15 @@ import {
   publicAgentStatus,
   readSessionAgentConfig,
   redactKey,
+  restorePrivateSocialValuesInConfigText,
   testAgentConnection,
   type SessionAgentConfig,
 } from "./session-agent";
 import { testAgentConnection as clientTestAgentConnection } from "./session-agent-client";
 
 const KEY = "sk-secret-key-123";
+const PRIVATE_GITHUB_VALUE = "private-github-handle";
+const PRIVATE_WEBSITE_VALUE = "private.example";
 const baseConfig: SessionAgentConfig = {
   provider: "deepseek",
   baseUrl: "https://api.deepseek.com",
@@ -104,6 +107,67 @@ test("buildChatMessages includes the current config projection + task + brief", 
   assert.match(user, /Task: update the sections/);
   assert.match(user, /Brief: rebuild the intro/);
   assert.match(user, /Marker Title/); // the projection is sent
+});
+
+test("buildChatMessages redacts social values before sending config to a provider", () => {
+  const messages = buildChatMessages({
+    brief: "keep social links private",
+    task: "Task: update the sections",
+    configText: JSON.stringify({
+      version: 1,
+      title: "Private Stream",
+      subtitle: "Do not leak handles",
+      author: "Aklman",
+      badges: [],
+      stack: [],
+      socials: [
+        { icon: "github", label: "GitHub", value: PRIVATE_GITHUB_VALUE },
+        { icon: "website", label: "Website", value: PRIVATE_WEBSITE_VALUE },
+      ],
+      sections: [],
+    }),
+    locale: "en",
+  });
+  const payload = JSON.stringify(messages);
+
+  assert.match(payload, /Private Stream/);
+  assert.match(payload, /Aklman/);
+  assert.match(payload, /__PRIVATE_SOCIAL_VALUE_0__/);
+  assert.match(payload, /__PRIVATE_SOCIAL_VALUE_1__/);
+  assert.equal(payload.includes(PRIVATE_GITHUB_VALUE), false);
+  assert.equal(payload.includes(PRIVATE_WEBSITE_VALUE), false);
+});
+
+test("private social placeholders are restored before config apply", () => {
+  const current = JSON.stringify({
+    version: 1,
+    title: "Current",
+    subtitle: "Current",
+    badges: [],
+    stack: [],
+    socials: [
+      { icon: "github", label: "GitHub", value: PRIVATE_GITHUB_VALUE },
+      { icon: "website", label: "Website", value: PRIVATE_WEBSITE_VALUE },
+    ],
+    sections: [],
+  });
+  const proposed = JSON.stringify({
+    version: 1,
+    title: "Updated",
+    subtitle: "Updated",
+    badges: [],
+    stack: [],
+    socials: [
+      { icon: "github", label: "GitHub", value: "__PRIVATE_SOCIAL_VALUE_0__" },
+      { icon: "website", label: "Website", value: "__PRIVATE_SOCIAL_VALUE_1__" },
+    ],
+    sections: [],
+  });
+
+  const restored = restorePrivateSocialValuesInConfigText(proposed, current);
+  const parsed = JSON.parse(restored);
+  assert.equal(parsed.socials[0].value, PRIVATE_GITHUB_VALUE);
+  assert.equal(parsed.socials[1].value, PRIVATE_WEBSITE_VALUE);
 });
 
 test("buildChatMessages constrains badges to supported LobeHub-backed icon keys", () => {

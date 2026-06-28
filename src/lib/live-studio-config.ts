@@ -12,6 +12,7 @@ import {
   isBrandIconKey,
   type BrandIconKey,
 } from "./brand-icons";
+import { privateSocialValuePlaceholderIndex } from "./config-privacy";
 import { createStackItem } from "./stack";
 import type { SocialConfig } from "./socials";
 
@@ -307,13 +308,17 @@ function authorToHook(author: string | undefined, fallback: string): string {
   return /^with\s+/i.test(clean) ? clean : `with ${clean}`;
 }
 
-function configSocialToState(social: LiveStudioConfigSocial): SocialConfig {
+function configSocialToState(
+  social: LiveStudioConfigSocial,
+  fallback?: SocialConfig,
+): SocialConfig {
+  const privateIndex = privateSocialValuePlaceholderIndex(social.value);
   return {
     visible: true,
     iconKey: social.icon,
     iconMode: "mono",
     label: social.label,
-    value: social.value,
+    value: privateIndex === null ? social.value : fallback?.value ?? social.value,
     customColor: social.color ?? "",
   };
 }
@@ -365,7 +370,7 @@ export function configToOverlayState(
       sceneUrl: config.cover?.sceneUrl ?? state.cover.sceneUrl,
       badges: config.badges.map((key) => createBadge(key)),
       socials: config.socials.length > 0
-        ? config.socials.map(configSocialToState)
+        ? config.socials.map((social, index) => configSocialToState(social, state.cover.socials[index]))
         : state.cover.socials,
     },
     wallpaper: {

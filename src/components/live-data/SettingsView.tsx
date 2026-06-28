@@ -18,6 +18,10 @@ import StudioAppearanceControls, { SettingsSelector } from "./StudioAppearanceCo
 import AIProviderSettings from "./AIProviderSettings";
 import SourceOfTruthBar, { type SessionPersistence } from "./SourceOfTruthBar";
 import { IDLE_OBS_SYNC, type ObsSyncState } from "./obs-sync";
+import {
+  profileFromState,
+  type StudioProfile,
+} from "../../lib/studio-profile";
 
 interface SettingsViewProps {
   state: OverlayState;
@@ -34,6 +38,9 @@ interface SettingsViewProps {
   onReload: () => void;
   onStartSession: () => void;
   onEndSession: () => void;
+  studioProfile?: StudioProfile | null;
+  onSaveStudioProfile?: (profile: StudioProfile) => void;
+  onClearStudioProfile?: () => void;
 }
 
 interface TabDef {
@@ -59,6 +66,10 @@ interface FieldEntry {
 }
 
 const FIELD_INDEX: FieldEntry[] = [
+  { id: "studioProfile", group: "profile", labelKey: "settingsGroup.profile", descKey: "settingsGroup.profileHint", terms: ["studio profile", "profile defaults", "主播资料", "默认身份"] },
+  { id: "profileAuthor", group: "profile", labelKey: "settingsRow.profileAuthorTitle", descKey: "settingsRow.profileAuthorDesc", terms: ["host", "author", "byline", "主播", "署名"] },
+  { id: "profileAvatar", group: "profile", labelKey: "settingsRow.profileAvatarTitle", descKey: "settingsRow.profileAvatarDesc", terms: ["avatar", "profile image", "头像"] },
+  { id: "profileSocials", group: "profile", labelKey: "settingsRow.profileSocialsTitle", descKey: "settingsRow.profileSocialsDesc", terms: ["socials", "social links", "社交", "账号"] },
   { id: "language", group: "session", labelKey: "settingsRow.languageTitle", descKey: "settingsRow.languageDesc", terms: ["language", "语言", "locale", "中英"] },
   { id: "title", group: "session", labelKey: "label.title", descKey: "settingsRow.titleDesc", terms: ["title", "标题", "headline"] },
   { id: "subtitle", group: "session", labelKey: "label.subtitle", descKey: "settingsRow.subtitleDesc", terms: ["subtitle", "topic", "副标题", "话题"] },
@@ -109,6 +120,9 @@ export default function SettingsView({
   onReload,
   onStartSession,
   onEndSession,
+  studioProfile = null,
+  onSaveStudioProfile = () => {},
+  onClearStudioProfile = () => {},
 }: SettingsViewProps) {
   const { t, locale, setLocale } = useLocale();
   const [activeTab, setActiveTab] = useState("session");
@@ -128,6 +142,11 @@ export default function SettingsView({
   const activeSection = state.sidebar.sections[activeSectionIndex];
   const writeCover = (patch: Partial<OverlayState["cover"]>) =>
     onChange(patchSection(state, "cover", patch));
+  const currentProfile = profileFromState(state);
+  const writeProfileAuthor = (author: string) => {
+    const normalized = author.replace(/^with\s+/i, "").trim();
+    writeCover({ hookText: normalized ? `with ${normalized}` : "" });
+  };
 
   // Field search — a settings-fields search, honest about its scope. A hit
   // switches groups and scrolls to the anchored row (or the group panel).
@@ -217,6 +236,68 @@ export default function SettingsView({
   const bottomBarSummary = `${state.bottomBar.segments.length} ${t("settingsSummary.segments")} · ${state.bottomBar.segments.map((s) => s.kind).join(" / ")}`;
 
   const tabs: TabDef[] = [
+    {
+      id: "profile",
+      titleKey: "settingsGroup.profile",
+      hintKey: "settingsGroup.profileHint",
+      render: () => (
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <RuleNote>
+            {studioProfile ? t("studioProfile.saved") : t("studioProfile.demo")}
+          </RuleNote>
+          <SettingRow rowId="profileAuthor" title={t("settingsRow.profileAuthorTitle")} description={t("settingsRow.profileAuthorDesc")}>
+            <TextInput
+              testId="field-studio-profile-author"
+              value={currentProfile.author}
+              onChange={writeProfileAuthor}
+              placeholder={t("settingsRow.profileAuthorPlaceholder")}
+            />
+          </SettingRow>
+          <AssetRow rowId="profileAvatar" label={t("settingsRow.profileAvatarTitle")} description={t("settingsRow.profileAvatarDesc")}>
+            <AvatarUploader
+              url={state.cover.avatarUrl}
+              visible={state.cover.avatarVisible}
+              onUrlChange={(v) => writeCover({ avatarUrl: v })}
+              onVisibleChange={(v) => writeCover({ avatarVisible: v })}
+              showToggle
+              clearValue="/avatar.png"
+              testIdPrefix="field-studio-profile-avatar"
+            />
+          </AssetRow>
+          <AssetRow rowId="profileSocials" label={t("settingsRow.profileSocialsTitle")} description={t("settingsRow.profileSocialsDesc")} summary={socialsSummary}>
+            <SocialsEditor state={state} onChange={onChange} testIdPrefix="studio-profile-social" />
+          </AssetRow>
+          <div
+            id="settings-row-studioProfile"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+              paddingTop: 14,
+              borderTop: `1px solid ${UI_COLORS.border}`,
+            }}
+          >
+            <WorkbenchButton
+              testId="studio-profile-save"
+              tone="accent"
+              onClick={() => onSaveStudioProfile(profileFromState(state))}
+              style={{ height: 32, padding: "0 12px" }}
+            >
+              {t("studioProfile.save")}
+            </WorkbenchButton>
+            <WorkbenchButton
+              testId="studio-profile-clear"
+              tone="danger"
+              onClick={onClearStudioProfile}
+              style={{ height: 32, padding: "0 12px" }}
+            >
+              {t("studioProfile.clear")}
+            </WorkbenchButton>
+          </div>
+        </div>
+      ),
+    },
     {
       id: "session",
       titleKey: "settingsGroup.session",

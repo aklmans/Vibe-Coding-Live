@@ -166,10 +166,10 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
     socialVisible: true,
     socials: [
       { visible: true, iconKey: "bilibili", iconMode: "mono", label: "B站", value: "Aklman", customColor: "" },
-      { visible: true, iconKey: "website", iconMode: "mono", label: "个人网站", value: "aklman.com", customColor: "" },
-      { visible: true, iconKey: "qq", iconMode: "mono", label: "QQ群", value: "205359827", customColor: "" },
-      { visible: true, iconKey: "wechat", iconMode: "mono", label: "微信", value: "aklman1", customColor: "" },
-      { visible: true, iconKey: "github", iconMode: "mono", label: "GitHub", value: "aklmans", customColor: "" },
+      { visible: true, iconKey: "website", iconMode: "mono", label: "个人网站", value: "example.com", customColor: "" },
+      { visible: true, iconKey: "qq", iconMode: "mono", label: "QQ群", value: "123456789", customColor: "" },
+      { visible: true, iconKey: "wechat", iconMode: "mono", label: "微信", value: "demo-live", customColor: "" },
+      { visible: true, iconKey: "github", iconMode: "mono", label: "GitHub", value: "demo-org/vibe-live", customColor: "" },
     ],
   },
   wallpaper: {
@@ -263,11 +263,11 @@ export const DEFAULT_STATE_BY_LOCALE: Record<Locale, OverlayState> = {
       closingSuffix: "Have a great life.",
       socialVisible: true,
       socials: [
-        { visible: true, iconKey: "youtube", iconMode: "mono", label: "YouTube", value: "@aklman2018", customColor: "" },
-        { visible: true, iconKey: "website", iconMode: "mono", label: "Website", value: "aklman.com", customColor: "" },
-        { visible: true, iconKey: "discord", iconMode: "mono", label: "Discord", value: "aklman", customColor: "" },
-        { visible: true, iconKey: "x", iconMode: "mono", label: "X", value: "@Aklman2018", customColor: "" },
-        { visible: true, iconKey: "github", iconMode: "mono", label: "GitHub", value: "aklmans", customColor: "" },
+        { visible: true, iconKey: "youtube", iconMode: "mono", label: "YouTube", value: "@demo-live", customColor: "" },
+        { visible: true, iconKey: "website", iconMode: "mono", label: "Website", value: "example.com", customColor: "" },
+        { visible: true, iconKey: "discord", iconMode: "mono", label: "Discord", value: "demo-live", customColor: "" },
+        { visible: true, iconKey: "x", iconMode: "mono", label: "X", value: "@demo_live", customColor: "" },
+        { visible: true, iconKey: "github", iconMode: "mono", label: "GitHub", value: "demo-org/vibe-live", customColor: "" },
       ],
     },
     wallpaper: {

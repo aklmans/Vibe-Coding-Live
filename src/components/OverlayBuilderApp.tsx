@@ -49,6 +49,13 @@ import {
 } from "../lib/live-data-client";
 import { APP_TABS } from "../lib/tabs";
 import {
+  applyStudioProfileToState,
+  clearStudioProfile,
+  loadStudioProfile,
+  saveStudioProfile,
+  type StudioProfile,
+} from "../lib/studio-profile";
+import {
   WALLPAPER_PRESETS,
   getWallpaperPreset,
   getPresetLabels,
@@ -158,7 +165,10 @@ type WorkbenchTab = Exclude<OverlayState["activeTab"], "live">;
 
 export default function App() {
   const { t, locale } = useLocale();
-  const [state, setStateRaw] = useState<OverlayState>(() => loadOverlayState(undefined, DEFAULT_STATE_BY_LOCALE[loadLocale()]));
+  const [studioProfile, setStudioProfile] = useState<StudioProfile | null>(() => loadStudioProfile());
+  const [state, setStateRaw] = useState<OverlayState>(() =>
+    loadOverlayState(undefined, applyStudioProfileToState(DEFAULT_STATE_BY_LOCALE[loadLocale()], loadStudioProfile())),
+  );
   const [liveDateKey] = useState(() => formatDateKey(new Date()));
   const [previewMetrics, setPreviewMetrics] = useState<PreviewMetrics | null>(
     null,
@@ -494,9 +504,20 @@ export default function App() {
     });
   }, [handleExport, t]);
 
+  const handleSaveStudioProfile = useCallback((profile: StudioProfile) => {
+    saveStudioProfile(profile);
+    setStudioProfile(profile);
+    setStateRaw((current) => applyStudioProfileToState(current, profile));
+  }, []);
+
+  const handleClearStudioProfile = useCallback(() => {
+    clearStudioProfile();
+    setStudioProfile(null);
+  }, []);
+
   const handleReset = useCallback(() => {
-    setState({ ...DEFAULT_STATE_BY_LOCALE[locale] });
-  }, [setState, locale]);
+    setState(applyStudioProfileToState(DEFAULT_STATE_BY_LOCALE[locale], studioProfile));
+  }, [setState, locale, studioProfile]);
 
   const handleExportCurrent = useCallback(() => {
     exportForTab(state.activeTab, {
@@ -763,6 +784,9 @@ export default function App() {
             onClose={closeSessionConfig}
             focus={sessionConfigFocus}
             onFocusConsumed={consumeSessionConfigFocus}
+            studioProfile={studioProfile}
+            onSaveStudioProfile={handleSaveStudioProfile}
+            onClearStudioProfile={handleClearStudioProfile}
           />
         )}
       </div>

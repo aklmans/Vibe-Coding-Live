@@ -5,6 +5,7 @@ import {
   publicAgentStatus,
   readSessionAgentConfig,
   redactKey,
+  restorePrivateSocialValuesInConfigText,
   testAgentConnection,
   type SessionAgentRequest,
   type SessionAgentRunResponse,
@@ -55,13 +56,16 @@ export async function POST(request: Request) {
 
   try {
     const { content } = await callOpenAICompatibleChat(config, buildChatMessages(agentRequest));
+    const extractedConfig = extractConfigJson(content);
     const result: SessionAgentRunResponse = {
       mode: "ai",
       configured: true,
       provider: config.provider,
       model: config.model,
       message: content,
-      configText: extractConfigJson(content),
+      configText: extractedConfig
+        ? restorePrivateSocialValuesInConfigText(extractedConfig, agentRequest.configText)
+        : null,
     };
     return Response.json(result);
   } catch (error) {

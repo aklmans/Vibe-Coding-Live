@@ -211,8 +211,8 @@ Current example dimensions:
 
 Current default social stacks:
 
-- Chinese: Bilibili `Aklman`, personal website `aklman.com`, QQ group `205359827`, WeChat `aklman1`, GitHub `aklmans`.
-- English: YouTube `@aklman2018`, personal website `aklman.com`, Discord `aklman`, X `@Aklman2018`, GitHub `aklmans`.
+- Chinese: Bilibili `Aklman`, website `example.com`, QQ group `123456789`, WeChat `demo-live`, GitHub `demo-org/vibe-live`.
+- English: YouTube `@demo-live`, website `example.com`, Discord `demo-live`, X `@demo_live`, GitHub `demo-org/vibe-live`.
 
 ## Project Layout
 

@@ -15,8 +15,8 @@
   "badges": ["claude", "codex", "kimi"],
   "stack": ["Codex", "Next.js", "OBS"],
   "socials": [
-    { "icon": "github", "label": "GitHub", "value": "aklmans" },
-    { "icon": "website", "label": "Website", "value": "aklman.com" }
+    { "icon": "github", "label": "GitHub", "value": "demo-org/vibe-live" },
+    { "icon": "website", "label": "Website", "value": "example.com" }
   ],
   "sections": [
     {

@@ -33,7 +33,7 @@ const STRESS_SOCIALS: SocialConfig[] = [
   { visible: true, iconKey: "youtube", iconMode: "mono", label: "YouTube", value: LONG_URL, customColor: "" },
   { visible: true, iconKey: "discord", iconMode: "mono", label: "Discord", value: "https://discord.gg/UJjzvHck", customColor: "" },
   { visible: true, iconMode: "mono", label: "VERYLONGCUSTOMLABELNAME", value: LONG_TOKEN, customColor: "#e0815c" },
-  { visible: true, iconKey: "github", iconMode: "mono", label: "GitHub", value: "https://github.com/aklmans/vibe-coding-live-overlay-builder", customColor: "" },
+  { visible: true, iconKey: "github", iconMode: "mono", label: "GitHub", value: "https://github.com/demo-org/vibe-coding-live-overlay-builder", customColor: "" },
 ];
 
 const STRESS_BADGES: BadgeConfig[] = [
@@ -368,9 +368,9 @@ test("Overlay supporting frames keep clear secondary rules", () => {
 test("social rows render as quiet metadata, not filled platform-color tags", () => {
   const socials: SocialConfig[] = [
     { visible: true, iconKey: "bilibili", iconMode: "mono", label: "B站", value: "Aklman", customColor: "" },
-    { visible: true, iconKey: "youtube", iconMode: "mono", label: "YouTube", value: "@aklman", customColor: "" },
-    { visible: true, iconKey: "discord", iconMode: "mono", label: "Discord", value: "aklman", customColor: "" },
-    { visible: true, iconKey: "wechat", iconMode: "mono", label: "微信", value: "aklman1", customColor: "" },
+    { visible: true, iconKey: "youtube", iconMode: "mono", label: "YouTube", value: "@demo-live", customColor: "" },
+    { visible: true, iconKey: "discord", iconMode: "mono", label: "Discord", value: "demo-live", customColor: "" },
+    { visible: true, iconKey: "wechat", iconMode: "mono", label: "微信", value: "demo-live", customColor: "" },
   ];
   const list = renderToStaticMarkup(
     React.createElement(SocialList, { state: coverState({ socials }), size: "large" }),

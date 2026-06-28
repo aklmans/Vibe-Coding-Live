@@ -22,8 +22,8 @@ test("parseLiveStudioConfigJson accepts a useful v1 config", () => {
     badges: ["claude", "codex"],
     stack: ["Codex", "Cursor", "OBS"],
     socials: [
-      { icon: "github", label: "GitHub", value: "aklmans" },
-      { icon: "website", label: "Website", value: "aklman.com" },
+      { icon: "github", label: "GitHub", value: "demo-org/vibe-live" },
+      { icon: "website", label: "Website", value: "example.com" },
     ],
     sections: [
       { title: "Today", bullets: ["Prepare", "Build", "Verify"] },
@@ -165,7 +165,7 @@ test("configToOverlayState applies all broadcast surfaces", () => {
     },
     badges: ["claude", "codex", "kimi"],
     stack: ["Codex", "Next.js", "OBS"],
-    socials: [{ icon: "github", label: "GitHub", value: "aklmans" }],
+    socials: [{ icon: "github", label: "GitHub", value: "demo-org/vibe-live" }],
     sections: [
       { title: "Goal", bullets: ["A", "B", "C"] },
       { title: "Problem", bullets: ["D", "E", "F"] },
@@ -190,7 +190,7 @@ test("configToOverlayState applies all broadcast surfaces", () => {
   ]);
   assert.deepEqual(next.stack.items.map((item) => item.label), ["Codex", "Next.js", "OBS"]);
   assert.equal(next.cover.badges.length, 3);
-  assert.equal(next.cover.socials[0]?.value, "aklmans");
+  assert.equal(next.cover.socials[0]?.value, "demo-org/vibe-live");
   assert.equal(next.bottomBar.visible, true);
   assert.deepEqual(next.bottomBar.segments, [
     { kind: "live" },

@@ -1,5 +1,6 @@
 import type { OverlayState } from "../types";
 import { CONFIG_BADGE_PROMPT_RULE } from "./badges";
+import { redactPrivateSocialValuesInConfigText } from "./config-privacy";
 import { projectConfigText } from "./session-config-drift";
 
 /*
@@ -19,7 +20,7 @@ export function buildAgentPrompt(
   brief: string,
   task = "",
 ): string {
-  const config = projectConfigText(state).trim();
+  const config = redactPrivateSocialValuesInConfigText(projectConfigText(state)).trim();
   const trimmedBrief = brief.trim() || "(none)";
   const taskLine =
     task.trim() || "Task: prepare or update the config from the brief below.";
@@ -30,6 +31,7 @@ export function buildAgentPrompt(
     "  cover { visual, portraitUrl, sceneUrl }, badges: string[], stack: string[],",
     "  socials: [{ icon?, label, value, color? }], sections: [{ title, bullets: string[] }] }",
     CONFIG_BADGE_PROMPT_RULE,
+    "Social values may be redacted as __PRIVATE_SOCIAL_VALUE_n__; keep those placeholders unless the user explicitly provides replacements.",
     "Do NOT include runtime fields: bottomBar, liveSession.startedAt, activeSection, sectionsDone.",
     "",
     taskLine,

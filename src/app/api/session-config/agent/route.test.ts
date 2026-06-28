@@ -3,6 +3,7 @@ import test from "node:test";
 import { GET, POST } from "./route";
 
 const KEY = "sk-route-secret-999";
+const PRIVATE_ROUTE_SOCIAL = "private-route-social";
 
 const AGENT_ENV_KEYS = [
   "SESSION_AGENT_API_KEY",
@@ -55,14 +56,27 @@ test("POST without an API key falls back to local handoff, never calls a provide
   });
 });
 
-test("POST with a configured provider builds the correct request + returns extracted JSON", async () => {
+test("POST with a configured provider redacts social values in provider context and restores placeholders", async () => {
   let captured: { url: string; init: RequestInit } | null = null;
   const fetchImpl = (async (url: string, init: RequestInit) => {
     captured = { url, init };
     return new Response(
       JSON.stringify({
         choices: [
-          { message: { content: 'Updated:\n```json\n{"version":1,"title":"AI Title"}\n```' } },
+          {
+            message: {
+              content: [
+                "Updated:",
+                "```json",
+                JSON.stringify({
+                  version: 1,
+                  title: "AI Title",
+                  socials: [{ icon: "github", label: "GitHub", value: "__PRIVATE_SOCIAL_VALUE_0__" }],
+                }),
+                "```",
+              ].join("\n"),
+            },
+          },
         ],
       }),
       { status: 200 },
@@ -79,13 +93,24 @@ test("POST with a configured provider builds the correct request + returns extra
     fetchImpl,
     async () => {
       const res = await POST(
-        postRequest({ brief: "b", task: "Task: t", configText: '{"version":1,"title":"PROJECTION"}', locale: "en" }),
+        postRequest({
+          brief: "b",
+          task: "Task: t",
+          configText: JSON.stringify({
+            version: 1,
+            title: "PROJECTION",
+            socials: [{ icon: "github", label: "GitHub", value: PRIVATE_ROUTE_SOCIAL }],
+          }),
+          locale: "en",
+        }),
       );
       const data = await res.json();
       assert.equal(data.mode, "ai");
       assert.equal(data.provider, "deepseek");
       assert.equal(data.model, "deepseek-chat");
-      assert.ok(data.configText && JSON.parse(data.configText).title === "AI Title");
+      const returnedConfig = JSON.parse(data.configText);
+      assert.equal(returnedConfig.title, "AI Title");
+      assert.equal(returnedConfig.socials[0].value, PRIVATE_ROUTE_SOCIAL);
 
       // Request construction.
       assert.equal(captured!.url, "https://api.deepseek.com/chat/completions");
@@ -95,6 +120,8 @@ test("POST with a configured provider builds the correct request + returns extra
       const body = JSON.parse(captured!.init.body as string);
       assert.equal(body.model, "deepseek-chat");
       assert.match(JSON.stringify(body.messages), /PROJECTION/); // current config sent
+      assert.match(JSON.stringify(body.messages), /__PRIVATE_SOCIAL_VALUE_0__/);
+      assert.equal(JSON.stringify(body.messages).includes(PRIVATE_ROUTE_SOCIAL), false);
     },
   );
 });

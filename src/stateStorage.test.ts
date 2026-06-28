@@ -313,8 +313,8 @@ test("normalizeOverlayState migrates legacy social kinds into icon-backed social
   const state = normalizeOverlayState({
     cover: {
       socials: [
-        { visible: true, kind: "youtube", label: "YouTube", value: "@aklman", customColor: "" },
-        { visible: true, kind: "blog", label: "Website", value: "aklman.com", customColor: "" },
+        { visible: true, kind: "youtube", label: "YouTube", value: "@demo-live", customColor: "" },
+        { visible: true, kind: "blog", label: "Website", value: "example.com", customColor: "" },
         { visible: true, kind: "custom", label: "Newsletter", value: "letter.example", customColor: "#d86f4b" },
       ],
     },
@@ -322,7 +322,7 @@ test("normalizeOverlayState migrates legacy social kinds into icon-backed social
 
   assert.equal(state.cover.socials[0].iconKey, "youtube");
   assert.equal(state.cover.socials[0].iconMode, "mono");
-  assert.equal(state.cover.socials[0].value, "@aklman");
+  assert.equal(state.cover.socials[0].value, "@demo-live");
   assert.equal(state.cover.socials[1].iconKey, "website");
   assert.equal(state.cover.socials[2].iconKey, undefined);
   assert.equal(state.cover.socials[2].customColor, "#d86f4b");
@@ -332,7 +332,7 @@ test("normalizeOverlayState preserves icon-backed social objects and sanitizes i
   const state = normalizeOverlayState({
     cover: {
       socials: [
-        { visible: true, iconKey: "github", iconMode: "brand", label: "GitHub", value: "aklmans", customColor: "" },
+        { visible: true, iconKey: "github", iconMode: "brand", label: "GitHub", value: "demo-org/vibe-live", customColor: "" },
         { visible: true, iconKey: "not-real", iconMode: "glow", label: "Mystery", value: "mystery", customColor: "" },
       ],
     },

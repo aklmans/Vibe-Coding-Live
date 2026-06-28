@@ -3,7 +3,7 @@ import { getAppAppearanceBootScript } from "../lib/design-tokens";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://aklman.com"),
+  metadataBase: new URL("https://example.com"),
   title: "Vibe Studio",
   description: "Build and export broadcast-ready Vibe Studio livestream graphics.",
   icons: {

@@ -9,6 +9,7 @@ import SessionConfigDialog from "./SessionConfigDialog";
 import SettingsView from "./SettingsView";
 import AgentView from "./AgentView";
 import ConfigJsonDrawer from "./ConfigJsonDrawer";
+import type { StudioProfile } from "../../lib/studio-profile";
 
 type ConfigMode = "agent" | "settings";
 
@@ -39,6 +40,9 @@ interface LiveDataManagerProps {
   focus?: SessionConfigFocus | null;
   /** Clear the focus request once applied so a later plain open is honored. */
   onFocusConsumed?: () => void;
+  studioProfile?: StudioProfile | null;
+  onSaveStudioProfile?: (profile: StudioProfile) => void;
+  onClearStudioProfile?: () => void;
 }
 
 /**
@@ -68,6 +72,9 @@ export default function LiveDataManager({
   onClose,
   focus,
   onFocusConsumed,
+  studioProfile = null,
+  onSaveStudioProfile,
+  onClearStudioProfile,
 }: LiveDataManagerProps) {
   const { t } = useLocale();
   const [mode, setMode] = useState<ConfigMode>("agent");
@@ -233,6 +240,9 @@ export default function LiveDataManager({
               onReload={onReload}
               onStartSession={onStartSession}
               onEndSession={onEndSession}
+              studioProfile={studioProfile}
+              onSaveStudioProfile={onSaveStudioProfile}
+              onClearStudioProfile={onClearStudioProfile}
             />
           </div>
         </div>

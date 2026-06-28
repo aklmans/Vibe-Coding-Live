@@ -119,7 +119,7 @@ test("Settings is a tabbed panel — left vertical menu + panels + field search"
   assert.match(html, /data-testid="settings-view"/);
   assert.match(html, /data-testid="settings-tab-bar"[^>]*role="tablist"/);
   assert.match(html, /aria-orientation="vertical"/); // a left rail, not wide top tabs
-  for (const id of ["session", "content", "display", "appearance", "provider", "data"]) {
+  for (const id of ["profile", "session", "content", "display", "appearance", "provider", "data"]) {
     assert.match(html, new RegExp(`data-testid="settings-tab-${id}"`));
     assert.match(html, new RegExp(`data-testid="settings-panel-${id}"`));
     assert.match(html, new RegExp(`id="settings-tab-${id}"[^>]*aria-controls="settings-panel-${id}"`));
@@ -129,6 +129,8 @@ test("Settings is a tabbed panel — left vertical menu + panels + field search"
   assert.doesNotMatch(html, /data-testid="settings-category-tree"/);
   assert.match(html, /data-testid="settings-search"/);
   assert.doesNotMatch(SETTINGS_SRC, /suppressSpyUntil|matchedFields|fieldHits/);
+  assert.match(html, /data-testid="studio-profile-save"/);
+  assert.match(html, /data-testid="studio-profile-clear"/);
   // Existing editors are reused inside the panels (all mounted, visibility toggled).
   assert.match(html, /data-testid="live-data-sections"/);
   assert.match(html, /data-testid="live-data-stack"/);
@@ -165,6 +167,25 @@ test("Settings edits the v1 portable-core fields directly", () => {
   // JSON is demoted to an advanced tool — basic fields no longer carry a per-field
   // "Edit in JSON" link; the entry points are the header + Data & Sync + Agent.
   assert.doesNotMatch(html, /data-testid="settings-openjson-/);
+});
+
+test("Studio Profile persists reusable identity separately from stream config", () => {
+  const html = renderCenter();
+  assert.match(html, /data-testid="settings-tab-profile"/);
+  assert.match(html, /data-testid="settings-panel-profile"/);
+  assert.match(html, /data-testid="field-studio-profile-author"/);
+  assert.match(html, /data-testid="field-studio-profile-avatar-visible"/);
+  assert.match(html, /data-testid="studio-profile-social-0-label"/);
+  assert.match(html, /data-testid="studio-profile-save"/);
+  assert.match(html, /data-testid="studio-profile-clear"/);
+
+  assert.match(APP_SRC, /loadStudioProfile/);
+  assert.match(APP_SRC, /applyStudioProfileToState\(DEFAULT_STATE_BY_LOCALE\[loadLocale\(\)\]/);
+  assert.match(APP_SRC, /saveStudioProfile/);
+  assert.match(APP_SRC, /clearStudioProfile/);
+  assert.match(APP_SRC, /onSaveStudioProfile=\{handleSaveStudioProfile\}/);
+  assert.match(APP_SRC, /onClearStudioProfile=\{handleClearStudioProfile\}/);
+  assert.match(APP_SRC, /handleReset[\s\S]*applyStudioProfileToState\(DEFAULT_STATE_BY_LOCALE\[locale\], studioProfile\)/);
 });
 
 test("Agent shows a split proposal review rail once the AI returns a config", () => {

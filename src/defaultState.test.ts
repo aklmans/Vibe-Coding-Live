@@ -24,28 +24,28 @@ test("zh defaults show the localized social links in display order", () => {
         iconKey: "website",
         iconMode: "mono",
         label: "个人网站",
-        value: "aklman.com",
+        value: "example.com",
       },
       {
         visible: true,
         iconKey: "qq",
         iconMode: "mono",
         label: "QQ群",
-        value: "205359827",
+        value: "123456789",
       },
       {
         visible: true,
         iconKey: "wechat",
         iconMode: "mono",
         label: "微信",
-        value: "aklman1",
+        value: "demo-live",
       },
       {
         visible: true,
         iconKey: "github",
         iconMode: "mono",
         label: "GitHub",
-        value: "aklmans",
+        value: "demo-org/vibe-live",
       },
     ],
   );
@@ -66,36 +66,52 @@ test("en defaults show the localized social links in display order", () => {
         iconKey: "youtube",
         iconMode: "mono",
         label: "YouTube",
-        value: "@aklman2018",
+        value: "@demo-live",
       },
       {
         visible: true,
         iconKey: "website",
         iconMode: "mono",
         label: "Website",
-        value: "aklman.com",
+        value: "example.com",
       },
       {
         visible: true,
         iconKey: "discord",
         iconMode: "mono",
         label: "Discord",
-        value: "aklman",
+        value: "demo-live",
       },
       {
         visible: true,
         iconKey: "x",
         iconMode: "mono",
         label: "X",
-        value: "@Aklman2018",
+        value: "@demo_live",
       },
       {
         visible: true,
         iconKey: "github",
         iconMode: "mono",
         label: "GitHub",
-        value: "aklmans",
+        value: "demo-org/vibe-live",
       },
     ],
   );
+});
+
+test("defaults keep Aklman as the demo host but avoid personal social handles", () => {
+  const defaults = JSON.stringify(DEFAULT_STATE_BY_LOCALE);
+
+  assert.match(defaults, /Aklman/);
+  for (const privateValue of [
+    ["aklman", ".com"].join(""),
+    ["aklman", "1"].join(""),
+    ["aklman", "s"].join(""),
+    ["@", "aklman", "2018"].join(""),
+    ["@", "Aklman", "2018"].join(""),
+    ["205", "359", "827"].join(""),
+  ]) {
+    assert.doesNotMatch(defaults, new RegExp(privateValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+  }
 });

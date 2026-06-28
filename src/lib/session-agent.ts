@@ -5,7 +5,7 @@
  * invoked from the server route (`/api/session-config/agent`). The route passes
  * env in; the API key stays on the server, never in the client bundle, never in
  * localStorage, never logged, and never echoed back to the client. The client
- * sends only the brief, task, and the current v1 config projection, and reads
+ * sends only the brief, task, and a privacy-redacted v1 config projection, and reads
  * back a sanitized response (assistant message + optional JSON + safe metadata).
  *
  * Providers: an OpenAI-compatible Chat Completions adapter covers DeepSeek,
@@ -14,6 +14,12 @@
  */
 
 import { CONFIG_BADGE_PROMPT_RULE } from "./badges";
+import {
+  redactPrivateSocialValuesInConfigText,
+  restorePrivateSocialValuesInConfigText,
+} from "./config-privacy";
+
+export { restorePrivateSocialValuesInConfigText };
 
 export interface SessionAgentConfig {
   provider: string;
@@ -46,7 +52,7 @@ export interface SessionAgentTestResponse {
 export interface SessionAgentRequest {
   brief: string;
   task: string;
-  /** The current live-session.config.json v1 projection (computed client-side). */
+  /** The current live-session.config.json v1 projection (redacted before provider calls). */
   configText: string;
   locale: string;
 }
@@ -152,6 +158,7 @@ export function buildChatMessages(request: SessionAgentRequest): ChatMessage[] {
     "You are a configuration assistant for a livestream studio app.",
     "You edit live-session.config.json (v1): version, title, subtitle, author?, profile { avatarUrl, avatarVisible }, cover { visual, portraitUrl, sceneUrl }, badges: string[], stack: string[], socials: [{ icon?, label, value, color? }], sections: [{ title, bullets: string[] }].",
     CONFIG_BADGE_PROMPT_RULE,
+    "For privacy, current social values may be redacted as __PRIVATE_SOCIAL_VALUE_n__. Keep those placeholders unchanged unless the user explicitly provides replacement social values.",
     "Runtime/display state (bottomBar, liveSession.startedAt, activeSection, sectionsDone) and studio appearance (theme, colors) are NOT part of this config — never add them.",
     "When changing the config, reply with one fenced ```json block containing the FULL updated config (keep version: 1, no comments), then a short plain explanation.",
     "If the user only asks a question, answer in plain text without a JSON block.",
@@ -163,7 +170,7 @@ export function buildChatMessages(request: SessionAgentRequest): ChatMessage[] {
     `Locale: ${request.locale}`,
     "Current live-session.config.json:",
     "```json",
-    request.configText.trim(),
+    redactPrivateSocialValuesInConfigText(request.configText).trim(),
     "```",
   ]
     .filter(Boolean)
