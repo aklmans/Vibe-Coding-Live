@@ -2,6 +2,8 @@
 
 A Next.js app for building and exporting livestream graphics for live coding sessions. It edits cover screens, posters, full overlays, sidebar panels, bottom status bars, and brand wallpapers, then exports broadcast-ready PNG assets.
 
+Repository: https://github.com/aklmans/vibe-studio
+
 ## Editorial Live Redesign
 
 The `editorial-live` branch is a deliberate redesign pass. Its goal is to turn the builder and exported graphics into a quieter editorial live-studio system: warm surfaces, premium typography, mono metadata, thin hairlines, and restrained accent marks.
@@ -87,6 +89,17 @@ pnpm dev
 ```
 
 Open `http://localhost:3000`. If that port is occupied, Next.js will choose the next available port and print it in the terminal.
+
+### AI Agent setup guide
+
+The public site serves a compact AI-Agent handoff at `/skill.md`. After deployment,
+an agent can start from:
+
+```text
+Read https://<deployment-domain>/skill.md first, then follow it to run and configure Vibe Studio.
+```
+
+Locally, the same guide is checked in at [`public/skill.md`](public/skill.md).
 
 ## Common Commands
 
@@ -182,7 +195,7 @@ SESSION_AGENT_PROVIDER=deepseek
 SESSION_AGENT_BASE_URL=https://api.deepseek.com   # OpenAI-compatible base URL
 SESSION_AGENT_API_KEY=sk-...                       # server only — never commit
 SESSION_AGENT_MODEL=deepseek-chat                  # use the provider's current model
-SESSION_AGENT_USER_AGENT=Vibe-Coding-Live/SessionConfigAgent
+SESSION_AGENT_USER_AGENT=Vibe-Studio/SessionConfigAgent
 ```
 
 - The adapter is **OpenAI-compatible Chat Completions**, so DeepSeek, OpenAI, Kimi and z.ai all work by setting `BASE_URL` + `MODEL`. Example provider: [DeepSeek](https://api-docs.deepseek.com/) (`https://api.deepseek.com`, endpoint `/chat/completions`).

@@ -1,5 +1,5 @@
 export const MAIN_SITE_URL = "https://aklman.com";
-export const GITHUB_URL = "https://github.com/aklmans/Vibe-Coding-Live";
+export const GITHUB_URL = "https://github.com/aklmans/vibe-studio";
 export const GITHUB_PROFILE_URL = "https://github.com/aklmans";
 export const X_URL = "https://x.com/aklman2018";
 export const RSS_URL = "https://aklman.com/rss.xml";
@@ -205,10 +205,19 @@ export const heroProofChips = [
   "Overlay / cover / poster / wallpapers",
 ];
 
-export const agentSetupPrompt = `Read this repository and help me run Vibe Coding Live locally.
-Use pnpm. Check README.md and AGENTS.md.
-Start the demo route first, then explain how to configure the private studio,
-AI provider env vars, and OBS browser sources.`;
+export const agentSetupPrompt = `Read /skill.md first.
+Then help me set up Vibe Studio (Vibe Coding Live) from the repository:
+https://github.com/aklmans/vibe-studio
+
+Open or clone the repo, then read AGENTS.md and README.md.
+Use pnpm install and pnpm dev.
+Start with the safe public demo at /demo, then explain when to use the private studio at /studio.
+
+If I ask for AI setup, configure provider values only through server env. Never expose API keys,
+never put keys in browser code or localStorage, and never log them.
+
+If AI generates a live-session config, do not auto-apply it. Use the JSON review/apply path so I can inspect and apply manually.
+Keep OBS, database, runtime state and localStorage unchanged unless I explicitly ask.`;
 
 export interface AgentTask {
   id: string;
@@ -220,26 +229,29 @@ export const agentTasks: ReadonlyArray<AgentTask> = [
   {
     id: "run-demo",
     label: "Run local demo",
-    prompt: `Read this repository and help me run the Vibe Coding Live local demo.
-Use pnpm. Check README.md for install and dev commands.
+    prompt: `Read /skill.md first.
+Then help me run the Vibe Studio local demo from https://github.com/aklmans/vibe-studio.
+Use pnpm. Check AGENTS.md and README.md for install and dev commands.
 The public demo is at /demo — it runs locally with no provider calls, no database writes, no OBS side effects.
 Start the dev server and open /demo to confirm it loads.`,
   },
   {
     id: "configure-ai",
     label: "Configure AI provider",
-    prompt: `Read this repository and help me configure the Session Config Agent for Vibe Coding Live.
-Check README.md and AGENTS.md for the Session Config Agent section.
+    prompt: `Read /skill.md first.
+Then help me configure the Session Config Agent for Vibe Studio.
+Check AGENTS.md and README.md for the Session Config Agent section.
 The agent uses an OpenAI-compatible Chat Completions adapter — set these in .env.local (server only, never committed):
   SESSION_AGENT_PROVIDER, SESSION_AGENT_BASE_URL, SESSION_AGENT_API_KEY, SESSION_AGENT_MODEL, SESSION_AGENT_USER_AGENT
-The API key stays on the server — it never enters the client bundle, localStorage, or logs.
-No key configured? The agent falls back to a local copy handoff. AI output is never auto-applied.`,
+The API key stays on the server — never expose API keys, never put them in the client bundle, localStorage, or logs.
+No key configured? The agent falls back to a local copy handoff. AI output is never auto-applied; use JSON review/apply.`,
   },
   {
     id: "prepare-obs",
     label: "Prepare OBS sources",
-    prompt: `Read this repository and help me set up OBS browser sources for Vibe Coding Live.
-Check README.md and AGENTS.md for the OBS setup section.
+    prompt: `Read /skill.md first.
+Then help me set up OBS browser sources for Vibe Studio.
+Check AGENTS.md and README.md for the OBS setup section.
 Add these browser sources in OBS (or Livehime via OBS Virtual Camera):
   /obs/overlay?camera=empty  — transparent main-screen frame, empty camera slot
   /obs/overlay?camera=avatar — same frame with avatar camera slot
@@ -250,8 +262,9 @@ Place real screen capture and camera underneath the overlay frame. The overlay o
   {
     id: "understand-project",
     label: "Understand the project",
-    prompt: `Read this repository and give me a concise architecture summary of Vibe Coding Live.
-Check README.md, AGENTS.md, and DESIGN_LANGUAGE.md.
+    prompt: `Read /skill.md first.
+Then read this repository and give me a concise architecture summary of Vibe Studio / Vibe Coding Live.
+Check AGENTS.md, README.md, and DESIGN_LANGUAGE.md.
 Cover: the App Router entry points (/, /demo, /studio, /obs/*), the builder shell, the off-screen export architecture,
 the Session Config Agent boundary (server-side key, review/apply, never auto-applied), and the OBS browser source workflow.
 Keep it under 300 words.`,
@@ -271,6 +284,11 @@ export const humanChecklist: ReadonlyArray<{ label: string; value: string; href?
 
 export const faqItems = [
   {
+    question: "What is Vibe Studio?",
+    answer:
+      "Vibe Studio is an AI-assisted broadcast graphics workbench for coding livestreams. It prepares editorial overlays, covers, posters and wallpapers while OBS owns the real screen capture.",
+  },
+  {
     question: "Is the public demo connected to my private stream?",
     answer: "No. Demo mode uses local browser storage and avoids real provider calls, database writes and OBS live-state publishing.",
   },
@@ -280,8 +298,18 @@ export const faqItems = [
       "No. Returned configs open in the JSON review drawer. You apply them manually. The agent never writes directly to OBS, localStorage, the database, or runtime state.",
   },
   {
+    question: "Where does my API key go?",
+    answer:
+      "Only server-side env. The browser sees a configured/not-configured status, never the key itself, and keys are not written to localStorage.",
+  },
+  {
     question: "Can I still use this as a private studio?",
     answer: "Yes. Open /studio for the full workspace that can connect to server-side AI, database persistence and OBS automation.",
+  },
+  {
+    question: "How do I use it with OBS?",
+    answer:
+      "Add the OBS routes as browser sources: overlay, sidebar and bottom bar. Place your real screen capture and camera underneath the transparent overlay frame.",
   },
   {
     question: "Where is the real screen capture?",
@@ -290,5 +318,14 @@ export const faqItems = [
   {
     question: "Can I export the whole broadcast kit?",
     answer: "Yes. The app exports overlay, cover, poster and desktop/mobile wallpaper assets from the same state. Sidebar and bottom-bar sources remain available for OBS workflows, but the public kit focuses on the higher-value shareable assets.",
+  },
+  {
+    question: "Where is the repo?",
+    answer: "The public repository is https://github.com/aklmans/vibe-studio.",
+  },
+  {
+    question: "Can an AI Agent set it up for me?",
+    answer:
+      "Yes. Send the agent to /skill.md first. It is a compact setup guide for installing, running, configuring AI safely and wiring OBS routes.",
   },
 ];

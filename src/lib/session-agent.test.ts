@@ -16,12 +16,13 @@ import { testAgentConnection as clientTestAgentConnection } from "./session-agen
 const KEY = "sk-secret-key-123";
 const PRIVATE_GITHUB_VALUE = "private-github-handle";
 const PRIVATE_WEBSITE_VALUE = "private.example";
+const DEFAULT_USER_AGENT = "Vibe-Studio/SessionConfigAgent";
 const baseConfig: SessionAgentConfig = {
   provider: "deepseek",
   baseUrl: "https://api.deepseek.com",
   apiKey: KEY,
   model: "deepseek-chat",
-  userAgent: "Vibe-Coding-Live/SessionConfigAgent",
+  userAgent: DEFAULT_USER_AGENT,
 };
 
 test("readSessionAgentConfig returns null without a key, else config with defaults", () => {
@@ -34,7 +35,7 @@ test("readSessionAgentConfig returns null without a key, else config with defaul
     baseUrl: "https://api.deepseek.com",
     apiKey: KEY,
     model: "deepseek-chat",
-    userAgent: "Vibe-Coding-Live/SessionConfigAgent",
+    userAgent: DEFAULT_USER_AGENT,
   });
 
   const custom = readSessionAgentConfig({
@@ -58,7 +59,7 @@ test("publicAgentStatus never exposes the API key", () => {
     provider: "deepseek",
     model: "deepseek-chat",
     baseUrl: "https://api.deepseek.com",
-    userAgent: "Vibe-Coding-Live/SessionConfigAgent",
+    userAgent: DEFAULT_USER_AGENT,
   });
   assert.equal(JSON.stringify(status).includes(KEY), false);
 });
@@ -206,7 +207,7 @@ test("callOpenAICompatibleChat builds an OpenAI-compatible request and parses co
   assert.equal(captured!.url, "https://api.deepseek.com/chat/completions");
   const headers = captured!.init.headers as Record<string, string>;
   assert.equal(headers.Authorization, `Bearer ${KEY}`);
-  assert.equal(headers["User-Agent"], "Vibe-Coding-Live/SessionConfigAgent");
+  assert.equal(headers["User-Agent"], DEFAULT_USER_AGENT);
   const body = JSON.parse(captured!.init.body as string);
   assert.equal(body.model, "deepseek-chat");
   assert.ok(Array.isArray(body.messages));

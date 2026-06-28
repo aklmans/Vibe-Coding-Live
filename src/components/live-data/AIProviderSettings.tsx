@@ -10,7 +10,7 @@ const ENV_TEMPLATE = [
   "SESSION_AGENT_PROVIDER=deepseek",
   "SESSION_AGENT_BASE_URL=https://provider.example/v1",
   "SESSION_AGENT_MODEL=deepseek-chat",
-  "SESSION_AGENT_USER_AGENT=Vibe-Coding-Live/1.0",
+  "SESSION_AGENT_USER_AGENT=Vibe-Studio/SessionConfigAgent",
   "SESSION_AGENT_API_KEY=...",
 ].join("\n");
 

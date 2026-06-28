@@ -14,6 +14,7 @@ const LAYOUT_SRC = readFileSync(resolve("src/app/layout.tsx"), "utf8");
 const CLIENT_PAGE_SRC = readFileSync(resolve("src/app/client-page.tsx"), "utf8");
 const DEMO_PAGE_PATH = resolve("src/app/demo/page.tsx");
 const STUDIO_PAGE_PATH = resolve("src/app/studio/page.tsx");
+const SKILL_MD_PATH = resolve("public/skill.md");
 const PRODUCT_ASSETS = [
   "public/product/vibe-coding-overlay.png",
   "public/product/agent-proposal-dark.png",
@@ -39,10 +40,11 @@ test("root route is a product landing page with public navigation and real expor
   assert.match(html, /href="#surfaces"/);
   assert.match(html, /href="#workflow"/);
   assert.match(html, /href="\/studio"/);
-  assert.match(html, /href="https:\/\/github\.com\/aklmans\/Vibe-Coding-Live"/);
+  assert.match(html, /href="https:\/\/github\.com\/aklmans\/vibe-studio"/);
   assert.match(html, /data-testid="landing-demo-link"/);
   assert.match(html, /href="\/demo"/);
   assert.match(html, /Main site/);
+  assert.doesNotMatch(html, /https:\/\/github\.com\/aklmans\/Vibe-Coding-Live/);
 
   // Main-site entries must not carry main-site blog nav labels.
   assert.doesNotMatch(html, />Posts</);
@@ -309,6 +311,7 @@ test("Get Started is an agent-ready handoff with dual-mode panel", () => {
   assert.match(html, /Understand the project/);
 
   // Prompt text includes key references.
+  assert.match(html, /Read \/skill\.md first/);
   assert.match(html, /README\.md/);
   assert.match(html, /AGENTS\.md/);
   assert.match(html, /pnpm/);
@@ -328,6 +331,45 @@ test("Get Started is an agent-ready handoff with dual-mode panel", () => {
   assert.doesNotMatch(html, /Docs \/ Guide/);
 });
 
+test("public skill.md is a concise AI Agent setup contract", () => {
+  assert.equal(existsSync(SKILL_MD_PATH), true, "public/skill.md should be deployed as /skill.md");
+  const skill = readFileSync(SKILL_MD_PATH, "utf8");
+  const readme = readFileSync(resolve("README.md"), "utf8");
+  const envExample = readFileSync(resolve(".env.example"), "utf8");
+
+  assert.match(skill, /# Vibe Studio Agent Skill/);
+  assert.match(skill, /Vibe Studio \/ Vibe Coding Live/);
+  assert.match(skill, /https:\/\/github\.com\/aklmans\/vibe-studio/);
+  assert.match(skill, /pnpm install/);
+  assert.match(skill, /pnpm dev/);
+  assert.match(skill, /\/demo/);
+  assert.match(skill, /\/studio/);
+  assert.match(skill, /AGENTS\.md/);
+  assert.match(skill, /README\.md/);
+  assert.match(skill, /src\/components\/OverlayBuilderApp\.tsx/);
+  assert.match(skill, /src\/components\/live-data\//);
+  assert.match(skill, /src\/lib\/live-studio-config\.ts/);
+  assert.match(skill, /src\/lib\/session-agent\.ts/);
+  assert.match(skill, /API key stays on the server/i);
+  assert.match(skill, /localStorage/);
+  assert.match(skill, /JSON review\/apply/i);
+  assert.match(skill, /\/obs\/overlay\?camera=empty/);
+  assert.match(skill, /\/obs\/overlay\?camera=avatar/);
+  assert.match(skill, /\/obs\/sidebar/);
+  assert.match(skill, /\/obs\/bottom-bar/);
+  assert.match(skill, /live-session\.config\.json/);
+  assert.match(skill, /portable core/);
+  assert.match(skill, /runtime \/ OBS \/ localStorage \/ studio appearance/i);
+  assert.match(skill, /pnpm typecheck/);
+  assert.match(skill, /pnpm test/);
+  assert.match(skill, /pnpm build/);
+  assert.match(skill, /SESSION_AGENT_USER_AGENT=Vibe-Studio\/SessionConfigAgent/);
+  assert.match(readme, /SESSION_AGENT_USER_AGENT=Vibe-Studio\/SessionConfigAgent/);
+  assert.match(envExample, /SESSION_AGENT_USER_AGENT=Vibe-Studio\/SessionConfigAgent/);
+  assert.doesNotMatch(`${skill}\n${readme}\n${envExample}`, /Vibe-Coding-Live\/SessionConfigAgent/);
+  assert.ok(skill.split(/\r?\n/).length <= 180, "skill.md should stay concise for AI agents");
+});
+
 test("Get Started handoff copy logic is honest about success and failure", () => {
   // The client component source has honest copy states.
   assert.match(HANDOFF_SRC, /"copied"/);
@@ -344,6 +386,17 @@ test("Get Started handoff copy logic is honest about success and failure", () =>
   assert.match(HANDOFF_SRC, /^['"]use client['"]/m);
 });
 
+test("Agent handoff prompts route agents through /skill.md and keep secrets server-side", () => {
+  assert.match(PAGE_SRC, /data-prompt=\{agentSetupPrompt\}/);
+  assert.match(HANDOFF_SRC, /currentPrompt/);
+  assert.match(PAGE_SRC, /Copy Agent Setup Prompt/);
+  assert.match(readFileSync(resolve("src/app/landing/content.ts"), "utf8"), /Read \/skill\.md first\./);
+  assert.match(readFileSync(resolve("src/app/landing/content.ts"), "utf8"), /SESSION_AGENT_API_KEY/);
+  assert.match(readFileSync(resolve("src/app/landing/content.ts"), "utf8"), /server env/);
+  assert.match(readFileSync(resolve("src/app/landing/content.ts"), "utf8"), /never expose API keys/i);
+  assert.match(readFileSync(resolve("src/app/landing/content.ts"), "utf8"), /JSON review\/apply/i);
+});
+
 test("Hero copy prompt CTA reads as an available action, not disabled text", () => {
   assert.match(PAGE_SRC, /\.akl-hero-copy-prompt\s*{[^}]*color: var\(--akl-text\)/s);
   assert.match(PAGE_SRC, /\.akl-hero-copy-prompt\s*{[^}]*border-color: color-mix\(in srgb, var\(--akl-accent\) 45%, transparent\)/s);
@@ -353,10 +406,18 @@ test("Hero copy prompt CTA reads as an available action, not disabled text", () 
 test("FAQ covers AI auto-apply safety plus demo / studio / OBS / export", () => {
   const html = renderToStaticMarkup(React.createElement(Page));
 
+  assert.match(html, /What is Vibe Studio\?/i);
   // New AI safety question.
   assert.match(html, /Does the AI agent ever auto-apply changes\?/i);
   assert.match(html, /JSON review drawer/);
   assert.match(html, /never writes directly to OBS/i);
+  assert.match(html, /Where does my API key go\?/i);
+  assert.match(html, /server-side/i);
+  assert.match(html, /How do I use it with OBS\?/i);
+  assert.match(html, /Where is the repo\?/i);
+  assert.match(html, /https:\/\/github\.com\/aklmans\/vibe-studio/);
+  assert.match(html, /Can an AI Agent set it up for me\?/i);
+  assert.match(html, /\/skill\.md/);
 
   // Original four questions preserved.
   assert.match(html, /Is the public demo connected to my private stream\?/i);
@@ -370,23 +431,29 @@ test("metadata reflects the product value and AI story for SEO and sharing", () 
   // module, because layout.tsx imports globals.css which tsx cannot load in
   // the Node test runner. The source-string assertions are stable contracts.
 
+  // Public metadata should default to the product domain, not localhost.
+  assert.match(LAYOUT_SRC, /const DEFAULT_SITE_URL = "https:\/\/vibe-studio\.aklman\.com"/);
+  assert.match(LAYOUT_SRC, /process\.env\.NEXT_PUBLIC_SITE_URL \?\? DEFAULT_SITE_URL/);
+  assert.doesNotMatch(LAYOUT_SRC, /NEXT_PUBLIC_SITE_URL \?\? "http:\/\/localhost:3000"/);
+
   // Title carries the value proposition, not just the product name.
-  assert.match(LAYOUT_SRC, /title: "Vibe Coding Live — Editorial broadcast graphics for coding streams"/);
+  assert.match(LAYOUT_SRC, /title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams"/);
   // Description mentions coding streams, OBS, and AI.
-  assert.match(LAYOUT_SRC, /coding livestreams/);
+  assert.match(LAYOUT_SRC, /AI-prepared broadcast graphics/);
+  assert.match(LAYOUT_SRC, /coding livestream studio/);
   assert.match(LAYOUT_SRC, /OBS browser sources/);
-  assert.match(LAYOUT_SRC, /Optional AI drafts the session config/);
+  assert.match(LAYOUT_SRC, /review and apply/);
 
   // OpenGraph updated.
   assert.match(LAYOUT_SRC, /openGraph:/);
-  assert.match(LAYOUT_SRC, /Editorial broadcast graphics for coding streams/);
+  assert.match(LAYOUT_SRC, /AI-prepared broadcast graphics/);
   assert.match(LAYOUT_SRC, /opengraph\.jpg/);
   assert.match(LAYOUT_SRC, /type: "website"/);
 
   // Twitter card updated with summary_large_image.
   assert.match(LAYOUT_SRC, /twitter:/);
   assert.match(LAYOUT_SRC, /summary_large_image/);
-  assert.match(LAYOUT_SRC, /Editorial broadcast graphics for coding streams/);
+  assert.match(LAYOUT_SRC, /AI-prepared broadcast graphics/);
 });
 
 test("the builder lives on /demo and opts into isolated demo mode", () => {

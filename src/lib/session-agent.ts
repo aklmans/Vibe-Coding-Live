@@ -78,7 +78,7 @@ const DEFAULTS = {
   // DeepSeek's OpenAI-compatible default chat model. Override per the provider's
   // current docs (model names can be deprecated).
   model: "deepseek-chat",
-  userAgent: "Vibe-Coding-Live/SessionConfigAgent",
+  userAgent: "Vibe-Studio/SessionConfigAgent",
 };
 
 /**

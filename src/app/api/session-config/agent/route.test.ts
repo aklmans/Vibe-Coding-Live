@@ -4,6 +4,7 @@ import { GET, POST } from "./route";
 
 const KEY = "sk-route-secret-999";
 const PRIVATE_ROUTE_SOCIAL = "private-route-social";
+const DEFAULT_USER_AGENT = "Vibe-Studio/SessionConfigAgent";
 
 const AGENT_ENV_KEYS = [
   "SESSION_AGENT_API_KEY",
@@ -88,7 +89,7 @@ test("POST with a configured provider redacts social values in provider context 
       SESSION_AGENT_API_KEY: KEY,
       SESSION_AGENT_BASE_URL: "https://api.deepseek.com",
       SESSION_AGENT_MODEL: "deepseek-chat",
-      SESSION_AGENT_USER_AGENT: "Vibe-Coding-Live/SessionConfigAgent",
+      SESSION_AGENT_USER_AGENT: DEFAULT_USER_AGENT,
     },
     fetchImpl,
     async () => {
@@ -116,7 +117,7 @@ test("POST with a configured provider redacts social values in provider context 
       assert.equal(captured!.url, "https://api.deepseek.com/chat/completions");
       const headers = captured!.init.headers as Record<string, string>;
       assert.equal(headers.Authorization, `Bearer ${KEY}`);
-      assert.equal(headers["User-Agent"], "Vibe-Coding-Live/SessionConfigAgent");
+      assert.equal(headers["User-Agent"], DEFAULT_USER_AGENT);
       const body = JSON.parse(captured!.init.body as string);
       assert.equal(body.model, "deepseek-chat");
       assert.match(JSON.stringify(body.messages), /PROJECTION/); // current config sent

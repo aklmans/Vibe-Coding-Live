@@ -42,6 +42,11 @@ localStorage / logs — the client only ever sees `configured` / `not set`) or
 falls back to a local copy-handoff; it never edits settings via chat and never
 bypasses the JSON review/apply path.
 
+Public setup note: deployed builds serve `public/skill.md` at `/skill.md`.
+That file is the concise AI-Agent handoff for installing, running, configuring
+server-side provider env, and wiring OBS routes. Keep it short and consistent
+with this file and the README.
+
 ## Current Branch Goal: `editorial-live`
 
 The `editorial-live` branch is for a deliberate visual redesign. The goal is to move the app from a cool neon livestream-control look toward the warm, editorial, calm, premium live-studio language described in `DESIGN_LANGUAGE.md`.

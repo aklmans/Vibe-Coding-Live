@@ -2,28 +2,32 @@ import type { Metadata } from "next";
 import { getAppAppearanceBootScript } from "../lib/design-tokens";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const DEFAULT_SITE_URL = "https://vibe-studio.aklman.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Vibe Coding Live — Editorial broadcast graphics for coding streams",
+  title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams",
   description:
-    "An editorial broadcast graphics workbench for coding livestreams. Design overlay, cover, poster, sidebar and bottom bar surfaces, connect OBS browser sources, export the full kit. Optional AI drafts the session config — you review and apply.",
+    "AI-prepared broadcast graphics for a coding livestream studio. Draft, review and apply session config, connect OBS browser sources, and export overlay, cover, poster and wallpaper assets.",
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "Vibe Coding Live — Editorial broadcast graphics for coding streams",
+    title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams",
     description:
-      "An editorial broadcast graphics workbench for coding livestreams. Design overlay, cover, poster, sidebar and bottom bar surfaces, connect OBS browser sources, export the full kit. Optional AI drafts the session config — you review and apply.",
+      "AI-prepared broadcast graphics for a coding livestream studio. Draft, review and apply session config, connect OBS browser sources, and export overlay, cover, poster and wallpaper assets.",
     images: ["/opengraph.jpg"],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vibe Coding Live — Editorial broadcast graphics for coding streams",
+    title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams",
     description:
-      "An editorial broadcast graphics workbench for coding livestreams. Design overlay, cover, poster, sidebar and bottom bar surfaces, connect OBS browser sources, export the full kit. Optional AI drafts the session config — you review and apply.",
+      "AI-prepared broadcast graphics for a coding livestream studio. Draft, review and apply session config, connect OBS browser sources, and export overlay, cover, poster and wallpaper assets.",
     images: ["/opengraph.jpg"],
   },
 };
