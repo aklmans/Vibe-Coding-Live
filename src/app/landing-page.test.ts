@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import Page from "./page";
 
 const PAGE_SRC = readFileSync(resolve("src/app/page.tsx"), "utf8");
+const SURFACES_TABS_SRC = readFileSync(resolve("src/app/landing/SurfacesTabs.tsx"), "utf8");
 const LAYOUT_SRC = readFileSync(resolve("src/app/layout.tsx"), "utf8");
 const CLIENT_PAGE_SRC = readFileSync(resolve("src/app/client-page.tsx"), "utf8");
 const DEMO_PAGE_PATH = resolve("src/app/demo/page.tsx");
@@ -64,7 +65,6 @@ test("root route is a product landing page with public navigation and real expor
   assert.match(html, /src="\/product\/vibe-coding-poster\.png"/);
   assert.match(html, /src="\/product\/vibe-coding-sidebar\.png"/);
   assert.match(html, /src="\/product\/vibe-coding-bottom-bar\.png"/);
-  assert.match(html, /name="akl-surface"/);
   assert.match(html, /One session config, many broadcast assets/);
   assert.match(html, /class="akl-surface-tablist"/);
   assert.match(html, /FAQ/);
@@ -101,6 +101,62 @@ test("root route is a product landing page with public navigation and real expor
   assert.doesNotMatch(PAGE_SRC, /ClientPage/);
 });
 
+test("Surfaces tabs use real ARIA tabs, not hidden radio + CSS :has()", () => {
+  const html = renderToStaticMarkup(React.createElement(Page));
+
+  // ARIA tablist contract.
+  assert.match(html, /role="tablist"/);
+  assert.match(html, /role="tab"/);
+  assert.match(html, /role="tabpanel"/);
+  assert.match(html, /aria-selected=/);
+  assert.match(html, /aria-controls=/);
+  assert.match(html, /aria-labelledby=/);
+
+  // The old radio pattern must be gone.
+  assert.doesNotMatch(html, /name="akl-surface"/);
+  assert.doesNotMatch(html, /class="akl-surface-input"/);
+  assert.doesNotMatch(html, /type="radio"/);
+
+  // The CSS :has(#surface-…:checked) pattern must be gone from page.tsx.
+  assert.doesNotMatch(PAGE_SRC, /:has\(#surface-.*:checked\)/);
+
+  // Keyboard contract exists in the client component source.
+  assert.match(SURFACES_TABS_SRC, /ArrowRight/);
+  assert.match(SURFACES_TABS_SRC, /ArrowLeft/);
+  assert.match(SURFACES_TABS_SRC, /Home/);
+  assert.match(SURFACES_TABS_SRC, /End/);
+
+  // The component is a client component.
+  assert.match(SURFACES_TABS_SRC, /^['"]use client['"]/m);
+});
+
+test("landing images have width, height, loading, and decoding attributes", () => {
+  const html = renderToStaticMarkup(React.createElement(Page));
+
+  // Product hero image — eager + dimensions.
+  assert.match(
+    html,
+    /src="\/product\/vibe-coding-overlay\.png"[^>]*width="1920"[^>]*height="1080"[^>]*loading="eager"[^>]*decoding="async"/,
+  );
+
+  // Surface tab images — lazy + dimensions. Check each one has width+height+loading="lazy"+decoding.
+  assert.match(html, /src="\/product\/vibe-coding-cover\.png"[^>]*width="1280"[^>]*height="720"[^>]*loading="lazy"[^>]*decoding="async"/);
+  assert.match(html, /src="\/product\/vibe-coding-poster\.png"[^>]*width="1920"[^>]*height="1080"[^>]*loading="lazy"[^>]*decoding="async"/);
+  assert.match(html, /src="\/product\/vibe-coding-sidebar\.png"[^>]*width="470"[^>]*height="760"[^>]*loading="lazy"[^>]*decoding="async"/);
+  assert.match(html, /src="\/product\/vibe-coding-bottom-bar\.png"[^>]*width="1856"[^>]*height="180"[^>]*loading="lazy"[^>]*decoding="async"/);
+});
+
+test("reduced-motion and focus-visible CSS are present", () => {
+  // prefers-reduced-motion block in landing CSS.
+  assert.match(PAGE_SRC, /prefers-reduced-motion:\s*reduce/);
+  // FAQ summary focus-visible.
+  assert.match(PAGE_SRC, /\.akl-faq summary:focus-visible/);
+  // FAQ indicator uses a stable layout (not float).
+  assert.match(PAGE_SRC, /\.akl-faq-indicator/);
+  // No float-based indicator remains.
+  assert.doesNotMatch(PAGE_SRC, /float:\s*right/);
+});
+
 test("the AI / Agent section tells the three-step product story and safety claims", () => {
   const html = renderToStaticMarkup(React.createElement(Page));
 
@@ -128,6 +184,10 @@ test("the AI / Agent section tells the three-step product story and safety claim
   assert.match(html, /Export the kit/);
   assert.match(html, /review.*Apply/i);
   assert.match(html, /browser sources/i);
+
+  // Workflow title is the clearer version, not the old weak one.
+  assert.match(html, /From session prep to OBS, in four steps/);
+  assert.doesNotMatch(html, /Meets you where you stream/);
 });
 
 test("Get Started replaces Docs / Guide and exposes OBS routes", () => {
@@ -138,6 +198,16 @@ test("Get Started replaces Docs / Guide and exposes OBS routes", () => {
   assert.match(html, /id="get-started"/);
   // The old Docs / Guide label must not survive as an eyebrow.
   assert.doesNotMatch(html, /Docs \/ Guide/);
+
+  // CSS classes renamed from guide to get-started.
+  assert.match(PAGE_SRC, /\.akl-get-started\b/);
+  assert.match(PAGE_SRC, /\.akl-get-started-copy/);
+  assert.match(PAGE_SRC, /\.akl-get-started-steps/);
+  assert.match(PAGE_SRC, /\.akl-get-started-link/);
+  // Old guide class names should not linger.
+  assert.doesNotMatch(PAGE_SRC, /\.akl-guide\b/);
+  assert.doesNotMatch(PAGE_SRC, /\.akl-guide-copy/);
+  assert.doesNotMatch(PAGE_SRC, /\.akl-guide-link/);
 
   // Three onboarding steps with demo / studio / OBS routes.
   assert.match(html, /Try the demo, then take the studio live\./i);

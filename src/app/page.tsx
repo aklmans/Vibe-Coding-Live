@@ -1,156 +1,19 @@
-const MAIN_SITE_URL = "https://aklman.com";
-const GITHUB_URL = "https://github.com/aklmans/Vibe-Coding-Live";
-const GITHUB_PROFILE_URL = "https://github.com/aklmans";
-const X_URL = "https://x.com/aklman2018";
-const RSS_URL = "https://aklman.com/rss.xml";
-
-const appNav = [
-  { label: "Product", href: "#product" },
-  { label: "Surfaces", href: "#surfaces" },
-  { label: "Workflow", href: "#workflow" },
-  { label: "Studio", href: "/studio" },
-  { label: "GitHub", href: GITHUB_URL },
-];
-
-const mobileNav = [
-  { label: "Product", href: "#product" },
-  { label: "Surfaces", href: "#surfaces" },
-  { label: "Workflow", href: "#workflow" },
-  { label: "Try demo", href: "/demo" },
-  { label: "Studio", href: "/studio" },
-  { label: "GitHub", href: GITHUB_URL },
-  { label: "Main site", href: MAIN_SITE_URL },
-];
-
-const featureItems = [
-  {
-    title: "Live Overlay Builder",
-    copy: "Design a transparent main-screen frame, camera slot, sidebar and bottom bar without rebuilding surfaces by hand.",
-  },
-  {
-    title: "Session Config Agent",
-    copy: "Ask the agent for a session plan. Review the proposed config in a JSON drawer. Apply it only when you are ready.",
-  },
-  {
-    title: "OBS-ready browser sources",
-    copy: "Keep overlay, sidebar and bottom bar as clean browser sources while OBS owns the actual screen capture below.",
-  },
-];
-
-const workflowItems = [
-  {
-    title: "Describe the session",
-    copy: "Write a short brief or ask the agent to draft one. The agent proposes a config; nothing is applied yet.",
-  },
-  {
-    title: "Review the config",
-    copy: "Open the proposal in the JSON review drawer. Inspect the diff, then Apply — or discard. You stay in control.",
-  },
-  {
-    title: "Connect OBS sources",
-    copy: "Add overlay, sidebar and bottom bar as browser sources. OBS or Livehime keeps the real screen capture underneath.",
-  },
-  {
-    title: "Export the kit",
-    copy: "Export cover, poster, sidebar, bottom bar and wallpapers. Run Export All for the whole package from one state.",
-  },
-];
-
-const agentFlow = [
-  {
-    step: "01",
-    title: "Agent drafts a session config",
-    copy: "Describe the stream. The agent returns a proposed config — title, sections, stack, socials — as JSON you can read.",
-  },
-  {
-    step: "02",
-    title: "Human reviews and applies",
-    copy: "The proposal opens in the JSON review drawer. Inspect the field-level diff, then Apply. Nothing is auto-applied.",
-  },
-  {
-    step: "03",
-    title: "OBS renders browser sources",
-    copy: "The overlay, sidebar and bottom bar render as clean browser sources. OBS owns the real capture below the frame.",
-  },
-];
-
-const agentSafety = [
-  "AI output is never auto-applied. A returned config opens in the JSON review drawer, exactly like Import.",
-  "The API key stays on the server. It never enters the client bundle, localStorage, or logs.",
-];
-
-type SurfaceKind = "wide" | "tall" | "strip";
-
-const visualCards: ReadonlyArray<{
-  id: string;
-  kind: SurfaceKind;
-  title: string;
-  src: string;
-  alt: string;
-  summary: string;
-  points: string[];
-}> = [
-  {
-    id: "cover",
-    kind: "wide",
-    title: "Cover",
-    src: "/product/vibe-coding-cover.png",
-    alt: "Vibe Coding Live cover export",
-    summary: "Open the stream with an editorial title card that already matches the overlay language.",
-    points: ["Serif headline and host profile", "Warm dark / light theme aware", "Export-ready social preview"],
-  },
-  {
-    id: "poster",
-    kind: "wide",
-    title: "Poster",
-    src: "/product/vibe-coding-poster.png",
-    alt: "Vibe Coding Live poster export",
-    summary: "Generate a compact promotional poster from the same session configuration.",
-    points: ["Session topic and agenda", "Reusable host identity", "Clean social sharing asset"],
-  },
-  {
-    id: "sidebar",
-    kind: "tall",
-    title: "Sidebar",
-    src: "/product/vibe-coding-sidebar.png",
-    alt: "Vibe Coding Live sidebar export",
-    summary: "Keep the live sidebar readable as a separate OBS browser source.",
-    points: ["Current focus and section progress", "Quiet social metadata", "Transparent source friendly"],
-  },
-  {
-    id: "bottom-bar",
-    kind: "strip",
-    title: "Bottom bar",
-    src: "/product/vibe-coding-bottom-bar.png",
-    alt: "Vibe Coding Live bottom bar export",
-    summary: "Use a broadcast metadata strip for timer, progress and stack details.",
-    points: ["Low-profile status signals", "Stack chips and session metadata", "Consistent export slice"],
-  },
-];
-
-const faqItems = [
-  {
-    question: "Is the public demo connected to my private stream?",
-    answer: "No. Demo mode uses local browser storage and avoids real provider calls, database writes and OBS live-state publishing.",
-  },
-  {
-    question: "Does the AI agent ever auto-apply changes?",
-    answer:
-      "No. Returned configs open in the JSON review drawer. You apply them manually. The agent never writes directly to OBS, localStorage, the database, or runtime state.",
-  },
-  {
-    question: "Can I still use this as a private studio?",
-    answer: "Yes. Open /studio for the full workspace that can connect to server-side AI, database persistence and OBS automation.",
-  },
-  {
-    question: "Where is the real screen capture?",
-    answer: "The overlay owns the UI frame. OBS or Livehime owns the real screen/video capture underneath, so layout stays flexible.",
-  },
-  {
-    question: "Can I export the whole broadcast kit?",
-    answer: "Yes. The app exports overlay, cover, poster, wallpaper set, sidebar and bottom bar assets from the same state.",
-  },
-];
+import SurfacesTabs from "./landing/SurfacesTabs";
+import {
+  agentFlow,
+  agentSafety,
+  appNav,
+  faqItems,
+  featureItems,
+  GITHUB_PROFILE_URL,
+  GITHUB_URL,
+  MAIN_SITE_URL,
+  mobileNav,
+  RSS_URL,
+  surfaceCards,
+  workflowItems,
+  X_URL,
+} from "./landing/content";
 
 const mobileMenuScript = `
   (function () {
@@ -246,6 +109,10 @@ export default function LandingPage() {
             src="/product/vibe-coding-overlay.png"
             alt="Vibe Coding Live overlay export"
             className="akl-overlay-img"
+            width={1920}
+            height={1080}
+            loading="eager"
+            decoding="async"
           />
         </div>
       </section>
@@ -268,51 +135,12 @@ export default function LandingPage() {
       <section id="surfaces" className="akl-section akl-surface-tabs" aria-label="Export examples">
         <p className="akl-eyebrow">Surfaces</p>
         <h2>One session config, many broadcast assets</h2>
-        {visualCards.map((item) => (
-          <input
-            key={item.id}
-            className="akl-surface-input"
-            type="radio"
-            id={`surface-${item.id}`}
-            name="akl-surface"
-            defaultChecked={item.id === "cover"}
-          />
-        ))}
-        <div className="akl-surface-tablist" aria-label="Broadcast surface examples">
-          {visualCards.map((item) => (
-            <label key={item.id} className="akl-surface-tab" htmlFor={`surface-${item.id}`}>
-              {item.title}
-            </label>
-          ))}
-        </div>
-        <div className="akl-surface-stage">
-          {visualCards.map((item) => (
-            <article
-              key={item.id}
-              className={`akl-surface-panel akl-surface-panel-${item.id} akl-surface-kind-${item.kind}`}
-              data-surface-kind={item.kind}
-            >
-              <div className="akl-surface-preview">
-                <img src={item.src} alt={item.alt} />
-              </div>
-              <div className="akl-surface-copy">
-                <p className="akl-eyebrow">Export surface</p>
-                <h3>{item.title}</h3>
-                <p>{item.summary}</p>
-                <ul>
-                  {item.points.map((point) => (
-                    <li key={point}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-          ))}
-        </div>
+        <SurfacesTabs cards={surfaceCards} />
       </section>
 
       <section id="workflow" className="akl-section">
         <p className="akl-eyebrow">Workflow</p>
-        <h2>Meets you where you stream</h2>
+        <h2>From session prep to OBS, in four steps</h2>
         <div className="akl-workflow-grid">
           {workflowItems.map((item, index) => (
             <article key={item.title} className="akl-workflow-card">
@@ -357,8 +185,8 @@ export default function LandingPage() {
         </p>
       </section>
 
-      <section id="get-started" className="akl-section akl-guide">
-        <div className="akl-guide-copy">
+      <section id="get-started" className="akl-section akl-get-started">
+        <div className="akl-get-started-copy">
           <p className="akl-eyebrow">Get started</p>
           <h2>Try the demo, then take the studio live.</h2>
           <p>
@@ -366,14 +194,14 @@ export default function LandingPage() {
             provider configuration, database persistence and OBS automation.
           </p>
         </div>
-        <div className="akl-guide-steps">
+        <div className="akl-get-started-steps">
           <ol>
             <li>
               <span>01</span>
               <div>
                 <h3>Open the public demo</h3>
                 <p>Local-only. No provider calls, no database writes, no OBS side effects.</p>
-                <a href="/demo" className="akl-guide-link">Try Demo →</a>
+                <a href="/demo" className="akl-get-started-link">Try Demo →</a>
               </div>
             </li>
             <li>
@@ -381,7 +209,7 @@ export default function LandingPage() {
               <div>
                 <h3>Run the private studio</h3>
                 <p>Full workspace with optional AI, persistence and OBS automation.</p>
-                <a href="/studio" className="akl-guide-link">Open Studio →</a>
+                <a href="/studio" className="akl-get-started-link">Open Studio →</a>
               </div>
             </li>
             <li>
@@ -389,7 +217,7 @@ export default function LandingPage() {
               <div>
                 <h3>Add OBS browser sources</h3>
                 <p>Point OBS at these routes, place real captures underneath.</p>
-                <code className="akl-guide-routes">
+                <code className="akl-get-started-routes">
                   /obs/overlay?camera=empty<br />
                   /obs/overlay?camera=avatar<br />
                   /obs/sidebar<br />
@@ -398,9 +226,9 @@ export default function LandingPage() {
               </div>
             </li>
           </ol>
-          <div className="akl-guide-meta">
+          <div className="akl-get-started-meta">
             <code>pnpm dev</code>
-            <a href={GITHUB_URL} className="akl-guide-link">README on GitHub →</a>
+            <a href={GITHUB_URL} className="akl-get-started-link">README on GitHub →</a>
           </div>
         </div>
       </section>
@@ -411,7 +239,10 @@ export default function LandingPage() {
         <div className="akl-faq-list">
           {faqItems.map((item) => (
             <details key={item.question}>
-              <summary>{item.question}</summary>
+              <summary>
+                <span className="akl-faq-question">{item.question}</span>
+                <span className="akl-faq-indicator" aria-hidden="true"></span>
+              </summary>
               <p>{item.answer}</p>
             </details>
           ))}
@@ -583,15 +414,17 @@ const landingCss = `
     color: var(--akl-accent);
   }
 
+  /* Focus-visible — warm accent outline, never blue default. */
   .akl-site-nav a:focus-visible,
   .akl-main-site-link:focus-visible,
   .akl-brand:focus-visible,
   .akl-button:focus-visible,
-  .akl-command a:focus-visible,
   .akl-surface-tab:focus-visible,
   .akl-mobile-toggle:focus-visible,
   .akl-mobile-nav a:focus-visible,
-  .akl-hero-github:focus-visible {
+  .akl-hero-github:focus-visible,
+  .akl-get-started-link:focus-visible,
+  .akl-faq summary:focus-visible {
     outline: 0.5px solid var(--akl-accent);
     outline-offset: 4px;
   }
@@ -773,7 +606,7 @@ const landingCss = `
 
   .akl-hero h1,
   .akl-section h2,
-  .akl-guide-copy h2,
+  .akl-get-started-copy h2,
   .akl-faq h2 {
     margin: 0;
     color: var(--akl-text);
@@ -913,7 +746,7 @@ const landingCss = `
   }
 
   .akl-section h2,
-  .akl-guide-copy h2,
+  .akl-get-started-copy h2,
   .akl-faq h2 {
     margin-top: 16px;
     font-size: 48px;
@@ -941,7 +774,7 @@ const landingCss = `
 
   .akl-feature-list p,
   .akl-workflow-card p,
-  .akl-guide-copy p,
+  .akl-get-started-copy p,
   .akl-faq details p {
     margin: 10px 0 0;
     color: var(--akl-text-muted);
@@ -949,24 +782,10 @@ const landingCss = `
     line-height: 1.62;
   }
 
-  /* ─── Surfaces tabs ──────────────────────────────────── */
+  /* ─── Surfaces tabs (ARIA tabs) ──────────────────────── */
 
   .akl-surface-tabs {
     padding-top: 96px;
-  }
-
-  .akl-surface-input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-
-  .akl-surface-input:focus {
-    outline: none;
   }
 
   .akl-surface-tablist {
@@ -985,6 +804,8 @@ const landingCss = `
     min-height: 44px;
     align-items: center;
     padding: 0 22px;
+    border: 0;
+    background: transparent;
     color: var(--akl-text-muted);
     cursor: pointer;
     font-family: var(--app-font-sans);
@@ -1015,36 +836,12 @@ const landingCss = `
     color: var(--akl-accent);
   }
 
-  /* Checked state — accent underline + bright text (not a pill fill). */
-  .akl-surface-tabs:has(#surface-cover:checked) label[for="surface-cover"],
-  .akl-surface-tabs:has(#surface-poster:checked) label[for="surface-poster"],
-  .akl-surface-tabs:has(#surface-sidebar:checked) label[for="surface-sidebar"],
-  .akl-surface-tabs:has(#surface-bottom-bar:checked) label[for="surface-bottom-bar"] {
+  /* Selected tab — accent underline + bright text. */
+  .akl-surface-tab[data-selected] {
     color: var(--akl-text);
   }
 
-  .akl-surface-tabs:has(#surface-cover:checked) label[for="surface-cover"]::after,
-  .akl-surface-tabs:has(#surface-poster:checked) label[for="surface-poster"]::after,
-  .akl-surface-tabs:has(#surface-sidebar:checked) label[for="surface-sidebar"]::after,
-  .akl-surface-tabs:has(#surface-bottom-bar:checked) label[for="surface-bottom-bar"]::after {
-    opacity: 1;
-    transform: scaleX(1);
-  }
-
-  /* Keyboard focus — relay from hidden radio to visible label via :has(). */
-  .akl-surface-tabs:has(#surface-cover:focus-visible) label[for="surface-cover"],
-  .akl-surface-tabs:has(#surface-poster:focus-visible) label[for="surface-poster"],
-  .akl-surface-tabs:has(#surface-sidebar:focus-visible) label[for="surface-sidebar"],
-  .akl-surface-tabs:has(#surface-bottom-bar:focus-visible) label[for="surface-bottom-bar"] {
-    color: var(--akl-accent);
-    outline: 0.5px solid var(--akl-accent);
-    outline-offset: 4px;
-  }
-
-  .akl-surface-tabs:has(#surface-cover:focus-visible) label[for="surface-cover"]::after,
-  .akl-surface-tabs:has(#surface-poster:focus-visible) label[for="surface-poster"]::after,
-  .akl-surface-tabs:has(#surface-sidebar:focus-visible) label[for="surface-sidebar"]::after,
-  .akl-surface-tabs:has(#surface-bottom-bar:focus-visible) label[for="surface-bottom-bar"]::after {
+  .akl-surface-tab[data-selected]::after {
     opacity: 1;
     transform: scaleX(1);
   }
@@ -1053,31 +850,27 @@ const landingCss = `
     margin-top: 44px;
   }
 
-  .akl-surface-panel {
+  .akl-surface-panel[hidden] {
     display: none;
-  }
-
-  .akl-surface-tabs:has(#surface-cover:checked) .akl-surface-panel-cover,
-  .akl-surface-tabs:has(#surface-poster:checked) .akl-surface-panel-poster,
-  .akl-surface-tabs:has(#surface-sidebar:checked) .akl-surface-panel-sidebar,
-  .akl-surface-tabs:has(#surface-bottom-bar:checked) .akl-surface-panel-bottom-bar {
-    display: grid;
   }
 
   /* Layout per surface kind. */
   .akl-surface-kind-wide {
+    display: grid;
     grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.7fr);
     gap: 64px;
     align-items: center;
   }
 
   .akl-surface-kind-tall {
+    display: grid;
     grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
     gap: 64px;
     align-items: center;
   }
 
   .akl-surface-kind-strip {
+    display: grid;
     grid-template-columns: 1fr;
     gap: 32px;
     align-items: start;
@@ -1275,21 +1068,21 @@ const landingCss = `
 
   /* ─── Get started ────────────────────────────────────── */
 
-  .akl-guide {
+  .akl-get-started {
     display: grid;
     grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
     gap: 72px;
     align-items: start;
   }
 
-  .akl-guide-steps ol {
+  .akl-get-started-steps ol {
     margin: 0;
     padding: 0;
     list-style: none;
     border-top: 0.5px solid var(--akl-border-subtle);
   }
 
-  .akl-guide-steps li {
+  .akl-get-started-steps li {
     display: grid;
     grid-template-columns: 64px minmax(0, 1fr);
     gap: 24px;
@@ -1298,7 +1091,7 @@ const landingCss = `
     border-bottom: 0.5px solid var(--akl-border-subtle);
   }
 
-  .akl-guide-steps li > span {
+  .akl-get-started-steps li > span {
     color: var(--akl-accent);
     font-family: var(--app-font-mono);
     font-size: 12px;
@@ -1308,7 +1101,7 @@ const landingCss = `
     padding-top: 4px;
   }
 
-  .akl-guide-steps h3 {
+  .akl-get-started-steps h3 {
     margin: 0;
     color: var(--akl-text);
     font-family: var(--app-font-serif);
@@ -1317,14 +1110,14 @@ const landingCss = `
     line-height: 1.2;
   }
 
-  .akl-guide-steps p {
+  .akl-get-started-steps p {
     margin: 8px 0 12px;
     color: var(--akl-text-muted);
     font-size: 15px;
     line-height: 1.55;
   }
 
-  .akl-guide-link {
+  .akl-get-started-link {
     display: inline-block;
     color: #aaa49b;
     font-family: var(--app-font-mono);
@@ -1338,13 +1131,13 @@ const landingCss = `
       border-color 180ms ease;
   }
 
-  .akl-guide-link:hover,
-  .akl-guide-link:focus-visible {
+  .akl-get-started-link:hover,
+  .akl-get-started-link:focus-visible {
     color: var(--akl-accent);
     border-bottom-color: var(--akl-accent);
   }
 
-  .akl-guide-routes {
+  .akl-get-started-routes {
     display: block;
     margin-top: 10px;
     padding: 12px 14px;
@@ -1358,7 +1151,7 @@ const landingCss = `
     white-space: normal;
   }
 
-  .akl-guide-meta {
+  .akl-get-started-meta {
     display: flex;
     align-items: center;
     gap: 20px;
@@ -1369,7 +1162,7 @@ const landingCss = `
     background: var(--akl-surface);
   }
 
-  .akl-guide-meta code {
+  .akl-get-started-meta code {
     color: var(--akl-accent);
     font-family: var(--app-font-mono);
     font-size: 13px;
@@ -1405,6 +1198,10 @@ const landingCss = `
   }
 
   .akl-faq summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
     cursor: pointer;
     color: var(--akl-text);
     font-family: var(--app-font-serif);
@@ -1417,15 +1214,48 @@ const landingCss = `
     display: none;
   }
 
-  .akl-faq summary::after {
-    content: "+";
-    float: right;
-    color: #8b847a;
-    font-family: var(--app-font-mono);
+  .akl-faq-question {
+    flex: 1 1 auto;
   }
 
-  .akl-faq details[open] summary::after {
-    content: "–";
+  /* Stable +/- indicator using grid, not float — no misalignment on long questions. */
+  .akl-faq-indicator {
+    flex: 0 0 auto;
+    position: relative;
+    width: 14px;
+    height: 14px;
+    margin-top: 4px;
+  }
+
+  .akl-faq-indicator::before,
+  .akl-faq-indicator::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 1.5px;
+    background: #8b847a;
+    transform: translate(-50%, -50%);
+    transition: transform 180ms ease, opacity 180ms ease;
+  }
+
+  /* Horizontal bar is always present; vertical bar becomes the +. */
+  .akl-faq-indicator::after {
+    width: 1.5px;
+    height: 12px;
+  }
+
+  .akl-faq details[open] .akl-faq-indicator::after {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
+  .akl-faq summary:hover .akl-faq-indicator::before,
+  .akl-faq summary:hover .akl-faq-indicator::after,
+  .akl-faq summary:focus-visible .akl-faq-indicator::before,
+  .akl-faq summary:focus-visible .akl-faq-indicator::after {
+    background: var(--akl-accent);
   }
 
   /* ─── Footer ─────────────────────────────────────────── */
@@ -1463,6 +1293,19 @@ const landingCss = `
     color: var(--akl-accent);
   }
 
+  /* ─── Reduced motion ─────────────────────────────────── */
+
+  @media (prefers-reduced-motion: reduce) {
+    .akl-page *,
+    .akl-page *::before,
+    .akl-page *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   /* ─── Responsive ─────────────────────────────────────── */
 
   @media (max-width: 980px) {
@@ -1483,7 +1326,7 @@ const landingCss = `
     }
 
     .akl-split-section,
-    .akl-guide {
+    .akl-get-started {
       grid-template-columns: 1fr;
       gap: 36px;
     }
@@ -1568,7 +1411,7 @@ const landingCss = `
     }
 
     .akl-section h2,
-    .akl-guide-copy h2,
+    .akl-get-started-copy h2,
     .akl-faq h2 {
       font-size: 32px;
     }
@@ -1582,12 +1425,12 @@ const landingCss = `
       gap: 18px;
     }
 
-    .akl-guide-steps li {
+    .akl-get-started-steps li {
       grid-template-columns: 48px minmax(0, 1fr);
       gap: 16px;
     }
 
-    .akl-guide-meta {
+    .akl-get-started-meta {
       flex-direction: column;
       align-items: flex-start;
       gap: 12px;
