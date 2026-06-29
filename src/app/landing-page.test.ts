@@ -98,6 +98,10 @@ test("root route is a product landing page with public navigation and real expor
   // Language and theme toggles exist.
   assert.match(html, /data-testid="landing-lang-toggle"/);
   assert.match(html, /data-testid="landing-theme-toggle"/);
+  assert.match(
+    CLIENT_SRC,
+    /data-testid="landing-main-site-link"[\s\S]*data-testid="landing-lang-toggle"[\s\S]*data-testid="landing-theme-toggle"/,
+  );
 
   // Feature content preserved.
   assert.match(html, /Live Overlay Builder/);
@@ -144,6 +148,7 @@ test("root route is a product landing page with public navigation and real expor
   // Header is fixed, nav has underline hover — CSS is in header.css.
   assert.match(HEADER_CSS, /\.akl-site-header\s*{[^}]*position: fixed/s);
   assert.match(HEADER_CSS, /\.akl-site-nav a::after/);
+  assert.match(HEADER_CSS, /\.akl-lang-toggle,\s*\.akl-theme-toggle\s*{[^}]*border:\s*0;/s);
 
   // Anchor offset prevents fixed header from covering section headings.
   assert.match(BASE_CSS, /scroll-margin-top/);

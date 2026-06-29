@@ -88,6 +88,13 @@ function LandingPageContent() {
             ))}
           </nav>
           <div className="akl-header-actions">
+            <a
+              href={MAIN_SITE_URL}
+              className="akl-main-site-link"
+              data-testid="landing-main-site-link"
+            >
+              {c.mainSiteLabel}
+            </a>
             <button
               type="button"
               className="akl-lang-toggle"
@@ -131,13 +138,6 @@ function LandingPageContent() {
                 <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7z" />
               </svg>
             </button>
-            <a
-              href={MAIN_SITE_URL}
-              className="akl-main-site-link"
-              data-testid="landing-main-site-link"
-            >
-              {c.mainSiteLabel}
-            </a>
             <details
               ref={mobileMenuRef}
               className="akl-mobile-menu"

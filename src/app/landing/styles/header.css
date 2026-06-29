@@ -97,7 +97,7 @@
   justify-content: center;
   min-width: 32px;
   height: 32px;
-  border: 0.5px solid var(--akl-border-subtle);
+  border: 0;
   border-radius: 2px;
   background: transparent;
   color: var(--akl-text-muted);
@@ -106,7 +106,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   cursor: pointer;
-  transition: color 160ms ease, border-color 160ms ease;
+  transition: color 160ms ease;
 }
 
 .akl-lang-toggle:hover,
@@ -114,7 +114,6 @@
 .akl-theme-toggle:hover,
 .akl-theme-toggle:focus-visible {
   color: var(--akl-accent);
-  border-color: var(--akl-accent);
 }
 
 .akl-theme-toggle svg {
