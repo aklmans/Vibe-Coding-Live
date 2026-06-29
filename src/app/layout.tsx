@@ -51,9 +51,9 @@ function getLandingBootScript(): string {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams",
+  title: "Vibe Studio — Designed live graphics without fighting OBS",
   description:
-    "AI-prepared broadcast graphics for a coding livestream studio. Draft, review and apply session config, connect OBS browser sources, and export overlay, cover, poster and wallpaper assets.",
+    "Designed live graphics for Study With Me, Coding With Me, Build in Public, gaming, chat and co-working streams. Agent drafts session copy and config, you review and apply, and OBS stays flexible underneath.",
   alternates: {
     canonical: "/",
   },
@@ -61,18 +61,18 @@ export const metadata: Metadata = {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams",
+    title: "Vibe Studio — Designed live graphics without fighting OBS",
     description:
-      "AI-prepared broadcast graphics for a coding livestream studio. Draft, review and apply session config, connect OBS browser sources, and export overlay, cover, poster and wallpaper assets.",
+      "Designed live graphics for Study With Me, Coding With Me, Build in Public, gaming, chat and co-working streams. Agent drafts session copy and config, you review and apply, and OBS stays flexible underneath.",
     siteName: "Vibe Studio",
     images: ["/opengraph.jpg"],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams",
+    title: "Vibe Studio — Designed live graphics without fighting OBS",
     description:
-      "AI-prepared broadcast graphics for a coding livestream studio. Draft, review and apply session config, connect OBS browser sources, and export overlay, cover, poster and wallpaper assets.",
+      "Designed live graphics for Study With Me, Coding With Me, Build in Public, gaming, chat and co-working streams. Agent drafts session copy and config, you review and apply, and OBS stays flexible underneath.",
     images: ["/opengraph.jpg"],
   },
 };

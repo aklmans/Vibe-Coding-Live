@@ -286,7 +286,7 @@ test("Settings shows scannable summaries before the big editors", () => {
   assert.match(SETTINGS_SRC, /state\.bottomBar\.segments\.map\(\(s\) => s\.kind\)/);
 });
 
-test("docs describe the real agent boundary (provider callable server-side; key not in client)", () => {
+test("docs describe the real agent boundary (provider callable in local/private Studio; key not in client)", () => {
   const readme = readFileSync(resolve("README.md"), "utf8");
   const agents = readFileSync(resolve("AGENTS.md"), "utf8");
   for (const doc of [readme, agents]) {
@@ -294,7 +294,9 @@ test("docs describe the real agent boundary (provider callable server-side; key 
     assert.doesNotMatch(doc, /Manual Settings/);
   }
   assert.match(readme, /can call a real model/i);
-  assert.match(readme, /key stays on the server/i);
+  assert.match(readme, /key stays in your local\/private Studio server env/i);
+  assert.match(readme, /public\/demo deployments do not collect API keys/i);
+  assert.match(readme, /cannot push into (your )?local OBS/i);
   assert.match(agents, /calls a configured provider/i);
 });
 

@@ -82,8 +82,13 @@ test("root route is a product landing page with public navigation and real expor
   assert.doesNotMatch(html, />Sessions</);
   assert.doesNotMatch(html, />About</);
 
-  // Hero communicates AI-native value (English default).
-  assert.match(html, /The AI-native live studio for coding streams/);
+  // Hero communicates the broader live-graphics value, not just coding streams.
+  assert.match(html, /Designed live graphics without fighting OBS/);
+  assert.match(html, /Study With Me/);
+  assert.match(html, /Coding With Me/);
+  assert.match(html, /Build in Public/);
+  assert.match(html, /gaming/);
+  assert.match(html, /chat/);
   assert.match(html, /Try Demo/);
   assert.match(html, /Open Studio/);
   assert.match(html, /href="\/demo"/);
@@ -103,9 +108,9 @@ test("root route is a product landing page with public navigation and real expor
   );
   // Hero proof chips — three-step product claim.
   assert.match(html, /data-testid="landing-hero-chips"/);
-  assert.match(html, /AI-prepared/);
+  assert.match(html, /Agent-prepared/);
   assert.match(html, /Human-reviewed/);
-  assert.match(html, /OBS-rendered/);
+  assert.match(html, /Local-first/);
 
   // Language and theme toggles exist.
   assert.match(html, /data-testid="landing-lang-toggle"/);
@@ -116,9 +121,9 @@ test("root route is a product landing page with public navigation and real expor
   );
 
   // Feature content preserved.
-  assert.match(html, /Live Overlay Builder/);
+  assert.match(html, /Designed live-room frame/);
   assert.match(html, /Session Config Agent/);
-  assert.match(html, /OBS-ready browser sources/);
+  assert.match(html, /Local-first Studio/);
 
   // Product images.
   assert.match(html, /src="\/product\/vibe-coding-overlay-dark\.png"/);
@@ -129,7 +134,7 @@ test("root route is a product landing page with public navigation and real expor
   assert.match(html, /src="\/product\/vibe-coding-cover-dark\.png"/);
   assert.match(html, /src="\/product\/vibe-coding-poster-dark\.png"/);
   assert.match(html, /src="\/product\/vibe-coding-wallpaper-desktop-4k-dark\.png"/);
-  assert.match(html, /From one idea to a broadcast-ready live studio/);
+  assert.match(html, /From one stream idea to a designed live room/);
   assert.match(html, /class="akl-surface-tablist"/);
   assert.match(html, /FAQ/);
   for (const asset of PRODUCT_ASSETS) {
@@ -193,11 +198,12 @@ test("landing page has bilingual zh/en content source", () => {
   assert.match(CONTENT_SRC, /const zhContent/);
   assert.match(CONTENT_SRC, /contentByLocale/);
 
-  // English content has the AI-native hero.
-  assert.match(CONTENT_SRC, /The AI-native live studio for coding streams/);
+  // English content has the broad live-stream hero.
+  assert.match(CONTENT_SRC, /Designed live graphics without fighting OBS/);
+  assert.match(CONTENT_SRC, /Study With Me, Coding With Me, Build in Public/);
 
   // Chinese content has a proper Chinese hero, not a machine translation.
-  assert.match(CONTENT_SRC, /编程直播的 AI 画面工作台/);
+  assert.match(CONTENT_SRC, /不用和 OBS 较劲，也能有好看的直播画面/);
 
   // Both locales have the full set of sections (Workflow section removed).
   assert.match(CONTENT_SRC, /featuresEyebrow/);
@@ -254,7 +260,7 @@ test("landing page has bilingual zh/en content source", () => {
   assert.doesNotMatch(CONTENT_SRC, /themeToggleToDarkLabel/);
 
   // Chinese showcase label is in Chinese, not English "overlay".
-  assert.match(CONTENT_SRC, /showcaseLabel: "合成画面 · 1920×1080"/);
+  assert.match(CONTENT_SRC, /showcaseLabel: "OBS 合成 · 主屏幕"/);
 
   // FAQ export-kit answer is product-facing, not internal-implementation.
   assert.match(CONTENT_SRC, /Export All does the whole package in one action/);
@@ -265,8 +271,8 @@ test("landing page has bilingual zh/en content source", () => {
 test("landing product imagery switches between dark and light screenshots", () => {
   const content = getLandingContent("en");
 
-  assert.equal(imageSrcForTheme(content.showcaseImage, "dark"), "/product/vibe-coding-overlay-dark.png");
-  assert.equal(imageSrcForTheme(content.showcaseImage, "light"), "/product/vibe-coding-overlay-light.png");
+  assert.equal(imageSrcForTheme(content.showcaseImage, "dark"), "/product/obs-main-screen-dark.png");
+  assert.equal(imageSrcForTheme(content.showcaseImage, "light"), "/product/obs-main-screen-light.png");
 
   const cardsWithImages = content.surfaceCards.filter((card) => card.image);
   assert.equal(cardsWithImages.length, 3);
@@ -441,8 +447,8 @@ test("all landing images use theme-aware src (dark/light)", () => {
 
   // Verify content.ts has dark/light pairs for every themed image.
   const content = getLandingContent("en");
-  assert.equal(imageSrcForTheme(content.showcaseImage, "dark"), "/product/vibe-coding-overlay-dark.png");
-  assert.equal(imageSrcForTheme(content.showcaseImage, "light"), "/product/vibe-coding-overlay-light.png");
+  assert.equal(imageSrcForTheme(content.showcaseImage, "dark"), "/product/obs-main-screen-dark.png");
+  assert.equal(imageSrcForTheme(content.showcaseImage, "light"), "/product/obs-main-screen-light.png");
 
   // Every surface card image and gallery image must have both dark + light.
   for (const card of content.surfaceCards) {
@@ -511,11 +517,11 @@ test("Surfaces tabs use real ARIA tabs, not hidden radio + CSS :has()", () => {
   assert.doesNotMatch(SURFACES_TABS_SRC, /"Next export asset"/);
 });
 
-test("Surfaces section tells the broadcast workflow story, not an asset list", () => {
+test("Surfaces section tells the designed live-room workflow story, not an asset list", () => {
   const html = renderLanding("en");
 
-  assert.match(html, /From one idea to a broadcast-ready live studio/);
-  assert.match(html, /One session config flows through every layer/);
+  assert.match(html, /From one stream idea to a designed live room/);
+  assert.match(html, /One session config flows through the useful parts/);
   assert.match(html, /Studio system/);
 
   assert.match(html, /Prepare with Agent/);
@@ -534,9 +540,9 @@ test("Surfaces section tells the broadcast workflow story, not an asset list", (
 
   assert.match(html, /Studio layer/);
 
-  assert.match(html, /Natural-language brief becomes a structured config/);
+  assert.match(html, /Natural-language brief becomes a structured live config/);
   assert.match(html, /Proposal enters a review drawer, never live state/);
-  assert.match(html, /Overlay is a transparent UI frame, not a locked layout/);
+  assert.match(html, /Overlay is a transparent UI frame, not a locked scene layout/);
   assert.match(html, /Overlay, cover, poster and wallpapers from one state/);
   assert.match(html, /Export All for the whole package before you go live/);
 
@@ -564,11 +570,11 @@ test("landing images have width, height, loading, and decoding attributes", () =
 
   assert.match(
     html,
-    /src="\/product\/vibe-coding-overlay-dark\.png"[^>]*width="1920"[^>]*height="1080"[^>]*loading="eager"[^>]*decoding="async"/,
+    /src="\/product\/obs-main-screen-dark\.png"[^>]*width="1174"[^>]*height="660"[^>]*loading="eager"[^>]*decoding="async"/,
   );
   assert.match(html, /src="\/product\/agent-proposal-dark\.png"[^>]*width="3960"[^>]*height="2128"[^>]*loading="lazy"[^>]*decoding="async"/);
   assert.match(html, /src="\/product\/json-drawer-review-dark\.png"[^>]*width="3960"[^>]*height="2128"[^>]*loading="lazy"[^>]*decoding="async"/);
-  assert.match(html, /src="\/product\/obs-main-screen-dark\.png"[^>]*width="1174"[^>]*height="660"[^>]*loading="lazy"[^>]*decoding="async"/);
+  assert.match(html, /src="\/product\/obs-main-screen-dark\.png"[^>]*width="1174"[^>]*height="660"[^>]*loading="eager"[^>]*decoding="async"/);
   assert.match(html, /src="\/product\/vibe-coding-overlay-dark\.png"[^>]*width="1920"[^>]*height="1080"[^>]*loading="eager"[^>]*decoding="async"/);
   assert.match(html, /src="\/product\/vibe-coding-cover-dark\.png"[^>]*width="1280"[^>]*height="720"[^>]*loading="lazy"[^>]*decoding="async"/);
   assert.match(html, /src="\/product\/vibe-coding-poster-dark\.png"[^>]*width="1920"[^>]*height="1080"[^>]*loading="lazy"[^>]*decoding="async"/);
@@ -614,7 +620,7 @@ test("hero showcase image has fetchPriority=high for LCP optimization", () => {
   // The hero (first above-the-fold) image should have fetchPriority=high.
   // React renderToStaticMarkup renders the prop name as fetchPriority (camelCase).
   const heroImgMatch = html.match(
-    /src="\/product\/vibe-coding-overlay-dark\.png"[^>]*fetchPriority="high"/,
+    /src="\/product\/obs-main-screen-dark\.png"[^>]*fetchPriority="high"/,
   );
   assert.ok(heroImgMatch, "hero showcase image should have fetchPriority=high");
 
@@ -770,7 +776,7 @@ test("the AI / Agent section tells the three-step product story and safety claim
   assert.match(html, /OBS renders browser sources/i);
 
   assert.match(html, /never auto-applied/i);
-  assert.match(html, /API key stays on the server/i);
+  assert.match(html, /API key belongs in your local\/private Studio env/i);
 
   assert.match(html, /review.*Apply/i);
   assert.match(html, /browser sources/i);
@@ -833,7 +839,7 @@ test("public skill.md is a concise AI Agent setup contract", () => {
   assert.match(skill, /src\/components\/live-data\//);
   assert.match(skill, /src\/lib\/live-studio-config\.ts/);
   assert.match(skill, /src\/lib\/session-agent\.ts/);
-  assert.match(skill, /API key stays on the server/i);
+  assert.match(skill, /API key stays in local\/private server env/i);
   assert.match(skill, /localStorage/);
   assert.match(skill, /JSON review\/apply/i);
   assert.match(skill, /\/obs\/overlay\?camera=empty/);
@@ -872,7 +878,7 @@ test("Get Started handoff copy logic is honest about success and failure", () =>
   assert.match(HANDOFF_SRC, /copyFailedLabel/);
 });
 
-test("Agent handoff prompts route agents through /skill.md and keep secrets server-side", () => {
+test("Agent handoff prompts route agents through /skill.md and keep secrets local/private", () => {
   // Hero copy button is handled entirely by React (closure + clipboard API).
   // No inline <script>, no dangerouslySetInnerHTML, and no dead data-*
   // attributes that used to feed the old inline script.
@@ -886,7 +892,7 @@ test("Agent handoff prompts route agents through /skill.md and keep secrets serv
   assert.match(CONTENT_SRC, /Copy agent prompt/);
   assert.match(CONTENT_SRC, /Read \/skill\.md first\./);
   assert.match(CONTENT_SRC, /SESSION_AGENT_API_KEY/);
-  assert.match(CONTENT_SRC, /server env/);
+  assert.match(CONTENT_SRC, /local\/private Studio env/);
   assert.match(CONTENT_SRC, /never expose API keys/i);
   assert.match(CONTENT_SRC, /JSON review\/apply/i);
   // Chinese copied/failed labels exist for the hero copy button.
@@ -912,11 +918,15 @@ test("FAQ covers AI auto-apply safety plus demo / studio / OBS / export", () => 
   const html = renderLanding("en");
 
   assert.match(html, /What is Vibe Studio\?/i);
+  assert.match(html, /Is it only for coding streams\?/i);
+  assert.match(html, /Study With Me/i);
+  assert.match(html, /gaming/i);
   assert.match(html, /Does the AI agent ever auto-apply changes\?/i);
   assert.match(html, /JSON review drawer/);
   assert.match(html, /never writes directly to OBS/i);
   assert.match(html, /Where does my API key go\?/i);
-  assert.match(html, /server-side/i);
+  assert.match(html, /local\/private Studio env/i);
+  assert.match(html, /public demo never asks for your key/i);
   assert.match(html, /How do I use it with OBS\?/i);
   assert.match(html, /Where is the repo\?/i);
   assert.match(html, /https:\/\/github\.com\/aklmans\/vibe-studio/);
@@ -924,7 +934,9 @@ test("FAQ covers AI auto-apply safety plus demo / studio / OBS / export", () => 
   assert.match(html, /\/skill\.md/);
 
   assert.match(html, /Is the public demo connected to my private stream\?/i);
+  assert.match(html, /cannot control your OBS/i);
   assert.match(html, /Can I still use this as a private studio\?/i);
+  assert.match(html, /public hosted demo cannot push to your OBS/i);
   assert.match(html, /Where is the real screen capture\?/i);
   assert.match(html, /Can I export the whole broadcast kit\?/i);
 });
@@ -934,10 +946,10 @@ test("metadata reflects the product value and AI story for SEO and sharing", () 
   assert.match(LAYOUT_SRC, /process\.env\.NEXT_PUBLIC_SITE_URL \?\? DEFAULT_SITE_URL/);
   assert.doesNotMatch(LAYOUT_SRC, /NEXT_PUBLIC_SITE_URL \?\? "http:\/\/localhost:3000"/);
 
-  assert.match(LAYOUT_SRC, /title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams"/);
-  assert.match(LAYOUT_SRC, /AI-prepared broadcast graphics/);
-  assert.match(LAYOUT_SRC, /coding livestream studio/);
-  assert.match(LAYOUT_SRC, /OBS browser sources/);
+  assert.match(LAYOUT_SRC, /title: "Vibe Studio — Designed live graphics without fighting OBS"/);
+  assert.match(LAYOUT_SRC, /Study With Me, Coding With Me, Build in Public, gaming, chat/);
+  assert.match(LAYOUT_SRC, /Agent drafts session copy and config/);
+  assert.match(LAYOUT_SRC, /OBS stays flexible/);
   assert.match(LAYOUT_SRC, /review and apply/);
 
   assert.match(LAYOUT_SRC, /openGraph:/);

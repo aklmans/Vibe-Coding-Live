@@ -7,9 +7,11 @@ Repository: https://github.com/aklmans/vibe-studio
 
 ## Goal
 
-Vibe Studio is a Next.js live-studio workbench for coding streams. It prepares
-editorial broadcast graphics, lets a server-side AI agent draft session config,
-renders OBS browser sources, and exports a visual kit.
+Vibe Studio is a Next.js live-studio workbench for Study With Me, Coding With Me,
+Build in Public, Vibe Coding, gaming, chat, co-working, and other "with me" streams. It gives
+creators designed broadcast graphics without hand-building every scene in OBS
+or Livehime, lets a local/private AI agent draft session config, renders OBS
+browser sources, and exports a visual kit.
 
 ## First Files To Read
 
@@ -38,14 +40,17 @@ Use pnpm only.
 
 - `/demo` is local-only: no provider calls, no database writes, no OBS side
   effects.
-- `/studio` is the private workspace. It can use server-side AI provider env,
-  optional database persistence, and OBS automation.
+- `/studio` is the private workspace. When run locally or in your own private
+  deployment, it can use AI provider env, optional database persistence, and
+  local OBS automation.
+- A public hosted demo cannot push into a viewer's local OBS.
 
 ## Agent Boundary
 
-- API key stays on the server in env.
+- API key stays in local/private server env.
 - Never put API keys in browser code, client state, `localStorage`, prompts,
   logs, screenshots, or committed files.
+- Public/demo deployments must not ask for or store user API keys.
 - The client should only see configured/not-configured provider status.
 - AI proposals must go through JSON review/apply.
 - Do not auto-apply generated config.
@@ -76,7 +81,7 @@ camera sources underneath it in OBS or Livehime.
 
 ## AI Provider Setup
 
-Use server env only, for example:
+Use local/private Studio env only, for example:
 
 ```bash
 SESSION_AGENT_PROVIDER=deepseek

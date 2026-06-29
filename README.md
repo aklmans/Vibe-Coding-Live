@@ -1,6 +1,6 @@
 # Vibe Studio
 
-A Next.js app for building and exporting livestream graphics for live coding sessions. It edits cover screens, posters, full overlays, sidebar panels, bottom status bars, and brand wallpapers, then exports broadcast-ready PNG assets.
+A Next.js app for designing livestream graphics for Study With Me, Coding With Me, Build in Public, Vibe Coding, gaming, chat, co-working, and other "with me" stream formats. It gives creators a designed visual frame without hand-building every scene in OBS or Livehime, uses an optional Agent to draft session copy/config, and exports broadcast-ready overlay, cover, poster, and wallpaper assets.
 
 Repository: https://github.com/aklmans/vibe-studio
 
@@ -188,7 +188,7 @@ The schema lives in `src/db/schema.ts`, with a checked-in SQL migration at `driz
 
 ## Session Config Agent (optional AI)
 
-The **Session Config → Agent** tab can call a real model to draft a config, or stay fully local. It is configured by server-side env vars (see `.env.example`):
+The **Session Config → Agent** tab can call a real model to draft a config, or stay fully local. It is configured by local/private Studio env vars (see `.env.example`):
 
 ```bash
 SESSION_AGENT_PROVIDER=deepseek
@@ -199,9 +199,10 @@ SESSION_AGENT_USER_AGENT=Vibe-Studio/SessionConfigAgent
 ```
 
 - The adapter is **OpenAI-compatible Chat Completions**, so DeepSeek, OpenAI, Kimi and z.ai all work by setting `BASE_URL` + `MODEL`. Example provider: [DeepSeek](https://api-docs.deepseek.com/) (`https://api.deepseek.com`, endpoint `/chat/completions`).
-- The **API key stays on the server** (the route `/api/session-config/agent`); it is never in the client bundle, never in `localStorage`, and never logged. The client only learns the provider/model name.
+- The **API key stays in your local/private Studio server env** (the route `/api/session-config/agent`); it is never in the client bundle, never in `localStorage`, and never logged. The client only learns the provider/model name.
 - **No key configured → fallback to local handoff** (Copy handoff). No provider request is made.
 - AI output is **never auto-applied**: a returned config opens in the JSON drawer for review + Apply, exactly like Import.
+- Public/demo deployments do not collect API keys and cannot push into your local OBS. OBS automation is for the local/private Studio you run and configure.
 
 ## Export Workflow
 

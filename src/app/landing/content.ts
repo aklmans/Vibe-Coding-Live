@@ -230,47 +230,47 @@ const enContent: LandingContent = {
   themeToggleLabel: "Light theme",
 
   wordmark: "Vibe Coding Live",
-  eyebrow: "Editorial broadcast workbench",
-  h1: "The AI-native live studio for coding streams",
-  lede: "Describe the stream once. AI drafts the session config, you review the JSON diff, and OBS keeps the real capture underneath. Export overlay, cover, poster and wallpapers from one aligned state.",
+  eyebrow: "Live visual workbench",
+  h1: "Designed live graphics without fighting OBS",
+  lede: "For Study With Me, Coding With Me, Build in Public, Vibe Coding, gaming, chat and co-working streams. Design the frame and export kit in Vibe Studio, keep real captures in OBS or Livehime, and let the Agent draft session copy/config for review.",
   tryDemo: "Try Demo",
   openStudio: "Open Studio",
   copyAgentPrompt: "Copy agent prompt",
-  heroChips: ["AI-prepared", "Human-reviewed", "OBS-rendered"],
+  heroChips: ["Agent-prepared", "Human-reviewed", "Local-first"],
   heroNote: "Demo mode is local-only. Private studio at",
   heroStudioLink: "/studio",
   viewGithub: "View on GitHub",
 
   showcaseImage: {
-    darkSrc: "/product/vibe-coding-overlay-dark.png",
-    lightSrc: "/product/vibe-coding-overlay-light.png",
-    alt: "Vibe Coding Live overlay export",
-    width: 1920,
-    height: 1080,
+    darkSrc: "/product/obs-main-screen-dark.png",
+    lightSrc: "/product/obs-main-screen-light.png",
+    alt: "Vibe Studio OBS composition with the main screen capture under the overlay frame",
+    width: 1174,
+    height: 660,
   },
-  showcaseAlt: "Vibe Coding Live overlay export",
-  showcaseLabel: "overlay · 1920×1080",
+  showcaseAlt: "Vibe Studio OBS composition with main-screen capture",
+  showcaseLabel: "OBS composition · main screen",
 
   featuresEyebrow: "Features",
-  featuresTitle: "Three pillars of a Vibe Studio session",
+  featuresTitle: "Two reasons to stop hand-building live scenes",
   features: [
     {
-      title: "Live Overlay Builder",
-      copy: "Design a transparent main-screen frame, camera slot, sidebar and bottom bar without rebuilding surfaces by hand.",
+      title: "Designed live-room frame",
+      copy: "Create a transparent frame and companion assets in the app, then place screen, camera, game, browser or chat captures underneath in OBS or Livehime.",
     },
     {
       title: "Session Config Agent",
-      copy: "Ask the agent for a session plan. Review the proposed config in a JSON drawer. Apply it only when you are ready.",
+      copy: "Describe today's stream. The Agent drafts titles, sections, on-screen copy and useful metadata so setup starts from a reviewed proposal, not a blank form.",
     },
     {
-      title: "OBS-ready browser sources",
-      copy: "Keep overlay, sidebar and bottom bar as clean browser sources while OBS owns the actual screen capture below.",
+      title: "Local-first Studio",
+      copy: "The public demo is safe. The private Studio runs locally or in your own deployment, with your env API key and local OBS automation only where you configure it.",
     },
   ],
 
   surfacesEyebrow: "Studio system",
-  surfacesTitle: "From one idea to a broadcast-ready live studio",
-  surfacesIntro: "One session config flows through every layer: the agent draft, the JSON review, the OBS browser sources, and the export kit.",
+  surfacesTitle: "From one stream idea to a designed live room",
+  surfacesIntro: "One session config flows through the useful parts: Agent draft, JSON review, OBS-friendly browser sources, and aligned public assets.",
   surfacesAriaLabel: "Live studio system",
   surfacePanelEyebrow: "Studio layer",
   surfaceCards: [
@@ -285,10 +285,10 @@ const enContent: LandingContent = {
         width: 3960,
         height: 2128,
       },
-      summary: "Describe the stream in plain language. The Session Config Agent drafts title, sections, stack, socials and bottom bar — no manual form filling.",
+      summary: "Describe a study session, coding hangout, game stream or chat show in plain language. The Agent drafts title, sections, stack, socials and bottom bar — no manual form filling.",
       points: [
-        "Natural-language brief becomes a structured config",
-        "Title, sections, stack, socials proposed in one pass",
+        "Natural-language brief becomes a structured live config",
+        "Title, sections, metadata and social copy proposed in one pass",
         "Faster prep than editing every field by hand",
       ],
     },
@@ -307,7 +307,7 @@ const enContent: LandingContent = {
       points: [
         "Proposal enters a review drawer, never live state",
         "Field-level diff before any change is applied",
-        "The agent never writes directly to OBS or the database",
+        "The agent never writes directly to OBS, DB, localStorage or runtime state",
       ],
     },
     {
@@ -321,11 +321,11 @@ const enContent: LandingContent = {
         width: 1174,
         height: 660,
       },
-      summary: "Vibe Coding Live owns only the transparent editorial frame. Real screen capture, camera and windows stay free underneath in OBS or Livehime.",
+      summary: "Vibe Studio owns only the transparent editorial frame. Real screen capture, camera, game windows, browser tabs and chat stay free underneath in OBS or Livehime.",
       points: [
-        "Overlay is a transparent UI frame, not a locked layout",
-        "Screen capture and camera stay in OBS where they belong",
-        "Sidebar and bottom bar are independent browser sources",
+        "Overlay is a transparent UI frame, not a locked scene layout",
+        "Screen, camera, game and chat captures stay in OBS where they belong",
+        "Online demo cannot push to OBS; local Studio can automate your local scene",
       ],
     },
     {
@@ -348,13 +348,13 @@ const enContent: LandingContent = {
 
   agentEyebrow: "Agent-assisted session prep",
   agentTitle: "AI prepares. You review. OBS renders.",
-  agentLede: "The Session Config Agent drafts a live-session config from your brief. You read the proposal, inspect the diff, and apply it only when it looks right. OBS then renders the overlay, sidebar and bottom bar as clean browser sources.",
+  agentLede: "The Session Config Agent drafts a live-session config from your brief — study plan, coding outline, game goals, chat topics, or co-working notes. You read the proposal, inspect the diff, and apply it only when it looks right. OBS then renders the browser sources while the real capture stays underneath.",
   agentSkillNote: "For AI setup, send your agent to /skill.md.",
   agentFlow: [
     {
       step: "01",
       title: "Agent drafts a session config",
-      copy: "Describe the stream. The agent returns a proposed config — title, sections, stack, socials — as JSON you can read.",
+      copy: "Describe the stream. The agent returns a proposed config — title, sections, metadata, stack, socials — as JSON you can read.",
     },
     {
       step: "02",
@@ -364,18 +364,18 @@ const enContent: LandingContent = {
     {
       step: "03",
       title: "OBS renders browser sources",
-      copy: "The overlay, sidebar and bottom bar render as clean browser sources. OBS owns the real capture below the frame.",
+      copy: "The overlay, sidebar and bottom bar render as clean browser sources. OBS or Livehime owns the real capture below the frame.",
     },
   ],
   agentSafety: [
     "AI output is never auto-applied. A returned config opens in the JSON review drawer, exactly like Import.",
-    "The API key stays on the server. It never enters the client bundle, localStorage, or logs.",
+    "The API key belongs in your local/private Studio env. The public demo never asks for it and cannot control your OBS.",
   ],
-  agentProviders: "Works with any OpenAI-compatible provider — DeepSeek, OpenAI, Kimi, z.ai and others — configured by server env. No key configured? The agent falls back to a local copy handoff.",
+  agentProviders: "Works with any OpenAI-compatible provider — DeepSeek, OpenAI, Kimi, z.ai and others — configured in your local/private Studio env. No key configured? The agent falls back to a local copy handoff.",
 
   getStartedEyebrow: "Get started",
   getStartedTitle: "Start with an agent-ready handoff.",
-  getStartedLede: "Most setup work is better delegated: clone, inspect, run, configure AI keys, and prepare OBS routes. The demo stays safe and local-only.",
+  getStartedLede: "Most setup work is better delegated: clone, inspect, run, configure a local AI key, and prepare OBS routes. The public demo stays browser-local and cannot touch your OBS.",
   agentTabLabel: "I'm an Agent",
   humanTabLabel: "I'm a Human",
   agentTasksLabel: "Agent tasks",
@@ -390,11 +390,11 @@ Open or clone the repo, then read AGENTS.md and README.md.
 Use pnpm install and pnpm dev.
 Start with the safe public demo at /demo, then explain when to use the private studio at /studio.
 
-If I ask for AI setup, configure provider values only through server env. Never expose API keys,
+If I ask for AI setup, configure provider values only through local/private Studio env. Never expose API keys,
 never put keys in browser code or localStorage, and never log them.
 
 If AI generates a live-session config, do not auto-apply it. Use the JSON review/apply path so I can inspect and apply manually.
-Keep OBS, database, runtime state and localStorage unchanged unless I explicitly ask.`,
+Keep OBS, database, runtime state and localStorage unchanged unless I explicitly ask. The public demo cannot push to OBS.`,
   agentTasks: [
     {
       id: "run-demo",
@@ -402,7 +402,7 @@ Keep OBS, database, runtime state and localStorage unchanged unless I explicitly
       prompt: `Read /skill.md first.
 Then help me run the Vibe Studio local demo from https://github.com/aklmans/vibe-studio.
 Use pnpm. Check AGENTS.md and README.md for install and dev commands.
-The public demo is at /demo — it runs locally with no provider calls, no database writes, no OBS side effects.
+The public demo is at /demo — it runs browser-local with no provider calls, no database writes, and no OBS control.
 Start the dev server and open /demo to confirm it loads.`,
     },
     {
@@ -411,9 +411,9 @@ Start the dev server and open /demo to confirm it loads.`,
       prompt: `Read /skill.md first.
 Then help me configure the Session Config Agent for Vibe Studio.
 Check AGENTS.md and README.md for the Session Config Agent section.
-The agent uses an OpenAI-compatible Chat Completions adapter — set these in .env.local (server only, never committed):
+The agent uses an OpenAI-compatible Chat Completions adapter — set these in your local/private .env.local (never committed):
   SESSION_AGENT_PROVIDER, SESSION_AGENT_BASE_URL, SESSION_AGENT_API_KEY, SESSION_AGENT_MODEL, SESSION_AGENT_USER_AGENT
-The API key stays on the server — never expose API keys, never put them in the client bundle, localStorage, or logs.
+The API key stays in your local/private Studio env — never expose API keys, never put them in the client bundle, localStorage, or logs.
 No key configured? The agent falls back to a local copy handoff. AI output is never auto-applied; use JSON review/apply.`,
     },
     {
@@ -427,7 +427,7 @@ Add these browser sources in OBS (or Livehime via OBS Virtual Camera):
   /obs/overlay?camera=avatar — same frame with avatar camera slot
   /obs/sidebar               — live sidebar panel
   /obs/bottom-bar            — broadcast metadata strip
-Place real screen capture and camera underneath the overlay frame. The overlay owns only the UI frame, not the real capture.`,
+Place real screen capture, camera, game windows, browser tabs or chat underneath the overlay frame. The overlay owns only the UI frame, not the real capture. Public hosted demos cannot push into your local OBS.`,
     },
     {
       id: "understand-project",
@@ -456,11 +456,15 @@ Keep it under 300 words.`,
   faqItems: [
     {
       question: "What is Vibe Studio?",
-      answer: "Vibe Studio is an AI-assisted broadcast graphics workbench for coding livestreams. It prepares editorial overlays, covers, posters and wallpapers while OBS owns the real screen capture.",
+      answer: "Vibe Studio is an AI-assisted live-graphics workbench for people who want a designed stream without rebuilding everything in OBS. It prepares editorial overlays, covers, posters and wallpapers while OBS or Livehime owns the real capture.",
+    },
+    {
+      question: "Is it only for coding streams?",
+      answer: "No. It works for Study With Me, Coding With Me, Build in Public, Vibe Coding, gaming, chat, co-working and other with-me formats where the stream needs a polished visual frame.",
     },
     {
       question: "Is the public demo connected to my private stream?",
-      answer: "No. Demo mode uses local browser storage and avoids real provider calls, database writes and OBS live-state publishing.",
+      answer: "No. Demo mode uses browser-local storage and avoids real provider calls, database writes and OBS live-state publishing. It cannot control your OBS.",
     },
     {
       question: "Does the AI agent ever auto-apply changes?",
@@ -468,11 +472,11 @@ Keep it under 300 words.`,
     },
     {
       question: "Where does my API key go?",
-      answer: "Only server-side env. The browser sees a configured/not-configured status, never the key itself, and keys are not written to localStorage.",
+      answer: "Your API key belongs in your local/private Studio env, usually .env.local. The public demo never asks for your key, the browser only sees configured/not-configured status, and keys are not written to localStorage.",
     },
     {
       question: "Can I still use this as a private studio?",
-      answer: "Yes. Open /studio for the full workspace that can connect to server-side AI, database persistence and OBS automation.",
+      answer: "Yes. Open /studio for the full local/private workspace. It can use your configured AI provider, optional database persistence and local OBS automation; a public hosted demo cannot push to your OBS.",
     },
     {
       question: "How do I use it with OBS?",
@@ -523,46 +527,46 @@ const zhContent: LandingContent = {
 
   wordmark: "Vibe Coding Live",
   eyebrow: "直播画面工作台",
-  h1: "编程直播的 AI 画面工作台",
-  lede: "描述直播内容。AI 根据描述草拟配置，由人工确认后生效；OBS 负责底层真实捕获。一份状态导出透明画面框架、封面、海报和桌面 / 手机壁纸。",
+  h1: "不用和 OBS 较劲，也能有好看的直播画面",
+  lede: "适合 Study With Me、Coding With Me、Build in Public、Vibe Coding、一起打游戏、聊天互动和线上共学。Vibe Studio 负责设计画面框架与导出资产，真实捕获仍留在 OBS 或直播姬；Agent 帮你草拟本场文案和配置，由你确认后生效。",
   tryDemo: "体验 Demo",
   openStudio: "打开 Studio",
   copyAgentPrompt: "复制 Agent 提示词",
-  heroChips: ["AI 准备", "人工确认", "OBS 渲染"],
+  heroChips: ["Agent 准备", "人工确认", "本地优先"],
   heroNote: "Demo 模式仅限本地。私有工作台地址",
   heroStudioLink: "/studio",
   viewGithub: "在 GitHub 查看",
 
   showcaseImage: {
-    darkSrc: "/product/vibe-coding-overlay-dark.png",
-    lightSrc: "/product/vibe-coding-overlay-light.png",
-    alt: "Vibe Coding Live 合成画面导出",
-    width: 1920,
-    height: 1080,
+    darkSrc: "/product/obs-main-screen-dark.png",
+    lightSrc: "/product/obs-main-screen-light.png",
+    alt: "Vibe Studio 在 OBS 中叠加主屏幕捕获的合成画面",
+    width: 1174,
+    height: 660,
   },
-  showcaseAlt: "Vibe Coding Live 合成画面导出",
-  showcaseLabel: "合成画面 · 1920×1080",
+  showcaseAlt: "Vibe Studio OBS 主屏幕合成画面",
+  showcaseLabel: "OBS 合成 · 主屏幕",
 
   featuresEyebrow: "功能",
-  featuresTitle: "Vibe Studio 直播场次的三块基石",
+  featuresTitle: "为什么不用再手搓直播场景",
   features: [
     {
-      title: "合成画面构建器",
-      copy: "设计透明主画面框架、摄像头位、侧栏与底栏，无需手工重建每个画面区域。",
+      title: "好看的直播画面框架",
+      copy: "在应用里设计透明画面框架与配套资产，再把屏幕、摄像头、游戏窗口、浏览器或聊天区放在 OBS / 直播姬底层。",
     },
     {
       title: "Session Config Agent",
-      copy: "向 Agent 描述直播计划，在 JSON 审阅抽屉中检查生成的配置，确认后再应用。",
+      copy: "描述今天要直播什么，Agent 帮你草拟标题、段落、画面文案和关键元数据，从可审阅提案开始，而不是从空表单开始。",
     },
     {
-      title: "OBS 浏览器源",
-      copy: "将合成画面、侧栏与底栏作为干净的浏览器源，OBS 负责真实屏幕捕获。",
+      title: "本地优先的 Studio",
+      copy: "公开 Demo 是安全体验；私有 Studio 在本地或你自己的部署中运行，API key、数据库和 OBS 自动化只在你配置的环境里生效。",
     },
   ],
 
   surfacesEyebrow: "工作室系统",
-  surfacesTitle: "从一句话到可直播的完整工作台",
-  surfacesIntro: "一份 session config 贯穿每一层：Agent 草稿、JSON 审阅、OBS 浏览器源、导出资产。",
+  surfacesTitle: "从一个直播想法到有设计感的直播间",
+  surfacesIntro: "一份 session config 贯穿真正有价值的部分：Agent 草稿、JSON 审阅、OBS 友好的浏览器源，以及统一的公开视觉资产。",
   surfacesAriaLabel: "直播工作室系统",
   surfacePanelEyebrow: "工作台层级",
   surfaceCards: [
@@ -577,10 +581,10 @@ const zhContent: LandingContent = {
         width: 3960,
         height: 2128,
       },
-      summary: "用自然语言描述直播，Session Config Agent 生成标题、段落、工具栈、社交链接与底栏——无需手工填表。",
+      summary: "用自然语言描述一场共学、编程、游戏或聊天直播，Session Config Agent 生成标题、段落、工具栈、社交链接与底栏——无需手工填表。",
       points: [
-        "自然语言描述转为结构化配置",
-        "标题、段落、工具栈、社交链接一次生成",
+        "自然语言描述转为结构化直播配置",
+        "标题、段落、元数据和社交文案一次生成",
         "比逐字段手填更快的准备方式",
       ],
     },
@@ -599,7 +603,7 @@ const zhContent: LandingContent = {
       points: [
         "提案进入审阅抽屉，不直接改直播状态",
         "应用前可见字段级 diff",
-        "Agent 不直接写入 OBS 或数据库",
+        "Agent 不直接写入 OBS、数据库、localStorage 或运行时状态",
       ],
     },
     {
@@ -613,11 +617,11 @@ const zhContent: LandingContent = {
         width: 1174,
         height: 660,
       },
-      summary: "Vibe Coding Live 只负责透明画面框架，真实屏幕捕获、摄像头与窗口保留在 OBS 或直播姬底层自由摆放。",
+      summary: "Vibe Studio 只负责透明画面框架，真实屏幕捕获、摄像头、游戏窗口、浏览器和聊天区保留在 OBS 或直播姬底层自由摆放。",
       points: [
-        "合成画面是透明 UI 框架，不锁定布局",
-        "屏幕捕获与摄像头留在 OBS 底层",
-        "侧栏与底栏是独立浏览器源",
+        "合成画面是透明 UI 框架，不锁定场景布局",
+        "屏幕、摄像头、游戏和聊天捕获留在 OBS 底层",
+        "线上 Demo 不能推送到 OBS；本地 Studio 才能自动化本机场景",
       ],
     },
     {
@@ -640,13 +644,13 @@ const zhContent: LandingContent = {
 
   agentEyebrow: "Agent 辅助直播准备",
   agentTitle: "AI 准备 · 人工确认 · OBS 渲染",
-  agentLede: "Session Config Agent 根据你的描述生成直播配置。你阅读提案、检查 diff，确认后再应用。OBS 将合成画面、侧栏与底栏渲染为干净的浏览器源。",
+  agentLede: "Session Config Agent 根据你的描述生成直播配置——学习计划、编程提纲、游戏目标、聊天主题或共学笔记都可以。你阅读提案、检查 diff，确认后再应用。OBS 渲染浏览器源，真实捕获留在底层。",
   agentSkillNote: "让 AI Agent 先读 /skill.md，它会按项目约定安装、运行和配置。",
   agentFlow: [
     {
       step: "01",
       title: "Agent 生成直播配置",
-      copy: "描述直播内容，Agent 返回提案配置——标题、段落、工具栈、社交链接——以 JSON 格式呈现。",
+      copy: "描述直播内容，Agent 返回提案配置——标题、段落、元数据、工具栈、社交链接——以 JSON 格式呈现。",
     },
     {
       step: "02",
@@ -656,18 +660,18 @@ const zhContent: LandingContent = {
     {
       step: "03",
       title: "OBS 渲染浏览器源",
-      copy: "合成画面、侧栏与底栏渲染为干净的浏览器源。OBS 负责框架下方的真实捕获。",
+      copy: "合成画面、侧栏与底栏渲染为干净的浏览器源。OBS 或直播姬负责框架下方的真实捕获。",
     },
   ],
   agentSafety: [
     "AI 不直接修改直播状态。生成的配置需要进入 JSON 审阅抽屉人工确认，与 Import 完全一致。",
-    "API key 仅存于服务器，不进入客户端 bundle、localStorage 或日志。",
+    "API key 属于你的本地/私有 Studio 环境。公开 Demo 不会索要 key，也不能控制你的 OBS。",
   ],
-  agentProviders: "兼容任何 OpenAI 兼容 provider——DeepSeek、OpenAI、Kimi、z.ai 等——通过服务器环境变量配置。未配置 key？Agent 回退到本地复制交接。生成的配置需人工确认后生效。",
+  agentProviders: "兼容任何 OpenAI 兼容 provider——DeepSeek、OpenAI、Kimi、z.ai 等——通过本地/私有 Studio 环境变量配置。未配置 key？Agent 回退到本地复制交接。生成的配置需人工确认后生效。",
 
   getStartedEyebrow: "开始使用",
   getStartedTitle: "从 Agent 就绪的交接开始",
-  getStartedLede: "大部分配置工作更适合委托：克隆、检查、运行、配置 AI key、准备 OBS 路由。Demo 保持安全、仅限本地。",
+  getStartedLede: "大部分配置工作更适合委托：克隆、检查、运行、配置本地 AI key、准备 OBS 路由。公开 Demo 只在浏览器本地运行，不能触碰你的 OBS。",
   agentTabLabel: "我是 Agent",
   humanTabLabel: "我是人类",
   agentTasksLabel: "Agent 任务",
@@ -682,11 +686,11 @@ https://github.com/aklmans/vibe-studio
 用 pnpm install 和 pnpm dev。
 先从安全的公开 Demo（/demo）开始，然后说明何时使用私有 Studio（/studio）。
 
-如果需要配置 AI，只通过服务器环境变量配置 provider 值。不要暴露 API key，
+如果需要配置 AI，只通过本地/私有 Studio 环境变量配置 provider 值。不要暴露 API key，
 不要把 key 放在浏览器代码或 localStorage，不要记录 key。
 
 如果 AI 生成了 live-session config，不要自动应用。使用 JSON 审阅/应用路径，让我检查后手动应用。
-除非我明确要求，不要改变 OBS、数据库、运行时状态和 localStorage。`,
+除非我明确要求，不要改变 OBS、数据库、运行时状态和 localStorage。公开 Demo 不能推送到 OBS。`,
   agentTasks: [
     {
       id: "run-demo",
@@ -694,7 +698,7 @@ https://github.com/aklmans/vibe-studio
       prompt: `先读 /skill.md。
 然后帮我从 https://github.com/aklmans/vibe-studio 运行 Vibe Studio 本地 Demo。
 用 pnpm。查 AGENTS.md 和 README.md 的安装和 dev 命令。
-公开 Demo 在 /demo——本地运行，无 provider 调用、无数据库写入、无 OBS 副作用。
+公开 Demo 在 /demo——浏览器本地运行，无 provider 调用、无数据库写入、无 OBS 控制。
 启动 dev server 并打开 /demo 确认加载。`,
     },
     {
@@ -703,9 +707,9 @@ https://github.com/aklmans/vibe-studio
       prompt: `先读 /skill.md。
 然后帮我配置 Vibe Studio 的 Session Config Agent。
 查 AGENTS.md 和 README.md 的 Session Config Agent 部分。
-Agent 使用 OpenAI 兼容 Chat Completions 适配器——在 .env.local 设置（仅服务器，不提交）：
+Agent 使用 OpenAI 兼容 Chat Completions 适配器——在本地/私有 .env.local 设置（不要提交）：
   SESSION_AGENT_PROVIDER, SESSION_AGENT_BASE_URL, SESSION_AGENT_API_KEY, SESSION_AGENT_MODEL, SESSION_AGENT_USER_AGENT
-API key 仅存于服务器——不要暴露 API key，不要放入客户端 bundle、localStorage 或日志。
+API key 仅存于本地/私有 Studio 环境——不要暴露 API key，不要放入客户端 bundle、localStorage 或日志。
 未配置 key？Agent 回退到本地复制交接。生成的配置需人工确认后生效；使用 JSON 审阅/应用。`,
     },
     {
@@ -719,7 +723,7 @@ API key 仅存于服务器——不要暴露 API key，不要放入客户端 bun
   /obs/overlay?camera=avatar — 同框架，头像摄像头位
   /obs/sidebar               — 实时侧栏面板
   /obs/bottom-bar            — 直播元数据条
-将真实屏幕捕获和摄像头放在 overlay 框架下方。Overlay 只负责 UI 框架，不负责真实捕获。`,
+将真实屏幕捕获、摄像头、游戏窗口、浏览器或聊天区放在 overlay 框架下方。Overlay 只负责 UI 框架，不负责真实捕获。公开托管 Demo 不能推送到你的本地 OBS。`,
     },
     {
       id: "understand-project",
@@ -748,11 +752,15 @@ Session Config Agent 边界（服务器端 key、审阅/应用、不自动应用
   faqItems: [
     {
       question: "Vibe Studio 是什么？",
-      answer: "Vibe Studio 是面向编程直播的 AI 画面工作台。它支持定制透明画面框架、封面、海报与壁纸，OBS 负责真实屏幕捕获。",
+      answer: "Vibe Studio 是一个 AI 辅助的直播画面工作台，适合想要好看直播间但不想在 OBS 里手搓复杂场景的人。它准备透明画面框架、封面、海报与壁纸，OBS 或直播姬负责真实捕获。",
+    },
+    {
+      question: "它只适合编程直播吗？",
+      answer: "不是。Study With Me、Coding With Me、Build in Public、Vibe Coding、一起打游戏、聊天互动、线上共学这类需要更好直播画面的场景都可以用。",
     },
     {
       question: "公开 Demo 连着我的私有直播吗？",
-      answer: "不。Demo 模式使用本地浏览器存储，不触发真实 provider 调用、数据库写入或 OBS 实时状态发布。",
+      answer: "不。Demo 模式使用浏览器本地存储，不触发真实 provider 调用、数据库写入或 OBS 实时状态发布，也不能控制你的 OBS。",
     },
     {
       question: "AI Agent 会自动修改直播状态吗？",
@@ -760,11 +768,11 @@ Session Config Agent 边界（服务器端 key、审阅/应用、不自动应用
     },
     {
       question: "我的 API key 存在哪里？",
-      answer: "仅存于服务器环境变量。浏览器只看到已配置/未配置状态，永远看不到 key 本身，key 不会写入 localStorage。",
+      answer: "API key 属于你的本地/私有 Studio 环境，通常写在 .env.local。公开 Demo 不会索要 key；浏览器只看到已配置/未配置状态，key 不会写入 localStorage。",
     },
     {
       question: "我可以把它当私有 Studio 用吗？",
-      answer: "可以。打开 /studio 进入完整工作台，可连接服务器端 AI、数据库持久化与 OBS 自动化。",
+      answer: "可以。打开 /studio 进入完整的本地/私有工作台，可连接你配置的 AI provider、可选数据库持久化与本地 OBS 自动化；公开托管 Demo 不能推送到你的 OBS。",
     },
     {
       question: "如何配合 OBS 使用？",
