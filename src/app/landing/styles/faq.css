@@ -84,3 +84,16 @@
 .akl-faq summary:focus-visible .akl-faq-indicator::after {
   background: var(--akl-accent);
 }
+
+/* Inline links inside FAQ answers — route references / repo URL. */
+.akl-faq details p a {
+  color: var(--akl-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 160ms ease;
+}
+
+.akl-faq details p a:hover,
+.akl-faq details p a:focus-visible {
+  color: var(--akl-text);
+}

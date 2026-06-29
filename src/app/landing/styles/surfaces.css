@@ -261,14 +261,36 @@
 
 .akl-gallery-caption {
   margin: -6px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
   color: var(--akl-text-subtle);
   font-family: var(--app-font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   line-height: 1.6;
   text-align: center;
   text-transform: uppercase;
+}
+
+.akl-gallery-caption-item {
+  display: inline-flex;
+  align-items: center;
+  color: var(--akl-text-subtle);
+  transition: color 200ms ease;
+}
+
+.akl-gallery-caption-item + .akl-gallery-caption-item::before {
+  content: "·";
+  margin: 0 10px;
+  color: var(--akl-border);
+}
+
+.akl-gallery-caption-item[data-current] {
+  color: var(--akl-text);
 }
 
 .akl-surface-copy h3 {

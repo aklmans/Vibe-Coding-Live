@@ -13,6 +13,7 @@
     "live:status": "tsx scripts/prepare-live.ts status",
     "live:stop": "tsx scripts/prepare-live.ts stop",
     "live:restart": "tsx scripts/prepare-live.ts restart",
+    "landing:images": "tsx scripts/optimize-landing-images.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",

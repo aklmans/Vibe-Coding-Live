@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "../../lib/i18n";
 import LandingProvider, { useLanding } from "./LandingProvider";
 import GetStartedHandoff from "./GetStartedHandoff";
 import SurfacesTabs from "./SurfacesTabs";
+import ThemedPicture from "./ThemedPicture";
 import {
   GITHUB_PROFILE_URL,
   GITHUB_URL,
-  imageSrcForTheme,
   MAIN_SITE_URL,
   RSS_URL,
   X_URL,
@@ -16,6 +16,36 @@ import {
 
 interface LandingPageClientProps {
   initialLocale: Locale;
+}
+
+// ─── FAQ answer linkification ─────────────────────────────────────────────
+// Turns references to /demo, /studio, /skill.md, and the GitHub repo URL in
+// FAQ answer strings into inline <a> tags. Keeps FAQ as pure string data in
+// content.ts while making route references clickable on the client.
+//
+// Patterns use negative lookahead (?![\/\w-]) so /demo doesn't match inside
+// /demo-something or /obs/demo, and /studio doesn't match /studios.
+const FAQ_LINK_RE = /(https:\/\/github\.com\/aklmans\/vibe-studio|\/skill\.md|\/demo(?![\/\w-])|\/studio(?![\/\w-]))/g;
+const FAQ_LINK_HREFS: Record<string, string> = {
+  "https://github.com/aklmans/vibe-studio": GITHUB_URL,
+  "/skill.md": "/skill.md",
+  "/demo": "/demo",
+  "/studio": "/studio",
+};
+
+function renderFaqAnswer(answer: string): ReactNode[] {
+  return answer.split(FAQ_LINK_RE).map((part, i) => {
+    if (!part) return null;
+    const href = FAQ_LINK_HREFS[part];
+    if (href) {
+      return (
+        <a key={i} href={href} className="akl-faq-link">
+          {part}
+        </a>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
 }
 
 export default function LandingPageClient({ initialLocale }: LandingPageClientProps) {
@@ -202,14 +232,15 @@ function LandingPageContent() {
             <span></span>
             <b>{c.showcaseLabel}</b>
           </div>
-          <img
-            src={imageSrcForTheme(c.showcaseImage, theme)}
+          <ThemedPicture
+            image={c.showcaseImage}
+            theme={theme}
             alt={c.showcaseImage.alt}
-            className="akl-overlay-img"
             width={c.showcaseImage.width}
             height={c.showcaseImage.height}
             loading="eager"
-            decoding="async"
+            fetchPriority="high"
+            className="akl-overlay-img"
           />
         </div>
       </section>
@@ -306,7 +337,7 @@ function LandingPageContent() {
                 <span className="akl-faq-question">{item.question}</span>
                 <span className="akl-faq-indicator" aria-hidden="true"></span>
               </summary>
-              <p>{item.answer}</p>
+              <p>{renderFaqAnswer(item.answer)}</p>
             </details>
           ))}
         </div>

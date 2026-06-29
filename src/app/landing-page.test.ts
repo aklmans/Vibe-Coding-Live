@@ -16,6 +16,7 @@ const CONTENT_SRC = readFileSync(resolve("src/app/landing/content.ts"), "utf8");
 const PROVIDER_SRC = readFileSync(resolve("src/app/landing/LandingProvider.tsx"), "utf8");
 const SURFACES_TABS_SRC = readFileSync(resolve("src/app/landing/SurfacesTabs.tsx"), "utf8");
 const HANDOFF_SRC = readFileSync(resolve("src/app/landing/GetStartedHandoff.tsx"), "utf8");
+const THEMED_PICTURE_SRC = readFileSync(resolve("src/app/landing/ThemedPicture.tsx"), "utf8");
 const LAYOUT_SRC = readFileSync(resolve("src/app/layout.tsx"), "utf8");
 const CLIENT_PAGE_SRC = readFileSync(resolve("src/app/client-page.tsx"), "utf8");
 const DEMO_PAGE_PATH = resolve("src/app/demo/page.tsx");
@@ -572,6 +573,179 @@ test("landing images have width, height, loading, and decoding attributes", () =
   assert.match(html, /src="\/product\/vibe-coding-cover-dark\.png"[^>]*width="1280"[^>]*height="720"[^>]*loading="lazy"[^>]*decoding="async"/);
   assert.match(html, /src="\/product\/vibe-coding-poster-dark\.png"[^>]*width="1920"[^>]*height="1080"[^>]*loading="lazy"[^>]*decoding="async"/);
   assert.match(html, /src="\/product\/vibe-coding-wallpaper-desktop-4k-dark\.png"[^>]*width="3840"[^>]*height="2160"[^>]*loading="lazy"[^>]*decoding="async"/);
+});
+
+test("landing images use <picture> with AVIF and WebP sources for format negotiation", () => {
+  const html = renderLanding("en");
+
+  // Every product image is wrapped in <picture> with AVIF + WebP <source> tags.
+  const pictureCount = (html.match(/<picture>/g) || []).length;
+  assert.ok(pictureCount >= 7, `expected at least 7 <picture> elements, got ${pictureCount}`);
+
+  // AVIF sources come before WebP sources (format preference order).
+  // React renderToStaticMarkup uses srcSet (camelCase) in the HTML output.
+  assert.match(html, /<source type="image\/avif" srcSet="[^"]*\.avif"/);
+  assert.match(html, /<source type="image\/webp" srcSet="[^"]*\.webp"/);
+
+  // Verify each AVIF source is followed by a WebP source for the same base name.
+  const avifMatches = [...html.matchAll(/<source type="image\/avif" srcSet="(\/product\/[^"]+)\.avif"/g)];
+  const webpMatches = [...html.matchAll(/<source type="image\/webp" srcSet="(\/product\/[^"]+)\.webp"/g)];
+  assert.equal(avifMatches.length, webpMatches.length,
+    "AVIF and WebP source counts should match");
+  for (let i = 0; i < avifMatches.length; i++) {
+    assert.equal(avifMatches[i][1], webpMatches[i][1],
+      `AVIF and WebP base names should match at index ${i}: ${avifMatches[i][1]} vs ${webpMatches[i][1]}`);
+  }
+
+  // The <img> fallback still has the PNG src (not the AVIF/WebP src).
+  assert.match(html, /src="\/product\/vibe-coding-overlay-dark\.png"/);
+
+  // ThemedPicture component exists and derives format paths from the PNG path.
+  assert.match(THEMED_PICTURE_SRC, /<picture>/);
+  assert.match(THEMED_PICTURE_SRC, /type="image\/avif"/);
+  assert.match(THEMED_PICTURE_SRC, /type="image\/webp"/);
+  assert.match(THEMED_PICTURE_SRC, /\.replace\(\/\\\.png\$\/, "\.avif"\)/);
+  assert.match(THEMED_PICTURE_SRC, /\.replace\(\/\\\.png\$\/, "\.webp"\)/);
+});
+
+test("hero showcase image has fetchPriority=high for LCP optimization", () => {
+  const html = renderLanding("en");
+
+  // The hero (first above-the-fold) image should have fetchPriority=high.
+  // React renderToStaticMarkup renders the prop name as fetchPriority (camelCase).
+  const heroImgMatch = html.match(
+    /src="\/product\/vibe-coding-overlay-dark\.png"[^>]*fetchPriority="high"/,
+  );
+  assert.ok(heroImgMatch, "hero showcase image should have fetchPriority=high");
+
+  // Non-hero images should NOT have fetchPriority=high.
+  const surfaceImgMatch = html.match(
+    /src="\/product\/agent-proposal-dark\.png"[^>]*fetchPriority="high"/,
+  );
+  assert.equal(surfaceImgMatch, null,
+    "surface images should not have fetchPriority=high");
+
+  // ThemedPicture supports the fetchPriority prop.
+  assert.match(THEMED_PICTURE_SRC, /fetchPriority/);
+});
+
+test("AVIF and WebP files exist for every landing product image", () => {
+  const content = getLandingContent("en");
+  const allImages: Array<{ darkSrc: string; lightSrc: string }> = [];
+
+  if (content.showcaseImage) allImages.push(content.showcaseImage);
+  for (const card of content.surfaceCards) {
+    if (card.image) allImages.push(card.image);
+    if (card.gallery) {
+      for (const img of card.gallery) {
+        allImages.push({ darkSrc: img.darkSrc, lightSrc: img.lightSrc });
+      }
+    }
+  }
+
+  for (const img of allImages) {
+    for (const src of [img.darkSrc, img.lightSrc]) {
+      const pngPath = resolve(`public${src}`);
+      const avifPath = resolve(`public${src.replace(/\.png$/, ".avif")}`);
+      const webpPath = resolve(`public${src.replace(/\.png$/, ".webp")}`);
+      assert.equal(existsSync(pngPath), true, `${pngPath} should exist`);
+      assert.equal(existsSync(avifPath), true, `${avifPath} should exist`);
+      assert.equal(existsSync(webpPath), true, `${webpPath} should exist`);
+    }
+  }
+});
+
+test("landing product image optimization workflow is scripted and documented", () => {
+  const packageJson = JSON.parse(readFileSync(resolve("package.json"), "utf8")) as {
+    scripts?: Record<string, string>;
+  };
+
+  assert.equal(
+    packageJson.scripts?.["landing:images"],
+    "tsx scripts/optimize-landing-images.ts",
+  );
+
+  const scriptPath = resolve("scripts/optimize-landing-images.ts");
+  assert.equal(existsSync(scriptPath), true, `${scriptPath} should exist`);
+  const scriptSrc = existsSync(scriptPath) ? readFileSync(scriptPath, "utf8") : "";
+  assert.match(scriptSrc, /getLandingContent/);
+  assert.match(scriptSrc, /cwebp/);
+  assert.match(scriptSrc, /avifenc/);
+
+  const readmePath = resolve("public/product/README.md");
+  assert.equal(existsSync(readmePath), true, `${readmePath} should exist`);
+  const readme = existsSync(readmePath) ? readFileSync(readmePath, "utf8") : "";
+  assert.match(readme, /pnpm landing:images/);
+  assert.match(readme, /cwebp/);
+  assert.match(readme, /avifenc/);
+});
+
+test("gallery caption is a position-aware index with current item highlighted", () => {
+  const html = renderLanding("en");
+
+  // Caption items are individual spans with data-current on the active one.
+  // React renders data-current={true} as data-current="true".
+  assert.match(html, /class="akl-gallery-caption-item"/);
+  assert.match(html, /data-current="true"/);
+
+  // The caption should NOT use the old arrow-joined string format.
+  assert.doesNotMatch(html, /Overlay → Cover → Poster → Wallpaper/);
+
+  // Each caption item shows only the asset name (before the " · " separator).
+  const captionItems = [...html.matchAll(/class="akl-gallery-caption-item"[^>]*>([^<]+)</g)];
+  assert.ok(captionItems.length >= 4, "gallery caption should have at least 4 items");
+  const names = captionItems.map((m) => m[1]);
+  assert.ok(names.includes("Overlay"), `caption should include "Overlay", got ${JSON.stringify(names)}`);
+  assert.ok(names.includes("Cover"), `caption should include "Cover", got ${JSON.stringify(names)}`);
+  assert.ok(names.includes("Poster"), `caption should include "Poster", got ${JSON.stringify(names)}`);
+  assert.ok(names.includes("Wallpaper"), `caption should include "Wallpaper", got ${JSON.stringify(names)}`);
+
+  // SurfacesTabs source uses the data-current attribute on the active item.
+  assert.match(SURFACES_TABS_SRC, /akl-gallery-caption-item/);
+  assert.match(SURFACES_TABS_SRC, /data-current=\{index === current/);
+
+  // CSS highlights the current item with the text color.
+  assert.match(SURFACES_CSS, /\.akl-gallery-caption-item\[data-current\]/);
+});
+
+test("FAQ answers linkify route references and repo URL inline", () => {
+  const html = renderLanding("en");
+
+  // FAQ answers contain <a class="akl-faq-link"> elements for /demo, /studio,
+  // /skill.md, and the GitHub repo URL.
+  assert.match(html, /class="akl-faq-link"/);
+
+  // /studio should be linked in the "Can I still use this as a private studio?" answer.
+  assert.match(html, /href="\/studio"[^>]*class="akl-faq-link"[^>]*>\/studio</);
+
+  // /skill.md should be linked in the "Can an AI Agent set it up for me?" answer.
+  assert.match(html, /href="\/skill\.md"[^>]*class="akl-faq-link"[^>]*>\/skill\.md</);
+
+  // The GitHub repo URL should be linked in the "Where is the repo?" answer.
+  assert.match(
+    html,
+    /href="https:\/\/github\.com\/aklmans\/vibe-studio"[^>]*class="akl-faq-link"[^>]*>https:\/\/github\.com\/aklmans\/vibe-studio</,
+  );
+
+  // The linkifier uses negative lookahead to avoid matching /demo inside
+  // longer paths like /demo-something.
+  assert.match(CLIENT_SRC, /FAQ_LINK_RE/);
+  assert.match(CLIENT_SRC, /demo\(\?!\[/);
+
+  // Chinese FAQ answers also get linkified.
+  const htmlZh = renderLanding("zh");
+  assert.match(htmlZh, /href="\/studio"[^>]*class="akl-faq-link"[^>]*>\/studio</);
+  assert.match(htmlZh, /href="\/skill\.md"[^>]*class="akl-faq-link"[^>]*>\/skill\.md</);
+
+  // FAQ link CSS exists with focus-visible.
+  assert.match(FAQ_CSS, /\.akl-faq details p a/);
+  assert.match(BASE_CSS, /\.akl-faq-link:focus-visible/);
+});
+
+test("metadata includes og:siteName for social sharing", () => {
+  assert.match(LAYOUT_SRC, /siteName: "Vibe Studio"/);
+  assert.match(LAYOUT_SRC, /openGraph:/);
+  assert.match(LAYOUT_SRC, /opengraph\.jpg/);
 });
 
 test("reduced-motion and focus-visible CSS are present", () => {

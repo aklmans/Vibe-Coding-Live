@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { imageSrcForTheme } from "./content";
 import type { LandingTheme, SurfaceCard, SurfaceGalleryImage } from "./content";
+import ThemedPicture from "./ThemedPicture";
 
 interface SurfacesTabsProps {
   cards: ReadonlyArray<SurfaceCard>;
@@ -134,13 +134,13 @@ export default function SurfacesTabs({
                     nextLabel={galleryNextLabel}
                   />
                 ) : card.image ? (
-                  <img
-                    src={imageSrcForTheme(card.image, theme)}
+                  <ThemedPicture
+                    image={card.image}
+                    theme={theme}
                     alt={card.image.alt}
                     width={card.image.width}
                     height={card.image.height}
                     loading="lazy"
-                    decoding="async"
                   />
                 ) : null}
               </div>
@@ -250,13 +250,13 @@ function GalleryCarousel({ images, baseId, theme, carouselLabel, controlsLabel, 
                 aria-roledescription="slide"
                 aria-label={`${index + 1} of ${count}: ${img.label}`}
               >
-                <img
-                  src={imageSrcForTheme(img, theme)}
+                <ThemedPicture
+                  image={img}
+                  theme={theme}
                   alt={img.alt}
                   width={img.width}
                   height={img.height}
                   loading={index === 0 ? "eager" : "lazy"}
-                  decoding="async"
                 />
               </figure>
             );
@@ -297,7 +297,17 @@ function GalleryCarousel({ images, baseId, theme, carouselLabel, controlsLabel, 
           </svg>
         </button>
       </div>
-      <p className="akl-gallery-caption">{images.map((img) => img.label.split(" · ")[0]).join(" → ")}</p>
+      <p className="akl-gallery-caption" aria-label={carouselLabel}>
+        {images.map((img, index) => (
+          <span
+            key={img.darkSrc}
+            className="akl-gallery-caption-item"
+            data-current={index === current || undefined}
+          >
+            {img.label.split(" · ")[0]}
+          </span>
+        ))}
+      </p>
     </div>
   );
 }

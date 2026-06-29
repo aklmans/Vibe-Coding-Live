@@ -64,6 +64,7 @@ export const metadata: Metadata = {
     title: "Vibe Studio — AI-prepared broadcast graphics for coding livestreams",
     description:
       "AI-prepared broadcast graphics for a coding livestream studio. Draft, review and apply session config, connect OBS browser sources, and export overlay, cover, poster and wallpaper assets.",
+    siteName: "Vibe Studio",
     images: ["/opengraph.jpg"],
     type: "website",
   },
